@@ -2,24 +2,23 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { COMPANHIAS } from '@/lib/constants';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 export default function Relatorios() {
   const [presenceData, setPresenceData] = useState<any[]>([]);
   const [companyFilter, setCompanyFilter] = useState('');
   const [monthlyData, setMonthlyData] = useState<any[]>([]);
-  const [faltasData, setFaltasData] = useState<any[]>([]);
+  const [membroData, setMembroData] = useState<any[]>([]);
+  const [topMonth, setTopMonth] = useState('');
 
   useEffect(() => {
     const fetchData = async () => {
-      // Fetch sessions with military data
       const { data: sessions } = await supabase
         .from('sessions')
-        .select('status, militar_id, data_hora, militares(nome_guerra, posto_graduacao, companhia)');
+        .select('status, militar_id, data_hora, militares(nome_guerra, posto_graduacao, companhia, lesoes)');
 
       if (!sessions) return;
 
-      // Filter by company if set
       const filtered = companyFilter
         ? sessions.filter((s: any) => s.militares?.companhia === companyFilter)
         : sessions;
@@ -47,22 +46,36 @@ export default function Relatorios() {
         const month = new Date(s.data_hora).toLocaleDateString('pt-BR', { month: 'short', year: '2-digit' });
         monthMap[month] = (monthMap[month] || 0) + 1;
       });
-      setMonthlyData(Object.entries(monthMap).map(([name, total]) => ({ name, total })));
+      const monthArr = Object.entries(monthMap).map(([name, total]) => ({ name, total }));
+      setMonthlyData(monthArr);
 
-      // Most absences
-      const faltasMap: Record<string, { count: number; name: string }> = {};
-      filtered.filter((s: any) => s.status === 'faltou').forEach((s: any) => {
-        const key = s.militar_id;
-        if (!faltasMap[key]) faltasMap[key] = { count: 0, name: `${s.militares?.posto_graduacao} ${s.militares?.nome_guerra}` };
-        faltasMap[key].count++;
+      // Top month
+      if (monthArr.length > 0) {
+        const top = monthArr.reduce((a, b) => (a.total > b.total ? a : b));
+        setTopMonth(`${top.name} (${top.total} atendimentos)`);
+      }
+
+      // Atendimentos por membro (lesão segmento)
+      const membroMap: Record<string, number> = {};
+      filtered.forEach((s: any) => {
+        const lesoes = s.militares?.lesoes;
+        if (Array.isArray(lesoes)) {
+          lesoes.forEach((l: any) => {
+            if (l?.segmento) {
+              membroMap[l.segmento] = (membroMap[l.segmento] || 0) + 1;
+            }
+          });
+        }
       });
-      setFaltasData(Object.values(faltasMap).sort((a, b) => b.count - a.count).slice(0, 5));
+      setMembroData(
+        Object.entries(membroMap)
+          .map(([name, total]) => ({ name, total }))
+          .sort((a, b) => b.total - a.total)
+      );
     };
 
     fetchData();
   }, [companyFilter]);
-
-  const COLORS = ['hsl(220, 70%, 25%)', 'hsl(45, 93%, 47%)', 'hsl(199, 89%, 48%)', 'hsl(142, 71%, 45%)', 'hsl(0, 84%, 60%)'];
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -78,6 +91,15 @@ export default function Relatorios() {
         </select>
       </div>
 
+      {topMonth && (
+        <Card>
+          <CardContent className="pt-6">
+            <p className="text-sm text-muted-foreground">Mês com mais atendimentos</p>
+            <p className="text-xl font-bold text-foreground">{topMonth}</p>
+          </CardContent>
+        </Card>
+      )}
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader><CardTitle className="text-lg">Taxa de Presença por Militar</CardTitle></CardHeader>
@@ -89,7 +111,7 @@ export default function Relatorios() {
                   <XAxis type="number" domain={[0, 100]} unit="%" />
                   <YAxis type="category" dataKey="name" width={150} tick={{ fontSize: 11 }} />
                   <Tooltip formatter={(val: number) => `${val}%`} />
-                  <Bar dataKey="taxa" fill="hsl(220, 70%, 25%)" radius={[0, 4, 4, 0]} />
+                  <Bar dataKey="taxa" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             ) : (
@@ -108,7 +130,7 @@ export default function Relatorios() {
                   <XAxis dataKey="name" />
                   <YAxis />
                   <Tooltip />
-                  <Bar dataKey="total" fill="hsl(45, 93%, 47%)" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="total" fill="hsl(var(--accent))" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             ) : (
@@ -118,19 +140,20 @@ export default function Relatorios() {
         </Card>
 
         <Card className="lg:col-span-2">
-          <CardHeader><CardTitle className="text-lg">Militares com Mais Faltas</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="text-lg">Atendimentos por Membro (Lesão)</CardTitle></CardHeader>
           <CardContent>
-            {faltasData.length > 0 ? (
-              <div className="space-y-3">
-                {faltasData.map((f, i) => (
-                  <div key={i} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
-                    <span className="text-sm font-medium text-foreground">{f.name}</span>
-                    <span className="text-sm font-bold text-destructive">{f.count} falta{f.count > 1 ? 's' : ''}</span>
-                  </div>
-                ))}
-              </div>
+            {membroData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={membroData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" tick={{ fontSize: 11 }} />
+                  <YAxis />
+                  <Tooltip />
+                  <Bar dataKey="total" fill="hsl(var(--secondary))" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
             ) : (
-              <p className="text-muted-foreground text-sm text-center py-8">Nenhuma falta registrada.</p>
+              <p className="text-muted-foreground text-sm text-center py-8">Sem dados de lesões.</p>
             )}
           </CardContent>
         </Card>
