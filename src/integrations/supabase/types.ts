@@ -14,16 +14,357 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      exercises: {
+        Row: {
+          categoria: string
+          created_at: string
+          descricao: string | null
+          dificuldade: string
+          id: string
+          imagem_url: string | null
+          instrucoes: string | null
+          nome: string
+          updated_at: string
+          video_url: string | null
+        }
+        Insert: {
+          categoria: string
+          created_at?: string
+          descricao?: string | null
+          dificuldade?: string
+          id?: string
+          imagem_url?: string | null
+          instrucoes?: string | null
+          nome: string
+          updated_at?: string
+          video_url?: string | null
+        }
+        Update: {
+          categoria?: string
+          created_at?: string
+          descricao?: string | null
+          dificuldade?: string
+          id?: string
+          imagem_url?: string | null
+          instrucoes?: string | null
+          nome?: string
+          updated_at?: string
+          video_url?: string | null
+        }
+        Relationships: []
+      }
+      militares: {
+        Row: {
+          ativo: boolean
+          companhia: string
+          created_at: string
+          diagnostico: string | null
+          email: string
+          foto_url: string | null
+          id: string
+          nip: string
+          nome_completo: string
+          nome_guerra: string
+          observacoes: string | null
+          posto_graduacao: string
+          profile_id: string | null
+          setor: string | null
+          telefone: string | null
+          updated_at: string
+        }
+        Insert: {
+          ativo?: boolean
+          companhia: string
+          created_at?: string
+          diagnostico?: string | null
+          email: string
+          foto_url?: string | null
+          id?: string
+          nip: string
+          nome_completo: string
+          nome_guerra: string
+          observacoes?: string | null
+          posto_graduacao: string
+          profile_id?: string | null
+          setor?: string | null
+          telefone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          ativo?: boolean
+          companhia?: string
+          created_at?: string
+          diagnostico?: string | null
+          email?: string
+          foto_url?: string | null
+          id?: string
+          nip?: string
+          nome_completo?: string
+          nome_guerra?: string
+          observacoes?: string | null
+          posto_graduacao?: string
+          profile_id?: string | null
+          setor?: string | null
+          telefone?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "militares_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      plan_exercises: {
+        Row: {
+          created_at: string
+          descanso: string | null
+          exercise_id: string
+          frequencia_semanal: number | null
+          id: string
+          observacoes: string | null
+          plan_id: string
+          repeticoes: number | null
+          series: number | null
+        }
+        Insert: {
+          created_at?: string
+          descanso?: string | null
+          exercise_id: string
+          frequencia_semanal?: number | null
+          id?: string
+          observacoes?: string | null
+          plan_id: string
+          repeticoes?: number | null
+          series?: number | null
+        }
+        Update: {
+          created_at?: string
+          descanso?: string | null
+          exercise_id?: string
+          frequencia_semanal?: number | null
+          id?: string
+          observacoes?: string | null
+          plan_id?: string
+          repeticoes?: number | null
+          series?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plan_exercises_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "exercises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "plan_exercises_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "treatment_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string
+          full_name: string | null
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          full_name?: string | null
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          full_name?: string | null
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      session_notes: {
+        Row: {
+          created_at: string
+          id: string
+          militar_id: string
+          nivel_dor: number | null
+          observacoes_paciente: string | null
+          session_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          militar_id: string
+          nivel_dor?: number | null
+          observacoes_paciente?: string | null
+          session_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          militar_id?: string
+          nivel_dor?: number | null
+          observacoes_paciente?: string | null
+          session_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "session_notes_militar_id_fkey"
+            columns: ["militar_id"]
+            isOneToOne: false
+            referencedRelation: "militares"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "session_notes_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sessions: {
+        Row: {
+          anotacao_clinica: string | null
+          created_at: string
+          data_hora: string
+          duracao: number
+          fisio_id: string
+          id: string
+          militar_id: string
+          status: string
+          tipo: string
+          updated_at: string
+        }
+        Insert: {
+          anotacao_clinica?: string | null
+          created_at?: string
+          data_hora: string
+          duracao?: number
+          fisio_id: string
+          id?: string
+          militar_id: string
+          status?: string
+          tipo?: string
+          updated_at?: string
+        }
+        Update: {
+          anotacao_clinica?: string | null
+          created_at?: string
+          data_hora?: string
+          duracao?: number
+          fisio_id?: string
+          id?: string
+          militar_id?: string
+          status?: string
+          tipo?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sessions_militar_id_fkey"
+            columns: ["militar_id"]
+            isOneToOne: false
+            referencedRelation: "militares"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      treatment_plans: {
+        Row: {
+          ativo: boolean
+          created_at: string
+          data_fim: string | null
+          data_inicio: string
+          fisio_id: string
+          id: string
+          militar_id: string
+          nome: string
+          objetivo: string | null
+          updated_at: string
+        }
+        Insert: {
+          ativo?: boolean
+          created_at?: string
+          data_fim?: string | null
+          data_inicio: string
+          fisio_id: string
+          id?: string
+          militar_id: string
+          nome: string
+          objetivo?: string | null
+          updated_at?: string
+        }
+        Update: {
+          ativo?: boolean
+          created_at?: string
+          data_fim?: string | null
+          data_inicio?: string
+          fisio_id?: string
+          id?: string
+          militar_id?: string
+          nome?: string
+          objetivo?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "treatment_plans_militar_id_fkey"
+            columns: ["militar_id"]
+            isOneToOne: false
+            referencedRelation: "militares"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "military"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +491,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "military"],
+    },
   },
 } as const
