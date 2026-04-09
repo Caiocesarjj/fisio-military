@@ -1,41 +1,46 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Plus, Calendar as CalendarIcon } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { toast } from 'sonner';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, startOfWeek, endOfWeek, addMonths, subMonths } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
 import { STATUS_SESSAO, TIPOS_ATENDIMENTO } from '@/lib/constants';
+
+import FullCalendar from '@fullcalendar/react';
+import dayGridPlugin from '@fullcalendar/daygrid';
+import timeGridPlugin from '@fullcalendar/timegrid';
+import interactionPlugin from '@fullcalendar/interaction';
+import type { EventClickArg, DatesSetArg } from '@fullcalendar/core';
 
 export default function Agenda() {
   const { user } = useAuth();
   const [sessions, setSessions] = useState<any[]>([]);
   const [militares, setMilitares] = useState<any[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [currentMonth, setCurrentMonth] = useState(new Date());
-  const [view, setView] = useState<'calendar' | 'list'>('calendar');
+  const [detailDialog, setDetailDialog] = useState<any>(null);
+  const [dateRange, setDateRange] = useState<{ start: Date; end: Date } | null>(null);
   const [form, setForm] = useState({ militar_id: '', data_hora: '', duracao: 60, tipo: 'presencial', status: 'agendado', anotacao_clinica: '' });
   const [loading, setLoading] = useState(false);
 
-  const fetchData = async () => {
-    const start = startOfMonth(currentMonth);
-    const end = endOfMonth(currentMonth);
+  const fetchData = async (start?: Date, end?: Date) => {
+    const s = start || dateRange?.start || new Date();
+    const e = end || dateRange?.end || new Date();
     const [sessRes, milRes] = await Promise.all([
-      supabase.from('sessions').select('*, militares(nome_guerra, posto_graduacao, companhia, foto_url)').gte('data_hora', start.toISOString()).lte('data_hora', end.toISOString()).order('data_hora'),
+      supabase.from('sessions').select('*, militares(nome_guerra, posto_graduacao, companhia, foto_url)').gte('data_hora', s.toISOString()).lte('data_hora', e.toISOString()).order('data_hora'),
       supabase.from('militares').select('id, nome_guerra, posto_graduacao').eq('ativo', true),
     ]);
     setSessions(sessRes.data || []);
     setMilitares(milRes.data || []);
   };
 
-  useEffect(() => { fetchData(); }, [currentMonth]);
+  const handleDatesSet = (arg: DatesSetArg) => {
+    setDateRange({ start: arg.start, end: arg.end });
+    fetchData(arg.start, arg.end);
+  };
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,100 +59,97 @@ export default function Agenda() {
   const updateStatus = async (sessionId: string, status: string) => {
     await supabase.from('sessions').update({ status }).eq('id', sessionId);
     toast.success(`Status atualizado para "${status}".`);
+    setDetailDialog(null);
     fetchData();
   };
 
-  const monthStart = startOfMonth(currentMonth);
-  const monthEnd = endOfMonth(currentMonth);
-  const calStart = startOfWeek(monthStart, { locale: ptBR });
-  const calEnd = endOfWeek(monthEnd, { locale: ptBR });
-  const days = eachDayOfInterval({ start: calStart, end: calEnd });
-
   const statusColors: Record<string, string> = {
-    agendado: 'bg-info/10 text-info',
-    realizado: 'bg-success/10 text-success',
-    faltou: 'bg-destructive/10 text-destructive',
-    cancelado: 'bg-muted text-muted-foreground',
+    agendado: 'hsl(220, 70%, 25%)',
+    realizado: 'hsl(142, 71%, 45%)',
+    faltou: 'hsl(0, 84%, 60%)',
+    cancelado: 'hsl(215, 16%, 47%)',
   };
 
-  const weekSessions = sessions.filter((s) => {
-    const d = new Date(s.data_hora);
-    const now = new Date();
-    const weekStart = startOfWeek(now, { locale: ptBR });
-    const weekEnd = endOfWeek(now, { locale: ptBR });
-    return d >= weekStart && d <= weekEnd;
-  });
+  const events = sessions.map((s) => ({
+    id: s.id,
+    title: `${s.militares?.posto_graduacao || ''} ${s.militares?.nome_guerra || 'Militar'}`,
+    start: s.data_hora,
+    end: new Date(new Date(s.data_hora).getTime() + (s.duracao || 60) * 60000).toISOString(),
+    backgroundColor: statusColors[s.status] || statusColors.agendado,
+    borderColor: statusColors[s.status] || statusColors.agendado,
+    extendedProps: { session: s },
+  }));
+
+  const handleEventClick = (info: EventClickArg) => {
+    setDetailDialog(info.event.extendedProps.session);
+  };
+
+  const handleDateClick = (arg: any) => {
+    const dt = arg.dateStr.length > 10 ? arg.dateStr.slice(0, 16) : arg.dateStr + 'T08:00';
+    setForm({ ...form, data_hora: dt });
+    setDialogOpen(true);
+  };
 
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h1 className="text-2xl font-bold text-foreground">Agenda</h1>
-        <div className="flex gap-2">
-          <Button variant={view === 'calendar' ? 'default' : 'outline'} size="sm" onClick={() => setView('calendar')}>Calendário</Button>
-          <Button variant={view === 'list' ? 'default' : 'outline'} size="sm" onClick={() => setView('list')}>Lista Semanal</Button>
-          <Button onClick={() => setDialogOpen(true)}><Plus className="h-4 w-4 mr-1" /> Agendar</Button>
-        </div>
+        <Button onClick={() => setDialogOpen(true)}><Plus className="h-4 w-4 mr-1" /> Agendar</Button>
       </div>
 
-      {view === 'calendar' ? (
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <Button variant="ghost" size="sm" onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}>←</Button>
-              <CardTitle className="text-lg capitalize">{format(currentMonth, 'MMMM yyyy', { locale: ptBR })}</CardTitle>
-              <Button variant="ghost" size="sm" onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}>→</Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-7 gap-1">
-              {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map((d) => (
-                <div key={d} className="text-center text-xs font-medium text-muted-foreground py-2">{d}</div>
-              ))}
-              {days.map((day) => {
-                const daySessions = sessions.filter((s) => isSameDay(new Date(s.data_hora), day));
-                const isCurrentMonth = day.getMonth() === currentMonth.getMonth();
-                return (
-                  <div key={day.toISOString()} className={`min-h-[60px] p-1 rounded text-xs ${isCurrentMonth ? 'bg-card' : 'bg-muted/30'}`}>
-                    <span className={`block text-right ${isCurrentMonth ? 'text-foreground' : 'text-muted-foreground'}`}>{format(day, 'd')}</span>
-                    {daySessions.slice(0, 2).map((s) => (
-                      <div key={s.id} className={`mt-0.5 px-1 py-0.5 rounded text-[10px] truncate ${statusColors[s.status]}`}>
-                        {format(new Date(s.data_hora), 'HH:mm')} {s.militares?.nome_guerra}
-                      </div>
-                    ))}
-                    {daySessions.length > 2 && <span className="text-[10px] text-muted-foreground">+{daySessions.length - 2}</span>}
-                  </div>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="space-y-3">
-          {weekSessions.length === 0 && <p className="text-center text-muted-foreground py-8">Nenhuma sessão esta semana.</p>}
-          {weekSessions.map((s) => (
-            <Card key={s.id}>
-              <CardContent className="p-4 flex items-center justify-between">
-                <div>
-                  <p className="font-medium text-foreground">{s.militares?.posto_graduacao} {s.militares?.nome_guerra}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {format(new Date(s.data_hora), "EEEE, dd/MM 'às' HH:mm", { locale: ptBR })} · {s.duracao}min · {s.tipo}
-                  </p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <select
-                    className="h-8 rounded border border-input bg-background px-2 text-xs"
-                    value={s.status}
-                    onChange={(e) => updateStatus(s.id, e.target.value)}
-                  >
-                    {STATUS_SESSAO.map((st) => <option key={st} value={st}>{st}</option>)}
-                  </select>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
+      <div className="bg-card rounded-lg border p-4 fullcalendar-wrapper">
+        <FullCalendar
+          plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+          initialView="dayGridMonth"
+          headerToolbar={{
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek,timeGridDay',
+          }}
+          locale="pt-br"
+          buttonText={{ today: 'Hoje', month: 'Mês', week: 'Semana', day: 'Dia' }}
+          events={events}
+          eventClick={handleEventClick}
+          dateClick={handleDateClick}
+          datesSet={handleDatesSet}
+          height="auto"
+          editable={false}
+          selectable
+          dayMaxEvents={3}
+          slotMinTime="06:00:00"
+          slotMaxTime="22:00:00"
+          allDaySlot={false}
+          eventTimeFormat={{ hour: '2-digit', minute: '2-digit', hour12: false }}
+        />
+      </div>
 
+      {/* Detail dialog */}
+      <Dialog open={!!detailDialog} onOpenChange={() => setDetailDialog(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader><DialogTitle>Detalhes da Sessão</DialogTitle></DialogHeader>
+          {detailDialog && (
+            <div className="space-y-3">
+              <p className="font-medium text-foreground">{detailDialog.militares?.posto_graduacao} {detailDialog.militares?.nome_guerra}</p>
+              <p className="text-sm text-muted-foreground">
+                {new Date(detailDialog.data_hora).toLocaleString('pt-BR')} · {detailDialog.duracao}min · {detailDialog.tipo}
+              </p>
+              {detailDialog.anotacao_clinica && <p className="text-sm text-muted-foreground">{detailDialog.anotacao_clinica}</p>}
+              <div className="space-y-2">
+                <Label>Status</Label>
+                <select
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  value={detailDialog.status}
+                  onChange={(e) => updateStatus(detailDialog.id, e.target.value)}
+                >
+                  {STATUS_SESSAO.map((st) => <option key={st} value={st}>{st}</option>)}
+                </select>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Create dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-lg">
           <DialogHeader><DialogTitle>Agendar Sessão</DialogTitle></DialogHeader>
