@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
+import { CalendarSkeleton } from '@/components/Skeletons';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';

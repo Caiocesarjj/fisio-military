@@ -15,6 +15,7 @@ import Agenda from "./pages/Agenda";
 import Relatorios from "./pages/Relatorios";
 import PainelMilitar from "./pages/PainelMilitar";
 import Auditoria from "./pages/Auditoria";
+import PerfilMilitar from "./pages/PerfilMilitar";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -49,6 +50,7 @@ function AppRoutes() {
         <Route element={<AdminLayout />}>
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/militares" element={<Militares />} />
+          <Route path="/militares/:id" element={<PerfilMilitar />} />
           <Route path="/exercicios" element={<Exercicios />} />
           <Route path="/planos" element={<Planos />} />
           <Route path="/agenda" element={<Agenda />} />
