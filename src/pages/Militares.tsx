@@ -12,7 +12,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Plus, Search, Edit, UserX } from 'lucide-react';
 import { IMaskInput } from 'react-imask';
 import { toast } from 'sonner';
-import { POSTOS_GRADUACOES, COMPANHIAS, formatNip } from '@/lib/constants';
+import { POSTOS_GRADUACOES, COMPANHIAS } from '@/lib/constants';
 import { LesaoSelector, LesaoBadges, type Lesao } from '@/components/LesaoSelector';
 
 interface Militar {
@@ -63,9 +63,6 @@ export default function Militares() {
     return m.nip.includes(q) || m.nome_completo.toLowerCase().includes(q) || m.nome_guerra.toLowerCase().includes(q);
   });
 
-  const handleNipChange = (value: string) => {
-    setForm({ ...form, nip: formatNip(value) });
-  };
 
   const uploadPhoto = async (militarId: string, file: File) => {
     const ext = file.name.split('.').pop();
