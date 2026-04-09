@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Users, CalendarDays, ClipboardList, Activity } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
