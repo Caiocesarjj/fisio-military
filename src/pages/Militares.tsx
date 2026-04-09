@@ -10,8 +10,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Plus, Search, Edit, UserX } from 'lucide-react';
+import { IMaskInput } from 'react-imask';
 import { toast } from 'sonner';
-import { POSTOS_GRADUACOES, COMPANHIAS, formatNip } from '@/lib/constants';
+import { POSTOS_GRADUACOES, COMPANHIAS } from '@/lib/constants';
 import { LesaoSelector, LesaoBadges, type Lesao } from '@/components/LesaoSelector';
 
 interface Militar {
@@ -62,9 +63,6 @@ export default function Militares() {
     return m.nip.includes(q) || m.nome_completo.toLowerCase().includes(q) || m.nome_guerra.toLowerCase().includes(q);
   });
 
-  const handleNipChange = (value: string) => {
-    setForm({ ...form, nip: formatNip(value) });
-  };
 
   const uploadPhoto = async (militarId: string, file: File) => {
     const ext = file.name.split('.').pop();
@@ -232,7 +230,15 @@ export default function Militares() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>NIP *</Label>
-                <Input value={form.nip} onChange={(e) => handleNipChange(e.target.value)} placeholder="00.0000.00" required />
+                <IMaskInput
+                  mask="00.0000.00"
+                  value={form.nip}
+                  unmask={false}
+                  onAccept={(value: string) => setForm({ ...form, nip: value })}
+                  placeholder="00.0000.00"
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 md:text-sm"
+                  required
+                />
               </div>
               <div className="space-y-2">
                 <Label>Nome Completo *</Label>
