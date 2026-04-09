@@ -92,7 +92,7 @@ export default function Militares() {
           foto_url = await uploadPhoto(editing.id, photoFile);
         }
         const { error } = await supabase.from('militares').update({
-          ...form, setor: form.companhia === 'CCS' ? form.setor : null, foto_url,
+          ...form, setor: form.companhia === 'CCS' ? form.setor : null, foto_url, lesoes: lesoes as any,
         }).eq('id', editing.id);
         if (error) throw error;
         toast.success('Militar atualizado com sucesso!');
@@ -115,6 +115,7 @@ export default function Militares() {
           ...form,
           setor: form.companhia === 'CCS' ? form.setor : null,
           profile_id: null,
+          lesoes: lesoes as any,
         }).select().single();
 
         if (insertError) throw insertError;
@@ -132,6 +133,7 @@ export default function Militares() {
       setForm(emptyForm);
       setPhotoFile(null);
       setSenha('');
+      setLesoes([]);
       fetchMilitares();
     } catch (error: any) {
       toast.error(error.message || 'Erro ao salvar militar.');
@@ -153,6 +155,7 @@ export default function Militares() {
       telefone: m.telefone || '', email: m.email, diagnostico: m.diagnostico || '',
       observacoes: m.observacoes || '',
     });
+    setLesoes(m.lesoes || []);
     setDialogOpen(true);
   };
 
@@ -161,6 +164,7 @@ export default function Militares() {
     setForm(emptyForm);
     setPhotoFile(null);
     setSenha('');
+    setLesoes([]);
     setDialogOpen(true);
   };
 
@@ -199,6 +203,7 @@ export default function Militares() {
                     <Badge variant="secondary" className="text-xs">{m.companhia}</Badge>
                     <span className="text-xs text-muted-foreground font-mono">{m.nip}</span>
                   </div>
+                  <LesaoBadges lesoes={m.lesoes || []} />
                 </div>
                 <div className="flex gap-1">
                   <Button variant="ghost" size="icon" onClick={() => openEdit(m)}>
@@ -290,6 +295,10 @@ export default function Militares() {
                 <Label>Foto</Label>
                 <Input type="file" accept="image/*" onChange={(e) => setPhotoFile(e.target.files?.[0] || null)} />
               </div>
+            </div>
+            <div className="space-y-2">
+              <Label>Lesões</Label>
+              <LesaoSelector lesoes={lesoes} onChange={setLesoes} />
             </div>
             <div className="space-y-2">
               <Label>Diagnóstico Principal</Label>
