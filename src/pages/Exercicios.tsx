@@ -7,7 +7,14 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Plus, Search, Edit, Trash2 } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, Play } from 'lucide-react';
+import { AspectRatio } from '@/components/ui/aspect-ratio';
+
+function getYouTubeId(url: string): string | null {
+  if (!url) return null;
+  const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|.*&v=))([^?&]+)/);
+  return match ? match[1] : null;
+}
 import { toast } from 'sonner';
 import { CATEGORIAS_EXERCICIO, DIFICULDADES } from '@/lib/constants';
 
