@@ -156,6 +156,10 @@ export default function Exercicios() {
               </div>
             </CardContent>
           </Card>
+        ))}
+      </div>
+
+      {filtered.length === 0 && <p className="text-center text-muted-foreground py-8">Nenhum exercício encontrado.</p>}
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
