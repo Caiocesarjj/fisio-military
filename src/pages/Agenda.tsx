@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
+import { CalendarSkeleton } from '@/components/Skeletons';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -9,6 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { STATUS_SESSAO, TIPOS_ATENDIMENTO } from '@/lib/constants';
+import { EvaScale } from '@/components/EvaScale';
 
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
@@ -25,6 +27,8 @@ export default function Agenda() {
   const [dateRange, setDateRange] = useState<{ start: Date; end: Date } | null>(null);
   const [form, setForm] = useState({ militar_id: '', data_hora: '', duracao: 60, tipo: 'presencial', status: 'agendado', anotacao_clinica: '' });
   const [loading, setLoading] = useState(false);
+  const [painLevel, setPainLevel] = useState(0);
+  const [calLoading, setCalLoading] = useState(true);
 
   const fetchData = async (start?: Date, end?: Date) => {
     const s = start || dateRange?.start || new Date();
@@ -35,6 +39,7 @@ export default function Agenda() {
     ]);
     setSessions(sessRes.data || []);
     setMilitares(milRes.data || []);
+    setCalLoading(false);
   };
 
   const handleDatesSet = (arg: DatesSetArg) => {
@@ -58,8 +63,17 @@ export default function Agenda() {
 
   const updateStatus = async (sessionId: string, status: string) => {
     await supabase.from('sessions').update({ status }).eq('id', sessionId);
+    // Save pain level as session note if status is realizado
+    if (status === 'realizado' && detailDialog) {
+      await supabase.from('session_notes').insert({
+        session_id: sessionId,
+        militar_id: detailDialog.militar_id,
+        nivel_dor: painLevel,
+      });
+    }
     toast.success(`Status atualizado para "${status}".`);
     setDetailDialog(null);
+    setPainLevel(0);
     fetchData();
   };
 
@@ -97,31 +111,33 @@ export default function Agenda() {
         <Button onClick={() => setDialogOpen(true)}><Plus className="h-4 w-4 mr-1" /> Agendar</Button>
       </div>
 
-      <div className="bg-card rounded-lg border p-4 fullcalendar-wrapper">
-        <FullCalendar
-          plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-          initialView="dayGridMonth"
-          headerToolbar={{
-            left: 'prev,next today',
-            center: 'title',
-            right: 'dayGridMonth,timeGridWeek,timeGridDay',
-          }}
-          locale="pt-br"
-          buttonText={{ today: 'Hoje', month: 'Mês', week: 'Semana', day: 'Dia' }}
-          events={events}
-          eventClick={handleEventClick}
-          dateClick={handleDateClick}
-          datesSet={handleDatesSet}
-          height="auto"
-          editable={false}
-          selectable
-          dayMaxEvents={3}
-          slotMinTime="06:00:00"
-          slotMaxTime="22:00:00"
-          allDaySlot={false}
-          eventTimeFormat={{ hour: '2-digit', minute: '2-digit', hour12: false }}
-        />
-      </div>
+      {calLoading ? <CalendarSkeleton /> : (
+        <div className="bg-card rounded-lg border p-4 fullcalendar-wrapper">
+          <FullCalendar
+            plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+            initialView="dayGridMonth"
+            headerToolbar={{
+              left: 'prev,next today',
+              center: 'title',
+              right: 'dayGridMonth,timeGridWeek,timeGridDay',
+            }}
+            locale="pt-br"
+            buttonText={{ today: 'Hoje', month: 'Mês', week: 'Semana', day: 'Dia' }}
+            events={events}
+            eventClick={handleEventClick}
+            dateClick={handleDateClick}
+            datesSet={handleDatesSet}
+            height="auto"
+            editable={false}
+            selectable
+            dayMaxEvents={3}
+            slotMinTime="06:00:00"
+            slotMaxTime="22:00:00"
+            allDaySlot={false}
+            eventTimeFormat={{ hour: '2-digit', minute: '2-digit', hour12: false }}
+          />
+        </div>
+      )}
 
       {/* Detail dialog */}
       <Dialog open={!!detailDialog} onOpenChange={() => setDetailDialog(null)}>
@@ -134,6 +150,10 @@ export default function Agenda() {
                 {new Date(detailDialog.data_hora).toLocaleString('pt-BR')} · {detailDialog.duracao}min · {detailDialog.tipo}
               </p>
               {detailDialog.anotacao_clinica && <p className="text-sm text-muted-foreground">{detailDialog.anotacao_clinica}</p>}
+              <div className="space-y-2">
+                <Label>Nível de Dor (EVA)</Label>
+                <EvaScale value={painLevel} onChange={setPainLevel} />
+              </div>
               <div className="space-y-2">
                 <Label>Status</Label>
                 <select
