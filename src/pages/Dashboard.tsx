@@ -3,13 +3,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Users, CalendarDays, ClipboardList, Activity } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
+import { DashboardSkeleton } from '@/components/Skeletons';
 
 export default function Dashboard() {
   const [stats, setStats] = useState({ militares: 0, sessionsToday: 0, sessionsWeek: 0, activePlans: 0 });
   const [todaySessions, setTodaySessions] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -36,9 +37,12 @@ export default function Dashboard() {
         activePlans: plansRes.count || 0,
       });
       setTodaySessions(sessionsRes.data || []);
+      setLoading(false);
     };
     fetchData();
   }, []);
+
+  if (loading) return <DashboardSkeleton />;
 
   const cards = [
     { title: 'Militares Ativos', value: stats.militares, icon: Users, color: 'text-primary' },
@@ -50,7 +54,6 @@ export default function Dashboard() {
   return (
     <div className="space-y-6 animate-fade-in">
       <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
-
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {cards.map((card) => (
           <Card key={card.title}>
@@ -66,11 +69,8 @@ export default function Dashboard() {
           </Card>
         ))}
       </div>
-
       <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Agendamentos de Hoje</CardTitle>
-        </CardHeader>
+        <CardHeader><CardTitle className="text-lg">Agendamentos de Hoje</CardTitle></CardHeader>
         <CardContent>
           {todaySessions.length === 0 ? (
             <p className="text-muted-foreground text-sm">Nenhum agendamento para hoje.</p>
@@ -91,12 +91,8 @@ export default function Dashboard() {
                     <p className="text-xs text-muted-foreground">{session.militares?.companhia}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm font-medium text-foreground">
-                      {format(new Date(session.data_hora), 'HH:mm')}
-                    </p>
-                    <Badge variant={session.status === 'realizado' ? 'default' : 'secondary'} className="text-xs">
-                      {session.status}
-                    </Badge>
+                    <p className="text-sm font-medium text-foreground">{format(new Date(session.data_hora), 'HH:mm')}</p>
+                    <Badge variant={session.status === 'realizado' ? 'default' : 'secondary'} className="text-xs">{session.status}</Badge>
                   </div>
                 </div>
               ))}
