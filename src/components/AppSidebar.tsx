@@ -8,6 +8,7 @@ import {
   LogOut,
   Shield,
   ScrollText,
+  Settings,
 } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import { useAuth } from '@/contexts/AuthContext';
@@ -34,6 +35,7 @@ const adminItems = [
   { title: 'Agenda', url: '/agenda', icon: CalendarDays },
   { title: 'Relatórios', url: '/relatorios', icon: BarChart3 },
   { title: 'Auditoria', url: '/auditoria', icon: ScrollText },
+  { title: 'Configurações', url: '/configuracoes', icon: Settings },
 ];
 
 export function AppSidebar() {
