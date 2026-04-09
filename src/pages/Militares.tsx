@@ -110,12 +110,14 @@ export default function Militares() {
         toast.success('Militar atualizado com sucesso!');
       } else {
         if (!senha) { toast.error('Defina uma senha para o militar.'); setLoading(false); return; }
-        await supabase.auth.signUp({
-          email: form.email, password: senha,
-          options: { data: { full_name: form.nome_completo } },
-        });
+        if (form.email) {
+          await supabase.auth.signUp({
+            email: form.email, password: senha,
+            options: { data: { full_name: form.nome_completo } },
+          });
+        }
         const { data: insertData, error: insertError } = await supabase.from('militares').insert({
-          ...form, setor: form.companhia === 'CCS' ? form.setor : null, profile_id: null, lesoes: lesoes as any,
+          ...form, email: form.email || null, setor: form.companhia === 'CCS' ? form.setor : null, profile_id: null, lesoes: lesoes as any,
         }).select().single();
         if (insertError) throw insertError;
         if (photoFile && insertData) {
@@ -296,8 +298,8 @@ export default function Militares() {
                 <Input value={form.telefone} onChange={(e) => setForm({ ...form, telefone: e.target.value })} />
               </div>
               <div className="space-y-2">
-                <Label>E-mail *</Label>
-                <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required />
+                <Label>E-mail</Label>
+                <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
               </div>
               {!editing && (
                 <div className="space-y-2">

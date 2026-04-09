@@ -96,7 +96,7 @@ export type Database = {
           created_at: string
           data_alta: string | null
           diagnostico: string | null
-          email: string
+          email: string | null
           foto_url: string | null
           id: string
           lesoes: Json | null
@@ -119,7 +119,7 @@ export type Database = {
           created_at?: string
           data_alta?: string | null
           diagnostico?: string | null
-          email: string
+          email?: string | null
           foto_url?: string | null
           id?: string
           lesoes?: Json | null
@@ -142,7 +142,7 @@ export type Database = {
           created_at?: string
           data_alta?: string | null
           diagnostico?: string | null
-          email?: string
+          email?: string | null
           foto_url?: string | null
           id?: string
           lesoes?: Json | null
