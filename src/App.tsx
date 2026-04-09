@@ -44,6 +44,7 @@ function AppRoutes() {
     return (
       <Routes>
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/painel" element={<Navigate to="/dashboard" replace />} />
         <Route element={<AdminLayout />}>
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/militares" element={<Militares />} />
