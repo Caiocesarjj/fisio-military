@@ -225,8 +225,8 @@ export default function Usuarios() {
               <Input required value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} />
             </div>
             <div>
-              <Label>Email *</Label>
-              <Input required type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+              <Label>Email</Label>
+              <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="Opcional" />
             </div>
             <div>
               <Label>Senha *</Label>
