@@ -62,6 +62,7 @@ export type Database = {
           email: string
           foto_url: string | null
           id: string
+          lesoes: Json | null
           nip: string
           nome_completo: string
           nome_guerra: string
@@ -80,6 +81,7 @@ export type Database = {
           email: string
           foto_url?: string | null
           id?: string
+          lesoes?: Json | null
           nip: string
           nome_completo: string
           nome_guerra: string
@@ -98,6 +100,7 @@ export type Database = {
           email?: string
           foto_url?: string | null
           id?: string
+          lesoes?: Json | null
           nip?: string
           nome_completo?: string
           nome_guerra?: string
