@@ -7,6 +7,7 @@ import {
   BarChart3,
   LogOut,
   Shield,
+  ScrollText,
 } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import { useAuth } from '@/contexts/AuthContext';
@@ -32,6 +33,7 @@ const adminItems = [
   { title: 'Planos', url: '/planos', icon: ClipboardList },
   { title: 'Agenda', url: '/agenda', icon: CalendarDays },
   { title: 'Relatórios', url: '/relatorios', icon: BarChart3 },
+  { title: 'Auditoria', url: '/auditoria', icon: ScrollText },
 ];
 
 export function AppSidebar() {
