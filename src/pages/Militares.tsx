@@ -36,6 +36,8 @@ const emptyForm = {
   companhia: '', setor: '', telefone: '', email: '', diagnostico: '', observacoes: '',
 };
 
+type MilitarRow = Omit<Militar, 'lesoes'> & { lesoes: any };
+
 export default function Militares() {
   const { user } = useAuth();
   const [militares, setMilitares] = useState<Militar[]>([]);
