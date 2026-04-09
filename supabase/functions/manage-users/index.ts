@@ -38,11 +38,14 @@ Deno.serve(async (req) => {
 
     if (action === "create") {
       const { email, password, full_name, role, nip } = payload;
-      if (!email || !password || !role) throw new Error("Missing required fields");
+      if (!password || !role) throw new Error("Missing required fields");
+
+      // Use email if provided, otherwise generate one from NIP
+      const userEmail = email || (nip ? `${nip}@nip.local` : `${Date.now()}@nip.local`);
 
       // Create auth user
       const { data: newUser, error: createError } = await adminClient.auth.admin.createUser({
-        email,
+        email: userEmail,
         password,
         email_confirm: true,
         user_metadata: { full_name },
