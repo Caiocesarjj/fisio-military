@@ -12,6 +12,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Plus, Search, Edit, UserX } from 'lucide-react';
 import { toast } from 'sonner';
 import { POSTOS_GRADUACOES, COMPANHIAS, formatNip } from '@/lib/constants';
+import { LesaoSelector, LesaoBadges, type Lesao } from '@/components/LesaoSelector';
 
 interface Militar {
   id: string;
