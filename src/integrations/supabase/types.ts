@@ -249,27 +249,42 @@ export type Database = {
       }
       session_notes: {
         Row: {
+          conduta: string | null
           created_at: string
+          evolucao_geral: string | null
           id: string
           militar_id: string
           nivel_dor: number | null
           observacoes_paciente: string | null
+          progresso_exercicios: Json | null
+          proximos_objetivos: string | null
+          queixa_principal: string | null
           session_id: string
         }
         Insert: {
+          conduta?: string | null
           created_at?: string
+          evolucao_geral?: string | null
           id?: string
           militar_id: string
           nivel_dor?: number | null
           observacoes_paciente?: string | null
+          progresso_exercicios?: Json | null
+          proximos_objetivos?: string | null
+          queixa_principal?: string | null
           session_id: string
         }
         Update: {
+          conduta?: string | null
           created_at?: string
+          evolucao_geral?: string | null
           id?: string
           militar_id?: string
           nivel_dor?: number | null
           observacoes_paciente?: string | null
+          progresso_exercicios?: Json | null
+          proximos_objetivos?: string | null
+          queixa_principal?: string | null
           session_id?: string
         }
         Relationships: [
