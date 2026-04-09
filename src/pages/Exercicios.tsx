@@ -122,7 +122,23 @@ export default function Exercicios() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filtered.map((ex) => (
-          <Card key={ex.id}>
+          <Card key={ex.id} className="overflow-hidden">
+            {getYouTubeId(ex.video_url) && (
+              <AspectRatio ratio={16 / 9}>
+                <iframe
+                  src={`https://www.youtube.com/embed/${getYouTubeId(ex.video_url)}`}
+                  title={ex.nome}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  className="w-full h-full"
+                />
+              </AspectRatio>
+            )}
+            {!getYouTubeId(ex.video_url) && ex.imagem_url && (
+              <AspectRatio ratio={16 / 9}>
+                <img src={ex.imagem_url} alt={ex.nome} className="w-full h-full object-cover" />
+              </AspectRatio>
+            )}
             <CardContent className="p-4">
               <div className="flex justify-between items-start">
                 <div className="flex-1">
@@ -140,10 +156,6 @@ export default function Exercicios() {
               </div>
             </CardContent>
           </Card>
-        ))}
-      </div>
-
-      {filtered.length === 0 && <p className="text-center text-muted-foreground py-8">Nenhum exercício encontrado.</p>}
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
