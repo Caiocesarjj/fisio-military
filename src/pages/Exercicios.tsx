@@ -7,7 +7,14 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Plus, Search, Edit, Trash2 } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, Play } from 'lucide-react';
+import { AspectRatio } from '@/components/ui/aspect-ratio';
+
+function getYouTubeId(url: string): string | null {
+  if (!url) return null;
+  const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|.*&v=))([^?&]+)/);
+  return match ? match[1] : null;
+}
 import { toast } from 'sonner';
 import { CATEGORIAS_EXERCICIO, DIFICULDADES } from '@/lib/constants';
 
@@ -115,7 +122,23 @@ export default function Exercicios() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filtered.map((ex) => (
-          <Card key={ex.id}>
+          <Card key={ex.id} className="overflow-hidden">
+            {getYouTubeId(ex.video_url) && (
+              <AspectRatio ratio={16 / 9}>
+                <iframe
+                  src={`https://www.youtube.com/embed/${getYouTubeId(ex.video_url)}`}
+                  title={ex.nome}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  className="w-full h-full"
+                />
+              </AspectRatio>
+            )}
+            {!getYouTubeId(ex.video_url) && ex.imagem_url && (
+              <AspectRatio ratio={16 / 9}>
+                <img src={ex.imagem_url} alt={ex.nome} className="w-full h-full object-cover" />
+              </AspectRatio>
+            )}
             <CardContent className="p-4">
               <div className="flex justify-between items-start">
                 <div className="flex-1">
@@ -165,7 +188,7 @@ export default function Exercicios() {
             </div>
             <div className="space-y-2"><Label>Descrição</Label><Textarea value={form.descricao} onChange={(e) => setForm({ ...form, descricao: e.target.value })} /></div>
             <div className="space-y-2"><Label>Instruções</Label><Textarea value={form.instrucoes} onChange={(e) => setForm({ ...form, instrucoes: e.target.value })} /></div>
-            <div className="space-y-2"><Label>URL do Vídeo</Label><Input value={form.video_url} onChange={(e) => setForm({ ...form, video_url: e.target.value })} /></div>
+            <div className="space-y-2"><Label>URL do Vídeo (YouTube)</Label><Input placeholder="https://www.youtube.com/watch?v=..." value={form.video_url} onChange={(e) => setForm({ ...form, video_url: e.target.value })} /></div>
             <div className="space-y-2"><Label>URL da Imagem</Label><Input value={form.imagem_url} onChange={(e) => setForm({ ...form, imagem_url: e.target.value })} /></div>
             <div className="flex justify-end gap-2">
               <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
