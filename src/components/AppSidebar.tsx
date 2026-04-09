@@ -9,6 +9,7 @@ import {
   Shield,
   ScrollText,
   Settings,
+  UserCog,
 } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import { useAuth } from '@/contexts/AuthContext';
@@ -34,6 +35,7 @@ const adminItems = [
   { title: 'Planos', url: '/planos', icon: ClipboardList },
   { title: 'Agenda', url: '/agenda', icon: CalendarDays },
   { title: 'Relatórios', url: '/relatorios', icon: BarChart3 },
+  { title: 'Usuários', url: '/usuarios', icon: UserCog },
   { title: 'Auditoria', url: '/auditoria', icon: ScrollText },
   { title: 'Configurações', url: '/configuracoes', icon: Settings },
 ];
