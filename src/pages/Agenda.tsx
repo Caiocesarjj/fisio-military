@@ -111,31 +111,33 @@ export default function Agenda() {
         <Button onClick={() => setDialogOpen(true)}><Plus className="h-4 w-4 mr-1" /> Agendar</Button>
       </div>
 
-      <div className="bg-card rounded-lg border p-4 fullcalendar-wrapper">
-        <FullCalendar
-          plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-          initialView="dayGridMonth"
-          headerToolbar={{
-            left: 'prev,next today',
-            center: 'title',
-            right: 'dayGridMonth,timeGridWeek,timeGridDay',
-          }}
-          locale="pt-br"
-          buttonText={{ today: 'Hoje', month: 'Mês', week: 'Semana', day: 'Dia' }}
-          events={events}
-          eventClick={handleEventClick}
-          dateClick={handleDateClick}
-          datesSet={handleDatesSet}
-          height="auto"
-          editable={false}
-          selectable
-          dayMaxEvents={3}
-          slotMinTime="06:00:00"
-          slotMaxTime="22:00:00"
-          allDaySlot={false}
-          eventTimeFormat={{ hour: '2-digit', minute: '2-digit', hour12: false }}
-        />
-      </div>
+      {calLoading ? <CalendarSkeleton /> : (
+        <div className="bg-card rounded-lg border p-4 fullcalendar-wrapper">
+          <FullCalendar
+            plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+            initialView="dayGridMonth"
+            headerToolbar={{
+              left: 'prev,next today',
+              center: 'title',
+              right: 'dayGridMonth,timeGridWeek,timeGridDay',
+            }}
+            locale="pt-br"
+            buttonText={{ today: 'Hoje', month: 'Mês', week: 'Semana', day: 'Dia' }}
+            events={events}
+            eventClick={handleEventClick}
+            dateClick={handleDateClick}
+            datesSet={handleDatesSet}
+            height="auto"
+            editable={false}
+            selectable
+            dayMaxEvents={3}
+            slotMinTime="06:00:00"
+            slotMaxTime="22:00:00"
+            allDaySlot={false}
+            eventTimeFormat={{ hour: '2-digit', minute: '2-digit', hour12: false }}
+          />
+        </div>
+      )}
 
       {/* Detail dialog */}
       <Dialog open={!!detailDialog} onOpenChange={() => setDetailDialog(null)}>
@@ -148,6 +150,10 @@ export default function Agenda() {
                 {new Date(detailDialog.data_hora).toLocaleString('pt-BR')} · {detailDialog.duracao}min · {detailDialog.tipo}
               </p>
               {detailDialog.anotacao_clinica && <p className="text-sm text-muted-foreground">{detailDialog.anotacao_clinica}</p>}
+              <div className="space-y-2">
+                <Label>Nível de Dor (EVA)</Label>
+                <EvaScale value={painLevel} onChange={setPainLevel} />
+              </div>
               <div className="space-y-2">
                 <Label>Status</Label>
                 <select
