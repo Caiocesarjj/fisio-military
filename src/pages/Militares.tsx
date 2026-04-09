@@ -27,6 +27,7 @@ interface Militar {
   foto_url: string | null;
   diagnostico: string | null;
   observacoes: string | null;
+  lesoes: Lesao[] | null;
   ativo: boolean;
 }
 
