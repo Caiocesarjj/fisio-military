@@ -10,6 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { STATUS_SESSAO, TIPOS_ATENDIMENTO } from '@/lib/constants';
+import { EvaScale } from '@/components/EvaScale';
 
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
@@ -26,6 +27,8 @@ export default function Agenda() {
   const [dateRange, setDateRange] = useState<{ start: Date; end: Date } | null>(null);
   const [form, setForm] = useState({ militar_id: '', data_hora: '', duracao: 60, tipo: 'presencial', status: 'agendado', anotacao_clinica: '' });
   const [loading, setLoading] = useState(false);
+  const [painLevel, setPainLevel] = useState(0);
+  const [calLoading, setCalLoading] = useState(true);
 
   const fetchData = async (start?: Date, end?: Date) => {
     const s = start || dateRange?.start || new Date();
@@ -36,6 +39,7 @@ export default function Agenda() {
     ]);
     setSessions(sessRes.data || []);
     setMilitares(milRes.data || []);
+    setCalLoading(false);
   };
 
   const handleDatesSet = (arg: DatesSetArg) => {
@@ -59,8 +63,17 @@ export default function Agenda() {
 
   const updateStatus = async (sessionId: string, status: string) => {
     await supabase.from('sessions').update({ status }).eq('id', sessionId);
+    // Save pain level as session note if status is realizado
+    if (status === 'realizado' && detailDialog) {
+      await supabase.from('session_notes').insert({
+        session_id: sessionId,
+        militar_id: detailDialog.militar_id,
+        nivel_dor: painLevel,
+      });
+    }
     toast.success(`Status atualizado para "${status}".`);
     setDetailDialog(null);
+    setPainLevel(0);
     fetchData();
   };
 
