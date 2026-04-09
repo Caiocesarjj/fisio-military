@@ -48,10 +48,11 @@ export default function Militares() {
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [senha, setSenha] = useState('');
+  const [lesoes, setLesoes] = useState<Lesao[]>([]);
 
   const fetchMilitares = async () => {
     const { data } = await supabase.from('militares').select('*').order('nome_guerra');
-    setMilitares(data || []);
+    setMilitares((data || []).map((d: any) => ({ ...d, lesoes: Array.isArray(d.lesoes) ? d.lesoes : [] })));
   };
 
   useEffect(() => { fetchMilitares(); }, []);
