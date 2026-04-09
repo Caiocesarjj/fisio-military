@@ -94,18 +94,22 @@ export type Database = {
           ativo: boolean
           companhia: string
           created_at: string
+          data_alta: string | null
           diagnostico: string | null
           email: string
           foto_url: string | null
           id: string
           lesoes: Json | null
+          motivo_alta: string | null
           nip: string
           nome_completo: string
           nome_guerra: string
           observacoes: string | null
+          observacoes_alta: string | null
           posto_graduacao: string
           profile_id: string | null
           setor: string | null
+          status_militar: string
           telefone: string | null
           updated_at: string
         }
@@ -113,18 +117,22 @@ export type Database = {
           ativo?: boolean
           companhia: string
           created_at?: string
+          data_alta?: string | null
           diagnostico?: string | null
           email: string
           foto_url?: string | null
           id?: string
           lesoes?: Json | null
+          motivo_alta?: string | null
           nip: string
           nome_completo: string
           nome_guerra: string
           observacoes?: string | null
+          observacoes_alta?: string | null
           posto_graduacao: string
           profile_id?: string | null
           setor?: string | null
+          status_militar?: string
           telefone?: string | null
           updated_at?: string
         }
@@ -132,18 +140,22 @@ export type Database = {
           ativo?: boolean
           companhia?: string
           created_at?: string
+          data_alta?: string | null
           diagnostico?: string | null
           email?: string
           foto_url?: string | null
           id?: string
           lesoes?: Json | null
+          motivo_alta?: string | null
           nip?: string
           nome_completo?: string
           nome_guerra?: string
           observacoes?: string | null
+          observacoes_alta?: string | null
           posto_graduacao?: string
           profile_id?: string | null
           setor?: string | null
+          status_militar?: string
           telefone?: string | null
           updated_at?: string
         }
