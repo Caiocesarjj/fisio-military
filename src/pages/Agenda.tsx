@@ -11,6 +11,7 @@ import { Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { STATUS_SESSAO, TIPOS_ATENDIMENTO } from '@/lib/constants';
 import { EvaScale } from '@/components/EvaScale';
+import { LesaoSelector, type Lesao } from '@/components/LesaoSelector';
 
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
@@ -24,9 +25,11 @@ export default function Agenda() {
   const [militares, setMilitares] = useState<any[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [detailDialog, setDetailDialog] = useState<any>(null);
-  const [editForm, setEditForm] = useState({ data_hora: '', duracao: 60, tipo: 'presencial', anotacao_clinica: '' });
+  const [editForm, setEditForm] = useState({ data_hora: '', duracao: 60, tipo: 'presencial', anotacao_clinica: '', queixa: '' });
+  const [editLesoes, setEditLesoes] = useState<Lesao[]>([]);
   const [dateRange, setDateRange] = useState<{ start: Date; end: Date } | null>(null);
-  const [form, setForm] = useState({ militar_id: '', data_hora: '', duracao: 60, tipo: 'presencial', status: 'agendado', anotacao_clinica: '' });
+  const [form, setForm] = useState({ militar_id: '', data_hora: '', duracao: 60, tipo: 'presencial', status: 'agendado', anotacao_clinica: '', queixa: '' });
+  const [formLesoes, setFormLesoes] = useState<Lesao[]>([]);
   const [loading, setLoading] = useState(false);
   const [painLevel, setPainLevel] = useState(0);
   const [calLoading, setCalLoading] = useState(false);
@@ -57,11 +60,12 @@ export default function Agenda() {
     e.preventDefault();
     setLoading(true);
     try {
-      const { error } = await supabase.from('sessions').insert({ ...form, fisio_id: user?.id, duracao: Number(form.duracao) });
+      const { error } = await supabase.from('sessions').insert({ ...form, fisio_id: user?.id, duracao: Number(form.duracao), lesoes: formLesoes as any });
       if (error) throw error;
       toast.success('Sessão agendada!');
       setDialogOpen(false);
-      setForm({ militar_id: '', data_hora: '', duracao: 60, tipo: 'presencial', status: 'agendado', anotacao_clinica: '' });
+      setForm({ militar_id: '', data_hora: '', duracao: 60, tipo: 'presencial', status: 'agendado', anotacao_clinica: '', queixa: '' });
+      setFormLesoes([]);
       fetchSessions();
     } catch (err: any) { toast.error(err.message); }
     setLoading(false);
@@ -97,6 +101,8 @@ export default function Agenda() {
         duracao: Number(editForm.duracao),
         tipo: editForm.tipo,
         anotacao_clinica: editForm.anotacao_clinica,
+        queixa: editForm.queixa,
+        lesoes: editLesoes as any,
       }).eq('id', detailDialog.id);
       if (error) throw error;
       toast.success('Sessão atualizada!');
@@ -148,7 +154,9 @@ export default function Agenda() {
       duracao: session.duracao || 60,
       tipo: session.tipo || 'presencial',
       anotacao_clinica: session.anotacao_clinica || '',
+      queixa: session.queixa || '',
     });
+    setEditLesoes(Array.isArray(session.lesoes) ? session.lesoes : []);
     setDetailDialog(session);
   };
 
@@ -228,6 +236,14 @@ export default function Agenda() {
                 </div>
               </div>
               <div className="space-y-2">
+                <Label>Queixa</Label>
+                <Textarea value={editForm.queixa} onChange={(e) => setEditForm({ ...editForm, queixa: e.target.value })} placeholder="Queixa principal do atendimento" />
+              </div>
+              <div className="space-y-2">
+                <Label>Lesões / Regiões Tratadas</Label>
+                <LesaoSelector lesoes={editLesoes} onChange={setEditLesoes} />
+              </div>
+              <div className="space-y-2">
                 <Label>Anotação Clínica</Label>
                 <Textarea value={editForm.anotacao_clinica} onChange={(e) => setEditForm({ ...editForm, anotacao_clinica: e.target.value })} />
               </div>
@@ -278,6 +294,11 @@ export default function Agenda() {
                   {STATUS_SESSAO.map((s) => <option key={s} value={s}>{s}</option>)}
                 </select>
               </div>
+            </div>
+            <div className="space-y-2"><Label>Queixa</Label><Textarea value={form.queixa} onChange={(e) => setForm({ ...form, queixa: e.target.value })} placeholder="Queixa principal do atendimento" /></div>
+            <div className="space-y-2">
+              <Label>Lesões / Regiões Tratadas</Label>
+              <LesaoSelector lesoes={formLesoes} onChange={setFormLesoes} />
             </div>
             <div className="space-y-2"><Label>Anotação Clínica</Label><Textarea value={form.anotacao_clinica} onChange={(e) => setForm({ ...form, anotacao_clinica: e.target.value })} /></div>
             <div className="flex justify-end gap-2">
