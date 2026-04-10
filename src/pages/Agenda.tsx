@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Plus } from 'lucide-react';
+import { Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { STATUS_SESSAO, TIPOS_ATENDIMENTO } from '@/lib/constants';
 import { EvaScale } from '@/components/EvaScale';
