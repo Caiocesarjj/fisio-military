@@ -64,7 +64,8 @@ export default function Agenda() {
       if (error) throw error;
       toast.success('Sessão agendada!');
       setDialogOpen(false);
-      setForm({ militar_id: '', data_hora: '', duracao: 60, tipo: 'presencial', status: 'agendado', anotacao_clinica: '' });
+      setForm({ militar_id: '', data_hora: '', duracao: 60, tipo: 'presencial', status: 'agendado', anotacao_clinica: '', queixa: '' });
+      setFormLesoes([]);
       fetchSessions();
     } catch (err: any) { toast.error(err.message); }
     setLoading(false);
