@@ -105,7 +105,21 @@ Deno.serve(async (req) => {
       const { user_id } = payload;
       if (!user_id) throw new Error("Missing user_id");
 
-      // Unlink militares if profile exists
+      const [{ count: sessionsCount }, { count: plansCount }] = await Promise.all([
+        adminClient
+          .from("sessions")
+          .select("id", { count: "exact", head: true })
+          .eq("fisio_id", user_id),
+        adminClient
+          .from("treatment_plans")
+          .select("id", { count: "exact", head: true })
+          .eq("fisio_id", user_id),
+      ]);
+
+      if ((sessionsCount ?? 0) > 0 || (plansCount ?? 0) > 0) {
+        throw new Error("Não é possível excluir este usuário porque ele ainda está vinculado a atendimentos ou planos de tratamento.");
+      }
+
       const { data: profile } = await adminClient
         .from("profiles")
         .select("id")
@@ -113,11 +127,19 @@ Deno.serve(async (req) => {
         .maybeSingle();
 
       if (profile?.id) {
-        await adminClient.from("militares").update({ profile_id: null }).eq("profile_id", profile.id);
+        const { error: unlinkError } = await adminClient
+          .from("militares")
+          .update({ profile_id: null })
+          .eq("profile_id", profile.id);
+        if (unlinkError) throw unlinkError;
       }
 
-      await adminClient.from("user_roles").delete().eq("user_id", user_id);
-      await adminClient.from("profiles").delete().eq("user_id", user_id);
+      const { error: rolesError } = await adminClient.from("user_roles").delete().eq("user_id", user_id);
+      if (rolesError) throw rolesError;
+
+      const { error: profileError } = await adminClient.from("profiles").delete().eq("user_id", user_id);
+      if (profileError) throw profileError;
+
       const { error } = await adminClient.auth.admin.deleteUser(user_id);
       if (error) throw error;
 
