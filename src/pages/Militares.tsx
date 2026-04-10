@@ -176,7 +176,7 @@ export default function Militares() {
         toast.success('Militar cadastrado com sucesso!');
       }
       setDialogOpen(false); setEditing(null); setForm(emptyForm);
-      setPhotoFile(null); setSenha(''); setLesoes([]);
+      setPhotoFile(null); setLesoes([]);
       fetchMilitares();
     } catch (error: any) { toast.error(error.message || 'Erro ao salvar militar.'); }
     setLoading(false);
