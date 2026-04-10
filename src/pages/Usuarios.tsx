@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { Plus, Search, Trash2, Link, Shield, User, UserCog, KeyRound } from 'lucide-react';
+import { Plus, Search, Trash2, Link, Shield, User, UserCog, KeyRound, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -27,6 +27,21 @@ interface Militar {
   id: string;
   nip: string;
   nome_guerra: string;
+}
+
+function PasswordInput({ value, onChange, placeholder, label = "Nova senha", required = false }: { value: string; onChange: (v: string) => void; placeholder?: string; label?: string; required?: boolean }) {
+  const [show, setShow] = useState(false);
+  return (
+    <div>
+      <Label>{label}</Label>
+      <div className="relative">
+        <Input type={show ? 'text' : 'password'} required={required} minLength={6} value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} className="pr-10" />
+        <button type="button" onClick={() => setShow(!show)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+          {show ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+        </button>
+      </div>
+    </div>
+  );
 }
 
 export default function Usuarios() {
@@ -248,10 +263,7 @@ export default function Usuarios() {
               <Label>Email</Label>
               <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="Opcional" />
             </div>
-            <div>
-              <Label>Senha *</Label>
-              <Input required type="password" minLength={6} value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
-            </div>
+            <PasswordInput value={form.password} onChange={(v) => setForm({ ...form, password: v })} label="Senha *" required />
             <div>
               <Label>Tipo de usuário</Label>
               <Select value={form.role} onValueChange={(val) => setForm({ ...form, role: val })}>
@@ -336,10 +348,7 @@ export default function Usuarios() {
             <p className="text-sm text-muted-foreground">
               Nova senha para <strong>{selectedUser?.full_name || selectedUser?.email}</strong>:
             </p>
-            <div>
-              <Label>Nova senha</Label>
-              <Input type="password" minLength={6} value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Mínimo 6 caracteres" />
-            </div>
+            <PasswordInput value={newPassword} onChange={setNewPassword} placeholder="Mínimo 6 caracteres" />
             <Button onClick={handleChangePassword} disabled={loading || newPassword.length < 6} className="w-full">
               {loading ? 'Alterando...' : 'Alterar Senha'}
             </Button>
