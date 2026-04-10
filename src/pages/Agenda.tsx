@@ -91,7 +91,7 @@ export default function Agenda() {
 
   const events = sessions.map((s) => ({
     id: s.id,
-    title: `${s.militares?.posto_graduacao || ''} ${s.militares?.nome_guerra || 'Militar'}`,
+    title: s.militares?.nome_guerra || 'Militar',
     start: s.data_hora,
     end: new Date(new Date(s.data_hora).getTime() + (s.duracao || 60) * 60000).toISOString(),
     backgroundColor: statusColors[s.status] || statusColors.agendado,
