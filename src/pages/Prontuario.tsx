@@ -222,8 +222,136 @@ export default function Prontuario() {
     setLoading(false);
   };
 
-  const handlePrint = () => {
-    window.print();
+  const handleExportPDF = () => {
+    if (!selectedMilitar) return;
+    const doc = new jsPDF();
+    const pw = doc.internal.pageSize.getWidth();
+    let y = 15;
+    const marginL = 15;
+    const contentW = pw - 30;
+
+    const checkPage = (needed: number) => {
+      if (y + needed > 280) { doc.addPage(); y = 15; }
+    };
+
+    const addTitle = (text: string) => {
+      checkPage(12);
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'bold');
+      doc.setFillColor(240, 240, 240);
+      doc.rect(marginL, y - 5, contentW, 8, 'F');
+      doc.text(text, marginL + 2, y);
+      y += 10;
+    };
+
+    const addField = (label: string, value: string | null) => {
+      if (!value) return;
+      checkPage(14);
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'bold');
+      doc.text(label, marginL, y);
+      doc.setFont('helvetica', 'normal');
+      const lines = doc.splitTextToSize(value, contentW - 2);
+      doc.text(lines, marginL + 2, y + 5);
+      y += 5 + lines.length * 4 + 3;
+    };
+
+    // Header
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text('PRONTUARIO FISIOTERAPEUTICO TONELERO', pw / 2, y, { align: 'center' });
+    y += 5;
+    doc.setDrawColor(0);
+    doc.setLineWidth(0.5);
+    doc.line(marginL, y, pw - marginL, y);
+    y += 8;
+
+    // 1. Identificação
+    addTitle('1. Identificacao do Paciente');
+    const mil = selectedMilitar;
+    const idFields = [
+      ['Nome Completo', mil.nome_completo],
+      ['Nome de Guerra', mil.nome_guerra],
+      ['NIP', mil.nip],
+      ['Posto/Graduacao', mil.posto_graduacao],
+      ['CIA', mil.companhia],
+      ['Secao', mil.setor || ''],
+      ['Telefone', mil.telefone || ''],
+      ['E-mail', mil.email || ''],
+    ];
+    doc.setFontSize(9);
+    idFields.forEach(([label, val]) => {
+      if (!val) return;
+      checkPage(6);
+      doc.setFont('helvetica', 'bold');
+      doc.text(`${label}: `, marginL, y);
+      doc.setFont('helvetica', 'normal');
+      doc.text(val, marginL + doc.getTextWidth(`${label}: `), y);
+      y += 5;
+    });
+    y += 3;
+
+    // 2. Anamnese
+    addTitle('2. Anamnese / Historico');
+    addField('Queixa Principal:', form.queixa_principal);
+    addField('Historia da Doenca Atual:', form.historia_doenca_atual);
+    addField('Doencas Associadas:', form.doencas_associadas);
+    addField('Historico de Cirurgias:', form.historico_cirurgias);
+    addField('Uso de Medicamentos:', form.uso_medicamentos);
+    addField('Habitos de Vida:', form.habitos_vida);
+
+    // 3. Avaliação
+    addTitle('3. Avaliacao Fisioterapeutica');
+    addField('Inspecao:', form.inspecao);
+    addField('Palpacao:', form.palpacao);
+    addField('Amplitude de Movimento (ADM):', form.amplitude_movimento);
+    addField('Forca Muscular:', form.forca_muscular);
+    addField('Testes Funcionais:', form.testes_funcionais);
+    addField('Escalas:', form.escalas);
+
+    // 4. Diagnóstico
+    addTitle('4. Diagnostico e Prognostico');
+    addField('Diagnostico:', form.diagnostico_fisio);
+    addField('Prognostico:', form.prognostico);
+
+    // 5. Plano
+    addTitle('5. Plano Terapeutico / Conduta');
+    addField('Objetivos:', form.objetivos);
+    addField('Tecnicas/Recursos:', form.tecnicas_recursos);
+    addField('Frequencia do Tratamento:', form.frequencia_tratamento);
+
+    // 6. Evoluções
+    if (evolucoes.length > 0) {
+      addTitle('6. Evolucao Diaria');
+      evolucoes.forEach((ev) => {
+        checkPage(20);
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'bold');
+        const dataFormatted = format(new Date(ev.data + 'T00:00:00'), 'dd/MM/yyyy');
+        doc.text(`Data: ${dataFormatted}`, marginL, y);
+        y += 5;
+        addField('Procedimentos:', ev.procedimentos_realizados);
+        addField('Resposta do Paciente:', ev.resposta_paciente);
+        addField('Observacoes:', ev.observacoes);
+        doc.setDrawColor(200);
+        doc.line(marginL, y, pw - marginL, y);
+        y += 4;
+      });
+    }
+
+    // 7. Assinatura
+    checkPage(25);
+    y += 5;
+    addTitle('7. Assinatura do Profissional');
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.text('Nome: LIEZIO MANOEL CAULA', marginL, y); y += 5;
+    doc.text('CREFITO-2: 192716-F', marginL, y); y += 10;
+    doc.line(marginL, y, marginL + 60, y); y += 4;
+    doc.text('Assinatura', marginL, y);
+
+    doc.save(`prontuario_${mil.nome_guerra.replace(/\s/g, '_')}.pdf`);
+    toast.success('PDF exportado com sucesso!');
   };
 
   const filteredMilitares = militares.filter(m =>
