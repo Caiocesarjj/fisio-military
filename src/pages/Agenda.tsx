@@ -152,7 +152,9 @@ export default function Agenda() {
       duracao: session.duracao || 60,
       tipo: session.tipo || 'presencial',
       anotacao_clinica: session.anotacao_clinica || '',
+      queixa: session.queixa || '',
     });
+    setEditLesoes(Array.isArray(session.lesoes) ? session.lesoes : []);
     setDetailDialog(session);
   };
 
