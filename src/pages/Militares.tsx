@@ -101,11 +101,18 @@ export default function Militares() {
         setLoading(false);
         return;
       }
+      if (form.companhia === 'Externo' && !form.om.trim()) {
+        toast.error('O campo OM é obrigatório para Externo.');
+        setLoading(false);
+        return;
+      }
       if (editing) {
         let foto_url = editing.foto_url;
         if (photoFile) foto_url = await uploadPhoto(editing.id, photoFile);
         const { error } = await supabase.from('militares').update({
-          ...form, setor: form.companhia === 'CCS' ? form.setor : null, foto_url, lesoes: lesoes as any,
+          ...form, setor: form.companhia === 'CCS' ? form.setor : null,
+          om: form.companhia === 'Externo' ? form.om : null,
+          foto_url, lesoes: lesoes as any,
         }).eq('id', editing.id);
         if (error) throw error;
         toast.success('Militar atualizado com sucesso!');
@@ -118,7 +125,9 @@ export default function Militares() {
           });
         }
         const { data: insertData, error: insertError } = await supabase.from('militares').insert({
-          ...form, email: form.email || null, setor: form.companhia === 'CCS' ? form.setor : null, profile_id: null, lesoes: lesoes as any,
+          ...form, email: form.email || null, setor: form.companhia === 'CCS' ? form.setor : null,
+          om: form.companhia === 'Externo' ? form.om : null,
+          profile_id: null, lesoes: lesoes as any,
         }).select().single();
         if (insertError) throw insertError;
         if (photoFile && insertData) {
