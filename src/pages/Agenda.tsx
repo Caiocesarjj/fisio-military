@@ -35,7 +35,7 @@ export default function Agenda() {
     const e = end || dateRange?.end || new Date();
     const [sessRes, milRes] = await Promise.all([
       supabase.from('sessions').select('*, militares(nome_guerra, posto_graduacao, companhia, foto_url)').gte('data_hora', s.toISOString()).lte('data_hora', e.toISOString()).order('data_hora'),
-      supabase.from('militares').select('id, nome_guerra, posto_graduacao').eq('ativo', true),
+      supabase.from('militares').select('id, nome_guerra, posto_graduacao').eq('status_militar', 'ativo'),
     ]);
     setSessions(sessRes.data || []);
     setMilitares(milRes.data || []);
