@@ -140,47 +140,60 @@ export default function Exercicios() {
         </select>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filtered.map((ex) => (
-          <Card key={ex.id} className="overflow-hidden">
-            {getYouTubeId(ex.video_url) ? (
-              <AspectRatio ratio={16 / 9}>
-                <iframe
-                  src={`https://www.youtube.com/embed/${getYouTubeId(ex.video_url)}`}
-                  title={ex.nome}
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                  className="w-full h-full"
-                />
-              </AspectRatio>
-            ) : ex.video_url && /\.(mp4|webm|ogg)(\?.*)?$/i.test(ex.video_url) ? (
-              <video src={ex.video_url} controls preload="metadata" className="w-full max-h-[400px] object-contain bg-muted" />
-            ) : ex.video_url && /\.gif(\?.*)?$/i.test(ex.video_url) ? (
-              <img src={ex.video_url} alt={ex.nome} className="w-full max-h-[400px] object-contain bg-muted" />
-            ) : ex.imagem_url ? (
-              <img src={ex.imagem_url} alt={ex.nome} className="w-full max-h-[400px] object-contain bg-muted" />
-            ) : null}
-            <CardContent className="p-4">
-              <div className="flex justify-between items-start">
-                <div className="flex-1">
-                  <h3 className="font-semibold text-foreground">{ex.nome}</h3>
-                  <div className="flex gap-2 mt-1">
-                    <Badge variant="secondary">{ex.categoria}</Badge>
-                    <span className={`text-xs px-2 py-0.5 rounded-full ${diffColor[ex.dificuldade] || ''}`}>{ex.dificuldade}</span>
-                  </div>
-                  {ex.descricao && <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{ex.descricao}</p>}
-                </div>
-                <div className="flex gap-1 ml-2">
-                  <Button variant="ghost" size="icon" onClick={() => openEdit(ex)}><Edit className="h-4 w-4" /></Button>
-                  <Button variant="ghost" size="icon" onClick={() => handleDelete(ex.id)}><Trash2 className="h-4 w-4" /></Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
       {filtered.length === 0 && <p className="text-center text-muted-foreground py-8">Nenhum exercício encontrado.</p>}
+
+      {(() => {
+        const grouped = filtered.reduce<Record<string, Exercise[]>>((acc, ex) => {
+          const cat = ex.categoria || 'Sem categoria';
+          if (!acc[cat]) acc[cat] = [];
+          acc[cat].push(ex);
+          return acc;
+        }, {});
+        const sortedKeys = Object.keys(grouped).sort();
+        return sortedKeys.map((cat) => (
+          <div key={cat} className="space-y-3">
+            <h2 className="text-lg font-semibold text-foreground border-b pb-2">{cat} <span className="text-sm font-normal text-muted-foreground">({grouped[cat].length})</span></h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {grouped[cat].map((ex) => (
+                <Card key={ex.id} className="overflow-hidden">
+                  {getYouTubeId(ex.video_url) ? (
+                    <AspectRatio ratio={16 / 9}>
+                      <iframe
+                        src={`https://www.youtube.com/embed/${getYouTubeId(ex.video_url)}`}
+                        title={ex.nome}
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                        className="w-full h-full"
+                      />
+                    </AspectRatio>
+                  ) : ex.video_url && /\.(mp4|webm|ogg)(\?.*)?$/i.test(ex.video_url) ? (
+                    <video src={ex.video_url} controls preload="metadata" className="w-full max-h-[400px] object-contain bg-muted" />
+                  ) : ex.video_url && /\.gif(\?.*)?$/i.test(ex.video_url) ? (
+                    <img src={ex.video_url} alt={ex.nome} className="w-full max-h-[400px] object-contain bg-muted" />
+                  ) : ex.imagem_url ? (
+                    <img src={ex.imagem_url} alt={ex.nome} className="w-full max-h-[400px] object-contain bg-muted" />
+                  ) : null}
+                  <CardContent className="p-4">
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-foreground">{ex.nome}</h3>
+                        <div className="flex gap-2 mt-1">
+                          <span className={`text-xs px-2 py-0.5 rounded-full ${diffColor[ex.dificuldade] || ''}`}>{ex.dificuldade}</span>
+                        </div>
+                        {ex.descricao && <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{ex.descricao}</p>}
+                      </div>
+                      <div className="flex gap-1 ml-2">
+                        <Button variant="ghost" size="icon" onClick={() => openEdit(ex)}><Edit className="h-4 w-4" /></Button>
+                        <Button variant="ghost" size="icon" onClick={() => handleDelete(ex.id)}><Trash2 className="h-4 w-4" /></Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        ));
+      })()}
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
