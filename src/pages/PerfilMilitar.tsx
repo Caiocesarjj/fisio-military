@@ -326,11 +326,12 @@ export default function PerfilMilitar() {
                   ) : (
                     <Table>
                       <TableHeader>
-                        <TableRow>
+                         <TableRow>
                           <TableHead>Data</TableHead>
                           <TableHead>Hora</TableHead>
                           <TableHead>Duração</TableHead>
                           <TableHead>Tipo</TableHead>
+                          <TableHead>Lesões</TableHead>
                           <TableHead>Status</TableHead>
                           <TableHead>Dor</TableHead>
                         </TableRow>
@@ -342,6 +343,13 @@ export default function PerfilMilitar() {
                             <TableCell>{new Date(s.data_hora).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</TableCell>
                             <TableCell>{s.duracao}min</TableCell>
                             <TableCell>{s.tipo}</TableCell>
+                            <TableCell>
+                              {Array.isArray(s.lesoes) && s.lesoes.length > 0 ? (
+                                <LesaoBadges lesoes={s.lesoes} />
+                              ) : (
+                                <span className="text-xs text-muted-foreground">—</span>
+                              )}
+                            </TableCell>
                             <TableCell>
                               <Badge className={`text-xs ${statusMap[s.status] || ''}`} variant="secondary">{s.status}</Badge>
                             </TableCell>
