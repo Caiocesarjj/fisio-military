@@ -143,7 +143,7 @@ export default function Exercicios() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filtered.map((ex) => (
           <Card key={ex.id} className="overflow-hidden">
-            {getYouTubeId(ex.video_url) && (
+            {getYouTubeId(ex.video_url) ? (
               <AspectRatio ratio={16 / 9}>
                 <iframe
                   src={`https://www.youtube.com/embed/${getYouTubeId(ex.video_url)}`}
@@ -153,12 +153,19 @@ export default function Exercicios() {
                   className="w-full h-full"
                 />
               </AspectRatio>
-            )}
-            {!getYouTubeId(ex.video_url) && ex.imagem_url && (
+            ) : ex.video_url && /\.(mp4|webm|ogg|gif)(\?.*)?$/i.test(ex.video_url) ? (
+              <AspectRatio ratio={16 / 9}>
+                {/\.gif(\?.*)?$/i.test(ex.video_url) ? (
+                  <img src={ex.video_url} alt={ex.nome} className="w-full h-full object-cover" />
+                ) : (
+                  <video src={ex.video_url} controls preload="metadata" className="w-full h-full object-cover" />
+                )}
+              </AspectRatio>
+            ) : ex.imagem_url ? (
               <AspectRatio ratio={16 / 9}>
                 <img src={ex.imagem_url} alt={ex.nome} className="w-full h-full object-cover" />
               </AspectRatio>
-            )}
+            ) : null}
             <CardContent className="p-4">
               <div className="flex justify-between items-start">
                 <div className="flex-1">
