@@ -21,7 +21,7 @@ export const POSTOS_GRADUACOES = {
   ],
 };
 
-export const COMPANHIAS = ['1ª Cia', '2ª Cia', '3ª Cia', 'Cia Apoio', 'CCS'];
+export const COMPANHIAS = ['1ª Cia', '2ª Cia', '3ª Cia', 'Cia Apoio', 'CCS', 'Externo'];
 
 export const CATEGORIAS_EXERCICIO = [
   'Coluna',
