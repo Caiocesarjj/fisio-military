@@ -151,12 +151,23 @@ Deno.serve(async (req) => {
         .single();
 
       if (profile) {
-        // Unlink previous
         await adminClient.from("militares").update({ profile_id: null }).eq("profile_id", profile.id);
-        // Link new
         const { error } = await adminClient.from("militares").update({ profile_id: profile.id }).eq("nip", nip);
         if (error) throw error;
       }
+
+      return new Response(JSON.stringify({ success: true }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (action === "change_password") {
+      const { user_id, password } = payload;
+      if (!user_id || !password) throw new Error("Missing fields");
+      if (password.length < 6) throw new Error("Senha deve ter no mínimo 6 caracteres");
+
+      const { error } = await adminClient.auth.admin.updateUser(user_id, { password });
+      if (error) throw error;
 
       return new Response(JSON.stringify({ success: true }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
