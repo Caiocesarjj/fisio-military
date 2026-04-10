@@ -11,6 +11,7 @@ import { FileDown } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { startOfWeek, endOfWeek, startOfMonth, endOfMonth, subMonths } from 'date-fns';
+import RelatorioDetalhado from '@/components/RelatorioDetalhado';
 
 type Period = 'week' | 'month' | '3months' | 'custom';
 
@@ -198,6 +199,9 @@ export default function Relatorios() {
           </ResponsiveContainer>
         </CardContent>
       </Card>
+
+      {/* Detailed report */}
+      <RelatorioDetalhado />
     </div>
   );
 }
