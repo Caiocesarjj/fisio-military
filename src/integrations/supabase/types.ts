@@ -250,6 +250,137 @@ export type Database = {
         }
         Relationships: []
       }
+      prontuario_evolucoes: {
+        Row: {
+          created_at: string
+          data: string
+          id: string
+          militar_id: string
+          observacoes: string | null
+          procedimentos_realizados: string | null
+          prontuario_id: string
+          resposta_paciente: string | null
+        }
+        Insert: {
+          created_at?: string
+          data?: string
+          id?: string
+          militar_id: string
+          observacoes?: string | null
+          procedimentos_realizados?: string | null
+          prontuario_id: string
+          resposta_paciente?: string | null
+        }
+        Update: {
+          created_at?: string
+          data?: string
+          id?: string
+          militar_id?: string
+          observacoes?: string | null
+          procedimentos_realizados?: string | null
+          prontuario_id?: string
+          resposta_paciente?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prontuario_evolucoes_militar_id_fkey"
+            columns: ["militar_id"]
+            isOneToOne: false
+            referencedRelation: "militares"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prontuario_evolucoes_prontuario_id_fkey"
+            columns: ["prontuario_id"]
+            isOneToOne: false
+            referencedRelation: "prontuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      prontuarios: {
+        Row: {
+          amplitude_movimento: string | null
+          created_at: string
+          diagnostico_fisio: string | null
+          doencas_associadas: string | null
+          escalas: string | null
+          fisio_id: string
+          forca_muscular: string | null
+          frequencia_tratamento: string | null
+          habitos_vida: string | null
+          historia_doenca_atual: string | null
+          historico_cirurgias: string | null
+          id: string
+          inspecao: string | null
+          militar_id: string
+          objetivos: string | null
+          palpacao: string | null
+          prognostico: string | null
+          queixa_principal: string | null
+          tecnicas_recursos: string | null
+          testes_funcionais: string | null
+          updated_at: string
+          uso_medicamentos: string | null
+        }
+        Insert: {
+          amplitude_movimento?: string | null
+          created_at?: string
+          diagnostico_fisio?: string | null
+          doencas_associadas?: string | null
+          escalas?: string | null
+          fisio_id: string
+          forca_muscular?: string | null
+          frequencia_tratamento?: string | null
+          habitos_vida?: string | null
+          historia_doenca_atual?: string | null
+          historico_cirurgias?: string | null
+          id?: string
+          inspecao?: string | null
+          militar_id: string
+          objetivos?: string | null
+          palpacao?: string | null
+          prognostico?: string | null
+          queixa_principal?: string | null
+          tecnicas_recursos?: string | null
+          testes_funcionais?: string | null
+          updated_at?: string
+          uso_medicamentos?: string | null
+        }
+        Update: {
+          amplitude_movimento?: string | null
+          created_at?: string
+          diagnostico_fisio?: string | null
+          doencas_associadas?: string | null
+          escalas?: string | null
+          fisio_id?: string
+          forca_muscular?: string | null
+          frequencia_tratamento?: string | null
+          habitos_vida?: string | null
+          historia_doenca_atual?: string | null
+          historico_cirurgias?: string | null
+          id?: string
+          inspecao?: string | null
+          militar_id?: string
+          objetivos?: string | null
+          palpacao?: string | null
+          prognostico?: string | null
+          queixa_principal?: string | null
+          tecnicas_recursos?: string | null
+          testes_funcionais?: string | null
+          updated_at?: string
+          uso_medicamentos?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prontuarios_militar_id_fkey"
+            columns: ["militar_id"]
+            isOneToOne: false
+            referencedRelation: "militares"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       session_notes: {
         Row: {
           conduta: string | null
