@@ -37,6 +37,10 @@ export function ExercisePreview({ planExercise }: ExercisePreviewProps) {
                 className="h-full w-full"
               />
             </AspectRatio>
+          ) : isGif(exercise?.video_url) ? (
+            <AspectRatio ratio={16 / 9}>
+              <img src={exercise.video_url} alt={exercise?.nome || 'GIF do exercício'} className="h-full w-full object-cover" />
+            </AspectRatio>
           ) : isDirectVideo(exercise?.video_url) ? (
             <AspectRatio ratio={16 / 9}>
               <video src={exercise.video_url} controls className="h-full w-full object-cover" preload="metadata" />
