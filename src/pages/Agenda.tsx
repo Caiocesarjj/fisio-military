@@ -28,23 +28,28 @@ export default function Agenda() {
   const [form, setForm] = useState({ militar_id: '', data_hora: '', duracao: 60, tipo: 'presencial', status: 'agendado', anotacao_clinica: '' });
   const [loading, setLoading] = useState(false);
   const [painLevel, setPainLevel] = useState(0);
-  const [calLoading, setCalLoading] = useState(true);
+  const [calLoading, setCalLoading] = useState(false);
 
-  const fetchData = async (start?: Date, end?: Date) => {
+  // Fetch militares once on mount
+  useEffect(() => {
+    supabase.from('militares').select('id, nome_guerra, posto_graduacao').eq('status_militar', 'ativo')
+      .then(({ data }) => setMilitares(data || []));
+  }, []);
+
+  const fetchSessions = async (start?: Date, end?: Date) => {
     const s = start || dateRange?.start || new Date();
     const e = end || dateRange?.end || new Date();
-    const [sessRes, milRes] = await Promise.all([
-      supabase.from('sessions').select('*, militares(nome_guerra, posto_graduacao, companhia, foto_url)').gte('data_hora', s.toISOString()).lte('data_hora', e.toISOString()).order('data_hora'),
-      supabase.from('militares').select('id, nome_guerra, posto_graduacao').eq('status_militar', 'ativo'),
-    ]);
-    setSessions(sessRes.data || []);
-    setMilitares(milRes.data || []);
-    setCalLoading(false);
+    const { data } = await supabase.from('sessions')
+      .select('*, militares(nome_guerra, posto_graduacao, companhia, foto_url)')
+      .gte('data_hora', s.toISOString())
+      .lte('data_hora', e.toISOString())
+      .order('data_hora');
+    setSessions(data || []);
   };
 
   const handleDatesSet = (arg: DatesSetArg) => {
     setDateRange({ start: arg.start, end: arg.end });
-    fetchData(arg.start, arg.end);
+    fetchSessions(arg.start, arg.end);
   };
 
   const handleCreate = async (e: React.FormEvent) => {
@@ -56,7 +61,7 @@ export default function Agenda() {
       toast.success('Sessão agendada!');
       setDialogOpen(false);
       setForm({ militar_id: '', data_hora: '', duracao: 60, tipo: 'presencial', status: 'agendado', anotacao_clinica: '' });
-      fetchData();
+      fetchSessions();
     } catch (err: any) { toast.error(err.message); }
     setLoading(false);
   };
@@ -74,7 +79,7 @@ export default function Agenda() {
     toast.success(`Status atualizado para "${status}".`);
     setDetailDialog(null);
     setPainLevel(0);
-    fetchData();
+    fetchSessions();
   };
 
   const statusColors: Record<string, string> = {
