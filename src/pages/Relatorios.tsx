@@ -194,7 +194,6 @@ export default function Relatorios() {
               <Tooltip />
               <Legend />
               <Bar dataKey="Realizadas" fill="hsl(142, 71%, 45%)" radius={[4, 4, 0, 0]} />
-              <Bar dataKey="Faltas" fill="hsl(0, 84%, 60%)" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </CardContent>
