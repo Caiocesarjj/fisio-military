@@ -61,7 +61,7 @@ export default function Agenda() {
       toast.success('Sessão agendada!');
       setDialogOpen(false);
       setForm({ militar_id: '', data_hora: '', duracao: 60, tipo: 'presencial', status: 'agendado', anotacao_clinica: '' });
-      fetchData();
+      fetchSessions();
     } catch (err: any) { toast.error(err.message); }
     setLoading(false);
   };
