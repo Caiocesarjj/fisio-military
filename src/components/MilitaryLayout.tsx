@@ -21,7 +21,7 @@ export default function MilitaryLayout() {
         <div className="mx-auto flex h-14 max-w-4xl items-center justify-between px-4 md:px-6">
           <div className="flex items-center gap-2">
             <Shield className="h-5 w-5 text-primary" />
-            <span className="font-bold text-primary">FisioApp</span>
+            <span className="font-bold text-primary">Fisioteria Tonelero</span>
           </div>
 
           <nav className="hidden items-center gap-1 md:flex">
