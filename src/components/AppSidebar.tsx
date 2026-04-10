@@ -55,7 +55,7 @@ export function AppSidebar() {
           <SidebarGroupLabel className="px-3 py-4">
             <div className="flex items-center gap-2">
               <Shield className="w-5 h-5 text-sidebar-primary" />
-              {!collapsed && <span className="font-bold text-sm text-sidebar-primary">FisioApp</span>}
+              {!collapsed && <span className="font-bold text-sm text-sidebar-primary">Fisioteria Tonelero</span>}
             </div>
           </SidebarGroupLabel>
           <SidebarGroupContent>
