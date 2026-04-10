@@ -29,13 +29,13 @@ interface Militar {
   nome_guerra: string;
 }
 
-function PasswordInput({ value, onChange, placeholder }: { value: string; onChange: (v: string) => void; placeholder?: string }) {
+function PasswordInput({ value, onChange, placeholder, label = "Nova senha", required = false }: { value: string; onChange: (v: string) => void; placeholder?: string; label?: string; required?: boolean }) {
   const [show, setShow] = useState(false);
   return (
     <div>
-      <Label>Nova senha</Label>
+      <Label>{label}</Label>
       <div className="relative">
-        <Input type={show ? 'text' : 'password'} minLength={6} value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} className="pr-10" />
+        <Input type={show ? 'text' : 'password'} required={required} minLength={6} value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} className="pr-10" />
         <button type="button" onClick={() => setShow(!show)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
           {show ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
         </button>
@@ -263,7 +263,7 @@ export default function Usuarios() {
               <Label>Email</Label>
               <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="Opcional" />
             </div>
-            <PasswordInputCreate value={form.password} onChange={(v) => setForm({ ...form, password: v })} />
+            <PasswordInput value={form.password} onChange={(v) => setForm({ ...form, password: v })} label="Senha *" required />
             <div>
               <Label>Tipo de usuário</Label>
               <Select value={form.role} onValueChange={(val) => setForm({ ...form, role: val })}>
