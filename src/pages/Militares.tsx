@@ -356,12 +356,6 @@ export default function Militares() {
                 <Label>E-mail</Label>
                 <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
               </div>
-              {!editing && (
-                <div className="space-y-2">
-                  <Label>Senha *</Label>
-                  <Input type="password" value={senha} onChange={(e) => setSenha(e.target.value)} required placeholder="Senha para acesso" />
-                </div>
-              )}
               <div className="space-y-2">
                 <Label>Foto</Label>
                 <Input type="file" accept="image/*" onChange={(e) => setPhotoFile(e.target.files?.[0] || null)} />
