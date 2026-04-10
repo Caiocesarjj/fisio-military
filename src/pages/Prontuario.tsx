@@ -573,8 +573,8 @@ export default function Prontuario() {
                 </Card>
 
                 <div className="flex justify-end gap-2">
-                  <Button type="button" variant="outline" onClick={handlePrint}>
-                    <Printer className="h-4 w-4 mr-1" /> Imprimir
+                  <Button type="button" variant="outline" onClick={handleExportPDF}>
+                    <Download className="h-4 w-4 mr-1" /> Exportar PDF
                   </Button>
                   <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
                   <Button type="submit" disabled={loading}>{loading ? 'Salvando...' : editing ? 'Atualizar' : 'Salvar'}</Button>
