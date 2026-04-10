@@ -10,6 +10,7 @@ import {
   ScrollText,
   Settings,
   UserCog,
+  FileText,
 } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import { useAuth } from '@/contexts/AuthContext';
@@ -31,7 +32,7 @@ import { Button } from '@/components/ui/button';
 const adminItems = [
   { title: 'Dashboard', url: '/dashboard', icon: LayoutDashboard },
   { title: 'Militares', url: '/militares', icon: Users },
-  { title: 'Prontuário', url: '/prontuario', icon: ClipboardList },
+  { title: 'Prontuário', url: '/prontuario', icon: FileText },
   { title: 'Exercícios', url: '/exercicios', icon: Dumbbell },
   { title: 'Planos', url: '/planos', icon: ClipboardList },
   { title: 'Agenda', url: '/agenda', icon: CalendarDays },
