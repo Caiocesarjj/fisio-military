@@ -155,7 +155,7 @@ export default function Militares() {
     setForm({
       nip: m.nip, nome_completo: m.nome_completo, nome_guerra: m.nome_guerra,
       posto_graduacao: m.posto_graduacao, companhia: m.companhia, setor: m.setor || '',
-      telefone: m.telefone || '', email: m.email, diagnostico: m.diagnostico || '',
+      om: m.om || '', telefone: m.telefone || '', email: m.email, diagnostico: m.diagnostico || '',
       observacoes: m.observacoes || '',
     });
     setLesoes(m.lesoes || []);
