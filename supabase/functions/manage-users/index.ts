@@ -5,6 +5,12 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+const normalizeNip = (value: string) => {
+  const digits = value.replace(/\D/g, "").slice(0, 8);
+  if (digits.length !== 8) return value;
+  return `${digits.slice(0, 2)}.${digits.slice(2, 6)}.${digits.slice(6)}`;
+};
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -18,7 +24,6 @@ Deno.serve(async (req) => {
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
 
-    // Verify caller identity
     const userClient = createClient(supabaseUrl, anonKey, {
       global: { headers: { Authorization: authHeader } },
     });
@@ -28,7 +33,6 @@ Deno.serve(async (req) => {
     if (claimsError || !claimsData?.claims?.sub) throw new Error("Not authenticated");
 
     const callerId = claimsData.claims.sub;
-
     const adminClient = createClient(supabaseUrl, serviceRoleKey);
 
     const { data: roleCheck } = await adminClient
@@ -45,10 +49,9 @@ Deno.serve(async (req) => {
       const { email, password, full_name, role, nip } = payload;
       if (!password || !role) throw new Error("Missing required fields");
 
-      // Use email if provided, otherwise generate one from NIP
-      const userEmail = email || (nip ? `${nip}@nip.local` : `${Date.now()}@nip.local`);
+      const normalizedNip = nip ? normalizeNip(String(nip)) : null;
+      const userEmail = email || (normalizedNip ? `${normalizedNip}@nip.local` : `${Date.now()}@nip.local`);
 
-      // Create auth user
       const { data: newUser, error: createError } = await adminClient.auth.admin.createUser({
         email: userEmail,
         password,
@@ -58,13 +61,9 @@ Deno.serve(async (req) => {
       if (createError) throw createError;
 
       const userId = newUser.user.id;
-
-      // Assign role
       await adminClient.from("user_roles").insert({ user_id: userId, role });
 
-      // If military, link to militares by NIP
-      if (role === "military" && nip) {
-        // Get or create profile
+      if (role === "military" && normalizedNip) {
         const { data: profile } = await adminClient
           .from("profiles")
           .select("id")
@@ -75,7 +74,7 @@ Deno.serve(async (req) => {
           await adminClient
             .from("militares")
             .update({ profile_id: profile.id })
-            .eq("nip", nip);
+            .eq("nip", normalizedNip);
         }
       }
 
@@ -88,13 +87,11 @@ Deno.serve(async (req) => {
       const { user_id } = payload;
       if (!user_id) throw new Error("Missing user_id");
 
-      // Unlink militares
       await adminClient.from("militares").update({ profile_id: null }).eq(
         "profile_id",
         (await adminClient.from("profiles").select("id").eq("user_id", user_id).single()).data?.id || ""
       );
 
-      // Delete role, profile, then auth user
       await adminClient.from("user_roles").delete().eq("user_id", user_id);
       await adminClient.from("profiles").delete().eq("user_id", user_id);
       const { error } = await adminClient.auth.admin.deleteUser(user_id);
@@ -149,6 +146,8 @@ Deno.serve(async (req) => {
       const { user_id, nip } = payload;
       if (!user_id || !nip) throw new Error("Missing fields");
 
+      const normalizedNip = normalizeNip(String(nip));
+
       const { data: profile } = await adminClient
         .from("profiles")
         .select("id")
@@ -157,7 +156,7 @@ Deno.serve(async (req) => {
 
       if (profile) {
         await adminClient.from("militares").update({ profile_id: null }).eq("profile_id", profile.id);
-        const { error } = await adminClient.from("militares").update({ profile_id: profile.id }).eq("nip", nip);
+        const { error } = await adminClient.from("militares").update({ profile_id: profile.id }).eq("nip", normalizedNip);
         if (error) throw error;
       }
 

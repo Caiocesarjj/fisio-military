@@ -74,7 +74,7 @@ export default function Login() {
                     id="nip"
                     value={nip}
                     onChange={(e) => setNip(e.target.value)}
-                    placeholder="Digite seu NIP"
+                    placeholder="Digite seu NIP com ou sem pontos"
                     required
                   />
                 </div>

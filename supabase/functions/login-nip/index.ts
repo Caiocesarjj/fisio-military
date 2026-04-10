@@ -5,6 +5,12 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+const normalizeNip = (value: string) => {
+  const digits = value.replace(/\D/g, "").slice(0, 8);
+  if (digits.length !== 8) return null;
+  return `${digits.slice(0, 2)}.${digits.slice(2, 6)}.${digits.slice(6)}`;
+};
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -19,16 +25,28 @@ Deno.serve(async (req) => {
       });
     }
 
+    const rawNip = String(nip).trim();
+    const normalizedNip = normalizeNip(rawNip);
+
+    if (!normalizedNip) {
+      return new Response(JSON.stringify({ error: "NIP inválido" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const candidateNips = Array.from(new Set([rawNip, normalizedNip]));
+    const candidateEmails = Array.from(new Set([`${rawNip}@nip.local`, `${normalizedNip}@nip.local`]));
+
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const adminClient = createClient(supabaseUrl, serviceRoleKey);
 
-    // Look up militar by NIP
     const { data: militar, error: milError } = await adminClient
       .from("militares")
       .select("profile_id, email")
-      .eq("nip", nip)
-      .single();
+      .in("nip", candidateNips)
+      .maybeSingle();
 
     if (milError || !militar) {
       return new Response(JSON.stringify({ error: "NIP não encontrado" }), {
@@ -39,29 +57,25 @@ Deno.serve(async (req) => {
 
     let email: string | null = null;
 
-    // Try via profile_id first
     if (militar.profile_id) {
       const { data: profile } = await adminClient
         .from("profiles")
         .select("email")
         .eq("id", militar.profile_id)
-        .single();
+        .maybeSingle();
       email = profile?.email || null;
     }
 
-    // Fallback: use email from militares table directly
     if (!email && militar.email) {
       email = militar.email;
     }
 
-    // Fallback: try generated NIP email
     if (!email) {
-      const nipEmail = `${nip}@nip.local`;
-      const { data: { users } } = await adminClient.auth.admin.listUsers({ perPage: 1 });
-      // Check if a user exists with this NIP-based email
       const { data: userList } = await adminClient.auth.admin.listUsers({ perPage: 1000 });
-      const found = userList?.users?.find((u: any) => u.email === nipEmail);
-      if (found) email = nipEmail;
+      const found = userList?.users?.find((user: { email?: string | null }) =>
+        user.email ? candidateEmails.includes(user.email) : false
+      );
+      email = found?.email || null;
     }
 
     if (!email) {
