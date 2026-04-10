@@ -27,7 +27,7 @@ const queryClient = new QueryClient();
 function AppRoutes() {
   const { user, role, loading } = useAuth();
 
-  if (loading) {
+  if (loading || (user && !role)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center space-y-3">
