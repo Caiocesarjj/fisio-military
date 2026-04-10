@@ -92,6 +92,25 @@ export default function Militares() {
     return data.publicUrl;
   };
 
+  const callManageUsers = async (body: any) => {
+    const { data: sessionData } = await supabase.auth.getSession();
+    const accessToken = sessionData?.session?.access_token;
+    if (!accessToken) throw new Error('Sessão expirada. Faça login novamente.');
+
+    const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/manage-users`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${accessToken}`,
+        apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+      },
+      body: JSON.stringify(body),
+    });
+    const data = await response.json();
+    if (!response.ok || data?.error) throw new Error(data?.error || `Erro ${response.status}`);
+    return data;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -118,18 +137,38 @@ export default function Militares() {
         toast.success('Militar atualizado com sucesso!');
       } else {
         if (!senha) { toast.error('Defina uma senha para o militar.'); setLoading(false); return; }
-        if (form.email) {
-          await supabase.auth.signUp({
-            email: form.email, password: senha,
-            options: { data: { full_name: form.nome_completo } },
-          });
-        }
+
+        // 1) Create auth user + role + link via edge function
+        const userResult = await callManageUsers({
+          action: 'create',
+          email: form.email || null,
+          password: senha,
+          full_name: form.nome_completo,
+          role: 'military',
+          nip: form.nip,
+        });
+        const createdUserId: string | null = userResult?.user_id || null;
+
+        // 2) Insert militar record
         const { data: insertData, error: insertError } = await supabase.from('militares').insert({
           ...form, email: form.email || null, setor: form.companhia === 'CCS' ? form.setor : null,
           om: form.companhia === 'Externo' ? form.om : null,
           profile_id: null, lesoes: lesoes as any,
         }).select().single();
-        if (insertError) throw insertError;
+
+        if (insertError) {
+          // Rollback auth user if insert failed
+          if (createdUserId) {
+            try { await callManageUsers({ action: 'delete', user_id: createdUserId }); } catch {}
+          }
+          throw insertError;
+        }
+
+        // 3) Link profile to militar by NIP
+        if (createdUserId) {
+          try { await callManageUsers({ action: 'link_nip', user_id: createdUserId, nip: form.nip }); } catch {}
+        }
+
         if (photoFile && insertData) {
           const foto_url = await uploadPhoto(insertData.id, photoFile);
           await supabase.from('militares').update({ foto_url }).eq('id', insertData.id);
