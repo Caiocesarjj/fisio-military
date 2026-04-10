@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { EvaScale } from '@/components/EvaScale';
 import { Plus, Search, FileText, CalendarDays, User, Download } from 'lucide-react';
 import jsPDF from 'jspdf';
 import { toast } from 'sonner';
@@ -524,9 +525,12 @@ export default function Prontuario() {
                       <Label>Testes Funcionais</Label>
                       <Textarea value={form.testes_funcionais} onChange={e => setForm({ ...form, testes_funcionais: e.target.value })} />
                     </div>
-                    <div className="space-y-1">
-                      <Label>Escalas (dor, funcionalidade, etc.)</Label>
-                      <Textarea value={form.escalas} onChange={e => setForm({ ...form, escalas: e.target.value })} />
+                    <div className="space-y-2">
+                      <Label>Escala de Dor (EVA)</Label>
+                      <EvaScale
+                        value={parseInt(form.escalas) || 0}
+                        onChange={(v) => setForm({ ...form, escalas: String(v) })}
+                      />
                     </div>
                   </CardContent>
                 </Card>
