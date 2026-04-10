@@ -193,30 +193,56 @@ export default function Agenda() {
         </div>
       )}
 
-      {/* Detail dialog */}
       <Dialog open={!!detailDialog} onOpenChange={() => setDetailDialog(null)}>
         <DialogContent className="max-w-md">
-          <DialogHeader><DialogTitle>Detalhes da Sessão</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>Editar Sessão</DialogTitle></DialogHeader>
           {detailDialog && (
-            <div className="space-y-3">
+            <div className="space-y-4">
               <p className="font-medium text-foreground">{detailDialog.militares?.posto_graduacao} {detailDialog.militares?.nome_guerra}</p>
-              <p className="text-sm text-muted-foreground">
-                {new Date(detailDialog.data_hora).toLocaleString('pt-BR')} · {detailDialog.duracao}min · {detailDialog.tipo}
-              </p>
-              {detailDialog.anotacao_clinica && <p className="text-sm text-muted-foreground">{detailDialog.anotacao_clinica}</p>}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Data e Hora</Label>
+                  <Input type="datetime-local" value={editForm.data_hora} onChange={(e) => setEditForm({ ...editForm, data_hora: e.target.value })} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Duração (min)</Label>
+                  <Input type="number" value={editForm.duracao} onChange={(e) => setEditForm({ ...editForm, duracao: Number(e.target.value) })} />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Tipo</Label>
+                  <select className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={editForm.tipo} onChange={(e) => setEditForm({ ...editForm, tipo: e.target.value })}>
+                    {TIPOS_ATENDIMENTO.map((t) => <option key={t} value={t}>{t}</option>)}
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Status</Label>
+                  <select
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                    value={detailDialog.status}
+                    onChange={(e) => updateStatus(detailDialog.id, e.target.value)}
+                  >
+                    {STATUS_SESSAO.map((st) => <option key={st} value={st}>{st}</option>)}
+                  </select>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label>Anotação Clínica</Label>
+                <Textarea value={editForm.anotacao_clinica} onChange={(e) => setEditForm({ ...editForm, anotacao_clinica: e.target.value })} />
+              </div>
               <div className="space-y-2">
                 <Label>Nível de Dor (EVA)</Label>
                 <EvaScale value={painLevel} onChange={setPainLevel} />
               </div>
-              <div className="space-y-2">
-                <Label>Status</Label>
-                <select
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                  value={detailDialog.status}
-                  onChange={(e) => updateStatus(detailDialog.id, e.target.value)}
-                >
-                  {STATUS_SESSAO.map((st) => <option key={st} value={st}>{st}</option>)}
-                </select>
+              <div className="flex justify-between">
+                <Button variant="destructive" size="sm" onClick={handleDelete}>
+                  <Trash2 className="h-4 w-4 mr-1" /> Excluir
+                </Button>
+                <div className="flex gap-2">
+                  <Button variant="outline" onClick={() => setDetailDialog(null)}>Cancelar</Button>
+                  <Button onClick={handleSaveEdit} disabled={loading}>{loading ? 'Salvando...' : 'Salvar'}</Button>
+                </div>
               </div>
             </div>
           )}
