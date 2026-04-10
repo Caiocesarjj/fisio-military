@@ -199,6 +199,9 @@ export default function Relatorios() {
           </ResponsiveContainer>
         </CardContent>
       </Card>
+
+      {/* Detailed report */}
+      <RelatorioDetalhado />
     </div>
   );
 }
