@@ -153,18 +153,12 @@ export default function Exercicios() {
                   className="w-full h-full"
                 />
               </AspectRatio>
-            ) : ex.video_url && /\.(mp4|webm|ogg|gif)(\?.*)?$/i.test(ex.video_url) ? (
-              <AspectRatio ratio={16 / 9}>
-                {/\.gif(\?.*)?$/i.test(ex.video_url) ? (
-                  <img src={ex.video_url} alt={ex.nome} className="w-full h-full object-cover" />
-                ) : (
-                  <video src={ex.video_url} controls preload="metadata" className="w-full h-full object-cover" />
-                )}
-              </AspectRatio>
+            ) : ex.video_url && /\.(mp4|webm|ogg)(\?.*)?$/i.test(ex.video_url) ? (
+              <video src={ex.video_url} controls preload="metadata" className="w-full max-h-[400px] object-contain bg-muted" />
+            ) : ex.video_url && /\.gif(\?.*)?$/i.test(ex.video_url) ? (
+              <img src={ex.video_url} alt={ex.nome} className="w-full max-h-[400px] object-contain bg-muted" />
             ) : ex.imagem_url ? (
-              <AspectRatio ratio={16 / 9}>
-                <img src={ex.imagem_url} alt={ex.nome} className="w-full h-full object-cover" />
-              </AspectRatio>
+              <img src={ex.imagem_url} alt={ex.nome} className="w-full max-h-[400px] object-contain bg-muted" />
             ) : null}
             <CardContent className="p-4">
               <div className="flex justify-between items-start">
