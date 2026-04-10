@@ -51,8 +51,8 @@ export default function Login() {
             <Shield className="w-8 h-8 text-primary-foreground" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-foreground">FisioApp</h1>
-            <p className="text-sm text-muted-foreground">Gestão de Fisioterapia Militar</p>
+            <h1 className="text-2xl font-bold text-foreground">Fisioteria Tonelero</h1>
+            <p className="text-sm text-muted-foreground">Gestão de Fisioterapia</p>
           </div>
         </CardHeader>
         <CardContent>

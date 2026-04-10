@@ -12,7 +12,7 @@ export default function AdminLayout() {
           <header className="h-14 flex items-center justify-between border-b bg-card px-4">
             <div className="flex items-center">
               <SidebarTrigger className="mr-4" />
-              <span className="text-sm font-medium text-muted-foreground">Fisioterapia Militar</span>
+              <span className="text-sm font-medium text-muted-foreground">Fisioteria Tonelero</span>
             </div>
             <ThemeToggle />
           </header>
