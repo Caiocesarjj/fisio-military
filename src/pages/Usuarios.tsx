@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { Plus, Search, Trash2, Link, Shield, User, UserCog } from 'lucide-react';
+import { Plus, Search, Trash2, Link, Shield, User, UserCog, KeyRound } from 'lucide-react';
 import { toast } from 'sonner';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -38,8 +38,10 @@ export default function Usuarios() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [linkDialogOpen, setLinkDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<AppUser | null>(null);
   const [linkNip, setLinkNip] = useState('');
+  const [newPassword, setNewPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({ email: '', password: '', full_name: '', role: 'military' as string, nip: '' });
 
@@ -134,6 +136,21 @@ export default function Usuarios() {
     }
   };
 
+  const handleChangePassword = async () => {
+    if (!selectedUser || !newPassword) return;
+    setLoading(true);
+    try {
+      await callEdge({ action: 'change_password', user_id: selectedUser.id, password: newPassword });
+      toast.success('Senha alterada com sucesso!');
+      setPasswordDialogOpen(false);
+      setSelectedUser(null);
+      setNewPassword('');
+    } catch (e: any) {
+      toast.error(e.message);
+    }
+    setLoading(false);
+  };
+
   const filtered = users.filter((u) => {
     const q = search.toLowerCase();
     return !q || u.email.toLowerCase().includes(q) || u.full_name.toLowerCase().includes(q) || (u.militar_nip || '').includes(q);
@@ -196,11 +213,14 @@ export default function Usuarios() {
                     </SelectContent>
                   </Select>
                   {u.role === 'military' && (
-                    <Button size="sm" variant="outline" onClick={() => { setSelectedUser(u); setLinkNip(u.militar_nip || ''); setLinkDialogOpen(true); }}>
-                      <Link className="w-3 h-3 mr-1" /> Vincular NIP
-                    </Button>
-                  )}
-                  <Button size="sm" variant="destructive" onClick={() => { setSelectedUser(u); setDeleteDialogOpen(true); }}>
+                     <Button size="sm" variant="outline" onClick={() => { setSelectedUser(u); setLinkNip(u.militar_nip || ''); setLinkDialogOpen(true); }}>
+                       <Link className="w-3 h-3 mr-1" /> Vincular NIP
+                     </Button>
+                   )}
+                   <Button size="sm" variant="outline" onClick={() => { setSelectedUser(u); setNewPassword(''); setPasswordDialogOpen(true); }}>
+                     <KeyRound className="w-3 h-3 mr-1" /> Senha
+                   </Button>
+                   <Button size="sm" variant="destructive" onClick={() => { setSelectedUser(u); setDeleteDialogOpen(true); }}>
                     <Trash2 className="w-3 h-3" />
                   </Button>
                 </div>
@@ -305,6 +325,27 @@ export default function Usuarios() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Change Password Dialog */}
+      <Dialog open={passwordDialogOpen} onOpenChange={setPasswordDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2"><KeyRound className="w-5 h-5" /> Alterar Senha</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Nova senha para <strong>{selectedUser?.full_name || selectedUser?.email}</strong>:
+            </p>
+            <div>
+              <Label>Nova senha</Label>
+              <Input type="password" minLength={6} value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Mínimo 6 caracteres" />
+            </div>
+            <Button onClick={handleChangePassword} disabled={loading || newPassword.length < 6} className="w-full">
+              {loading ? 'Alterando...' : 'Alterar Senha'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
