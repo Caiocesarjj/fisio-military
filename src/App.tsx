@@ -77,7 +77,7 @@ function AppRoutes() {
         <Route path="/painel/agenda" element={<PainelMilitar />} />
         <Route path="/painel/perfil" element={<PainelMilitar />} />
       </Route>
-      <Route path="*" element={<NotFound />} />
+      <Route path="*" element={<Navigate to="/painel" replace />} />
     </Routes>
   );
 }
