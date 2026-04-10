@@ -25,6 +25,7 @@ interface Militar {
   posto_graduacao: string;
   companhia: string;
   setor: string | null;
+  om: string | null;
   telefone: string;
   email: string;
   foto_url: string | null;
@@ -37,7 +38,7 @@ interface Militar {
 
 const emptyForm = {
   nip: '', nome_completo: '', nome_guerra: '', posto_graduacao: '',
-  companhia: '', setor: '', telefone: '', email: '', diagnostico: '', observacoes: '',
+  companhia: '', setor: '', om: '', telefone: '', email: '', diagnostico: '', observacoes: '',
 };
 
 export default function Militares() {
