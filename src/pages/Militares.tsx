@@ -202,7 +202,7 @@ export default function Militares() {
   };
 
   const openNew = () => {
-    setEditing(null); setForm(emptyForm); setPhotoFile(null); setSenha(''); setLesoes([]);
+    setEditing(null); setForm(emptyForm); setPhotoFile(null); setLesoes([]);
     setDialogOpen(true);
   };
 
