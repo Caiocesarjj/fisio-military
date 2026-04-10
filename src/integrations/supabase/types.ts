@@ -106,6 +106,7 @@ export type Database = {
           nome_guerra: string
           observacoes: string | null
           observacoes_alta: string | null
+          om: string | null
           posto_graduacao: string
           profile_id: string | null
           setor: string | null
@@ -129,6 +130,7 @@ export type Database = {
           nome_guerra: string
           observacoes?: string | null
           observacoes_alta?: string | null
+          om?: string | null
           posto_graduacao: string
           profile_id?: string | null
           setor?: string | null
@@ -152,6 +154,7 @@ export type Database = {
           nome_guerra?: string
           observacoes?: string | null
           observacoes_alta?: string | null
+          om?: string | null
           posto_graduacao?: string
           profile_id?: string | null
           setor?: string | null

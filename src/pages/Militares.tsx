@@ -25,6 +25,7 @@ interface Militar {
   posto_graduacao: string;
   companhia: string;
   setor: string | null;
+  om: string | null;
   telefone: string;
   email: string;
   foto_url: string | null;
@@ -37,7 +38,7 @@ interface Militar {
 
 const emptyForm = {
   nip: '', nome_completo: '', nome_guerra: '', posto_graduacao: '',
-  companhia: '', setor: '', telefone: '', email: '', diagnostico: '', observacoes: '',
+  companhia: '', setor: '', om: '', telefone: '', email: '', diagnostico: '', observacoes: '',
 };
 
 export default function Militares() {
@@ -100,11 +101,18 @@ export default function Militares() {
         setLoading(false);
         return;
       }
+      if (form.companhia === 'Externo' && !form.om.trim()) {
+        toast.error('O campo OM é obrigatório para Externo.');
+        setLoading(false);
+        return;
+      }
       if (editing) {
         let foto_url = editing.foto_url;
         if (photoFile) foto_url = await uploadPhoto(editing.id, photoFile);
         const { error } = await supabase.from('militares').update({
-          ...form, setor: form.companhia === 'CCS' ? form.setor : null, foto_url, lesoes: lesoes as any,
+          ...form, setor: form.companhia === 'CCS' ? form.setor : null,
+          om: form.companhia === 'Externo' ? form.om : null,
+          foto_url, lesoes: lesoes as any,
         }).eq('id', editing.id);
         if (error) throw error;
         toast.success('Militar atualizado com sucesso!');
@@ -117,7 +125,9 @@ export default function Militares() {
           });
         }
         const { data: insertData, error: insertError } = await supabase.from('militares').insert({
-          ...form, email: form.email || null, setor: form.companhia === 'CCS' ? form.setor : null, profile_id: null, lesoes: lesoes as any,
+          ...form, email: form.email || null, setor: form.companhia === 'CCS' ? form.setor : null,
+          om: form.companhia === 'Externo' ? form.om : null,
+          profile_id: null, lesoes: lesoes as any,
         }).select().single();
         if (insertError) throw insertError;
         if (photoFile && insertData) {
@@ -145,7 +155,7 @@ export default function Militares() {
     setForm({
       nip: m.nip, nome_completo: m.nome_completo, nome_guerra: m.nome_guerra,
       posto_graduacao: m.posto_graduacao, companhia: m.companhia, setor: m.setor || '',
-      telefone: m.telefone || '', email: m.email, diagnostico: m.diagnostico || '',
+      om: m.om || '', telefone: m.telefone || '', email: m.email, diagnostico: m.diagnostico || '',
       observacoes: m.observacoes || '',
     });
     setLesoes(m.lesoes || []);
@@ -291,6 +301,12 @@ export default function Militares() {
                 <div className="space-y-2">
                   <Label>Setor *</Label>
                   <Input value={form.setor} onChange={(e) => setForm({ ...form, setor: e.target.value })} required />
+                </div>
+              )}
+              {form.companhia === 'Externo' && (
+                <div className="space-y-2">
+                  <Label>OM (Organização Militar) *</Label>
+                  <Input value={form.om} onChange={(e) => setForm({ ...form, om: e.target.value })} placeholder="Ex: CIAA, CIAW, HNMd..." required />
                 </div>
               )}
               <div className="space-y-2">

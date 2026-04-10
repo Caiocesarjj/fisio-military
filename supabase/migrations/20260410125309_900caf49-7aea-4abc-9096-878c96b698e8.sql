@@ -1,0 +1,1 @@
+ALTER TABLE public.militares ADD COLUMN om text;
