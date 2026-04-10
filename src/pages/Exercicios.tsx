@@ -215,8 +215,40 @@ export default function Exercicios() {
             </div>
             <div className="space-y-2"><Label>Descrição</Label><Textarea value={form.descricao} onChange={(e) => setForm({ ...form, descricao: e.target.value })} /></div>
             <div className="space-y-2"><Label>Instruções</Label><Textarea value={form.instrucoes} onChange={(e) => setForm({ ...form, instrucoes: e.target.value })} /></div>
-            <div className="space-y-2"><Label>URL do Vídeo (YouTube)</Label><Input placeholder="https://www.youtube.com/watch?v=..." value={form.video_url} onChange={(e) => setForm({ ...form, video_url: e.target.value })} /></div>
-            <div className="space-y-2"><Label>URL da Imagem</Label><Input value={form.imagem_url} onChange={(e) => setForm({ ...form, imagem_url: e.target.value })} /></div>
+            <div className="space-y-2">
+              <Label>Vídeo / GIF</Label>
+              <div className="flex gap-2">
+                <Input placeholder="URL do YouTube ou link direto..." value={form.video_url} onChange={(e) => setForm({ ...form, video_url: e.target.value })} className="flex-1" />
+                <input ref={videoInputRef} type="file" accept="video/*,.gif" className="hidden" onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  const url = await uploadFile(file, 'videos');
+                  if (url) setForm(prev => ({ ...prev, video_url: url }));
+                }} />
+                <Button type="button" variant="outline" size="icon" disabled={uploading} onClick={() => videoInputRef.current?.click()}>
+                  <Upload className="h-4 w-4" />
+                </Button>
+              </div>
+              {form.video_url && /\.(gif)(\?.*)?$/i.test(form.video_url) && (
+                <img src={form.video_url} alt="Preview" className="h-20 rounded border object-cover" />
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label>Imagem</Label>
+              <div className="flex gap-2">
+                <Input placeholder="URL da imagem..." value={form.imagem_url} onChange={(e) => setForm({ ...form, imagem_url: e.target.value })} className="flex-1" />
+                <input ref={imageInputRef} type="file" accept="image/*" className="hidden" onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  const url = await uploadFile(file, 'images');
+                  if (url) setForm(prev => ({ ...prev, imagem_url: url }));
+                }} />
+                <Button type="button" variant="outline" size="icon" disabled={uploading} onClick={() => imageInputRef.current?.click()}>
+                  <Upload className="h-4 w-4" />
+                </Button>
+              </div>
+              {form.imagem_url && <img src={form.imagem_url} alt="Preview" className="h-20 rounded border object-cover" />}
+            </div>
             <div className="flex justify-end gap-2">
               <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
               <Button type="submit" disabled={loading}>{loading ? 'Salvando...' : 'Salvar'}</Button>
