@@ -79,7 +79,7 @@ export default function Agenda() {
     toast.success(`Status atualizado para "${status}".`);
     setDetailDialog(null);
     setPainLevel(0);
-    fetchData();
+    fetchSessions();
   };
 
   const statusColors: Record<string, string> = {
