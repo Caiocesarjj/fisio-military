@@ -18,7 +18,6 @@ interface CompanyRow {
   companhia: string;
   totalMilitares: number;
   realizadas: number;
-  faltas: number;
   taxa: number;
   lesoesComuns: string;
 }
@@ -62,7 +61,6 @@ export default function Relatorios() {
         const ciaMil = militares.filter((m: any) => m.companhia === cia);
         const ciaSess = sessions.filter((s: any) => s.militares?.companhia === cia);
         const realizadas = ciaSess.filter((s: any) => s.status === 'realizado').length;
-        const faltas = ciaSess.filter((s: any) => s.status === 'faltou').length;
         const total = ciaSess.length;
 
         // Top lesões
@@ -80,14 +78,13 @@ export default function Relatorios() {
           companhia: cia,
           totalMilitares: ciaMil.filter((m: any) => m.ativo).length,
           realizadas,
-          faltas,
           taxa: total > 0 ? Math.round((realizadas / total) * 100) : 0,
           lesoesComuns: topLesoes || '-',
         };
       });
 
       setCompanyData(rows);
-      setChartData(rows.map((r) => ({ name: r.companhia, Realizadas: r.realizadas, Faltas: r.faltas })));
+      setChartData(rows.map((r) => ({ name: r.companhia, Realizadas: r.realizadas })));
       setLoading(false);
     };
     fetchData();
@@ -107,8 +104,8 @@ export default function Relatorios() {
 
     autoTable(doc, {
       startY: 30,
-      head: [['Companhia', 'Militares', 'Realizadas', 'Faltas', 'Taxa %', 'Lesões Comuns']],
-      body: companyData.map((r) => [r.companhia, r.totalMilitares, r.realizadas, r.faltas, `${r.taxa}%`, r.lesoesComuns]),
+      head: [['Companhia', 'Militares', 'Realizadas', 'Taxa %', 'Lesões Comuns']],
+      body: companyData.map((r) => [r.companhia, r.totalMilitares, r.realizadas, `${r.taxa}%`, r.lesoesComuns]),
       theme: 'striped',
       headStyles: { fillColor: [30, 58, 95] },
       margin: { left: 15, right: 15 },
@@ -162,7 +159,6 @@ export default function Relatorios() {
                 <TableHead>Companhia</TableHead>
                 <TableHead className="text-center">Militares</TableHead>
                 <TableHead className="text-center">Realizadas</TableHead>
-                <TableHead className="text-center">Faltas</TableHead>
                 <TableHead className="text-center">Taxa %</TableHead>
                 <TableHead>Lesões Comuns</TableHead>
               </TableRow>
@@ -173,7 +169,6 @@ export default function Relatorios() {
                   <TableCell className="font-medium">{row.companhia}</TableCell>
                   <TableCell className="text-center">{row.totalMilitares}</TableCell>
                   <TableCell className="text-center">{row.realizadas}</TableCell>
-                  <TableCell className="text-center">{row.faltas}</TableCell>
                   <TableCell className="text-center">
                     <Badge variant="secondary" className={`text-xs ${row.taxa >= 70 ? 'bg-emerald-100 text-emerald-700' : row.taxa >= 40 ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'}`}>
                       {row.taxa}%
@@ -199,7 +194,6 @@ export default function Relatorios() {
               <Tooltip />
               <Legend />
               <Bar dataKey="Realizadas" fill="hsl(142, 71%, 45%)" radius={[4, 4, 0, 0]} />
-              <Bar dataKey="Faltas" fill="hsl(0, 84%, 60%)" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </CardContent>
