@@ -15,6 +15,10 @@ function isDirectVideo(url?: string | null) {
   return !!url && /\.(mp4|webm|ogg)(\?.*)?$/i.test(url);
 }
 
+function isGif(url?: string | null) {
+  return !!url && /\.gif(\?.*)?$/i.test(url);
+}
+
 export function ExercisePreview({ planExercise }: ExercisePreviewProps) {
   const exercise = planExercise.exercises;
   const youtubeId = getYouTubeId(exercise?.video_url);
@@ -32,6 +36,10 @@ export function ExercisePreview({ planExercise }: ExercisePreviewProps) {
                 allowFullScreen
                 className="h-full w-full"
               />
+            </AspectRatio>
+          ) : isGif(exercise?.video_url) ? (
+            <AspectRatio ratio={16 / 9}>
+              <img src={exercise.video_url} alt={exercise?.nome || 'GIF do exercício'} className="h-full w-full object-cover" />
             </AspectRatio>
           ) : isDirectVideo(exercise?.video_url) ? (
             <AspectRatio ratio={16 / 9}>

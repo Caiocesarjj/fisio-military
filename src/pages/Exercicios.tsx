@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Plus, Search, Edit, Trash2, Play } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, Upload } from 'lucide-react';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
 
 function getYouTubeId(url: string): string | null {
@@ -39,6 +39,26 @@ export default function Exercicios() {
   const [editing, setEditing] = useState<Exercise | null>(null);
   const [form, setForm] = useState(emptyForm);
   const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const videoInputRef = useRef<HTMLInputElement>(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
+
+  const uploadFile = async (file: File, folder: string): Promise<string | null> => {
+    const ext = file.name.split('.').pop();
+    const fileName = `${folder}/${crypto.randomUUID()}.${ext}`;
+    setUploading(true);
+    try {
+      const { error } = await supabase.storage.from('exercise-media').upload(fileName, file);
+      if (error) throw error;
+      const { data: urlData } = supabase.storage.from('exercise-media').getPublicUrl(fileName);
+      return urlData.publicUrl;
+    } catch (err: any) {
+      toast.error('Erro no upload: ' + err.message);
+      return null;
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const fetchExercises = async () => {
     const { data } = await supabase.from('exercises').select('*').order('nome');
@@ -123,7 +143,7 @@ export default function Exercicios() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filtered.map((ex) => (
           <Card key={ex.id} className="overflow-hidden">
-            {getYouTubeId(ex.video_url) && (
+            {getYouTubeId(ex.video_url) ? (
               <AspectRatio ratio={16 / 9}>
                 <iframe
                   src={`https://www.youtube.com/embed/${getYouTubeId(ex.video_url)}`}
@@ -133,12 +153,19 @@ export default function Exercicios() {
                   className="w-full h-full"
                 />
               </AspectRatio>
-            )}
-            {!getYouTubeId(ex.video_url) && ex.imagem_url && (
+            ) : ex.video_url && /\.(mp4|webm|ogg|gif)(\?.*)?$/i.test(ex.video_url) ? (
+              <AspectRatio ratio={16 / 9}>
+                {/\.gif(\?.*)?$/i.test(ex.video_url) ? (
+                  <img src={ex.video_url} alt={ex.nome} className="w-full h-full object-cover" />
+                ) : (
+                  <video src={ex.video_url} controls preload="metadata" className="w-full h-full object-cover" />
+                )}
+              </AspectRatio>
+            ) : ex.imagem_url ? (
               <AspectRatio ratio={16 / 9}>
                 <img src={ex.imagem_url} alt={ex.nome} className="w-full h-full object-cover" />
               </AspectRatio>
-            )}
+            ) : null}
             <CardContent className="p-4">
               <div className="flex justify-between items-start">
                 <div className="flex-1">
@@ -188,8 +215,40 @@ export default function Exercicios() {
             </div>
             <div className="space-y-2"><Label>Descrição</Label><Textarea value={form.descricao} onChange={(e) => setForm({ ...form, descricao: e.target.value })} /></div>
             <div className="space-y-2"><Label>Instruções</Label><Textarea value={form.instrucoes} onChange={(e) => setForm({ ...form, instrucoes: e.target.value })} /></div>
-            <div className="space-y-2"><Label>URL do Vídeo (YouTube)</Label><Input placeholder="https://www.youtube.com/watch?v=..." value={form.video_url} onChange={(e) => setForm({ ...form, video_url: e.target.value })} /></div>
-            <div className="space-y-2"><Label>URL da Imagem</Label><Input value={form.imagem_url} onChange={(e) => setForm({ ...form, imagem_url: e.target.value })} /></div>
+            <div className="space-y-2">
+              <Label>Vídeo / GIF</Label>
+              <div className="flex gap-2">
+                <Input placeholder="URL do YouTube ou link direto..." value={form.video_url} onChange={(e) => setForm({ ...form, video_url: e.target.value })} className="flex-1" />
+                <input ref={videoInputRef} type="file" accept="video/*,.gif" className="hidden" onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  const url = await uploadFile(file, 'videos');
+                  if (url) setForm(prev => ({ ...prev, video_url: url }));
+                }} />
+                <Button type="button" variant="outline" size="icon" disabled={uploading} onClick={() => videoInputRef.current?.click()}>
+                  <Upload className="h-4 w-4" />
+                </Button>
+              </div>
+              {form.video_url && /\.(gif)(\?.*)?$/i.test(form.video_url) && (
+                <img src={form.video_url} alt="Preview" className="h-20 rounded border object-cover" />
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label>Imagem</Label>
+              <div className="flex gap-2">
+                <Input placeholder="URL da imagem..." value={form.imagem_url} onChange={(e) => setForm({ ...form, imagem_url: e.target.value })} className="flex-1" />
+                <input ref={imageInputRef} type="file" accept="image/*" className="hidden" onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  const url = await uploadFile(file, 'images');
+                  if (url) setForm(prev => ({ ...prev, imagem_url: url }));
+                }} />
+                <Button type="button" variant="outline" size="icon" disabled={uploading} onClick={() => imageInputRef.current?.click()}>
+                  <Upload className="h-4 w-4" />
+                </Button>
+              </div>
+              {form.imagem_url && <img src={form.imagem_url} alt="Preview" className="h-20 rounded border object-cover" />}
+            </div>
             <div className="flex justify-end gap-2">
               <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
               <Button type="submit" disabled={loading}>{loading ? 'Salvando...' : 'Salvar'}</Button>
