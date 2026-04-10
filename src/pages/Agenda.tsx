@@ -101,6 +101,8 @@ export default function Agenda() {
         duracao: Number(editForm.duracao),
         tipo: editForm.tipo,
         anotacao_clinica: editForm.anotacao_clinica,
+        queixa: editForm.queixa,
+        lesoes: editLesoes as any,
       }).eq('id', detailDialog.id);
       if (error) throw error;
       toast.success('Sessão atualizada!');
