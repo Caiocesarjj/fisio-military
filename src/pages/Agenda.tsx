@@ -70,11 +70,16 @@ export default function Agenda() {
     await supabase.from('sessions').update({ status }).eq('id', sessionId);
     // Save pain level as session note if status is realizado
     if (status === 'realizado' && detailDialog) {
-      await supabase.from('session_notes').insert({
-        session_id: sessionId,
-        militar_id: detailDialog.militar_id,
-        nivel_dor: painLevel,
-      });
+      const existingNote = detailDialog.session_notes?.[0];
+      if (existingNote) {
+        await supabase.from('session_notes').update({ nivel_dor: painLevel }).eq('id', existingNote.id);
+      } else {
+        await supabase.from('session_notes').insert({
+          session_id: sessionId,
+          militar_id: detailDialog.militar_id,
+          nivel_dor: painLevel,
+        });
+      }
     }
     toast.success(`Status atualizado para "${status}".`);
     setDetailDialog(null);
