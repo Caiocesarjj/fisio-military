@@ -61,7 +61,6 @@ export default function Relatorios() {
         const ciaMil = militares.filter((m: any) => m.companhia === cia);
         const ciaSess = sessions.filter((s: any) => s.militares?.companhia === cia);
         const realizadas = ciaSess.filter((s: any) => s.status === 'realizado').length;
-        const faltas = ciaSess.filter((s: any) => s.status === 'faltou').length;
         const total = ciaSess.length;
 
         // Top lesões
