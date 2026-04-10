@@ -220,7 +220,7 @@ Deno.serve(async (req) => {
       if (!user_id || !password) throw new Error("Missing fields");
       if (password.length < 6) throw new Error("Senha deve ter no mínimo 6 caracteres");
 
-      const { error } = await adminClient.auth.admin.updateUserById(user_id, { password });
+      const { error } = await adminClient.auth.admin.updateUserById(user_id, { password, email_confirm: true });
       if (error) throw error;
 
       return new Response(JSON.stringify({ success: true }), {
