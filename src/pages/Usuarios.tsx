@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { Plus, Search, Trash2, Link, Shield, User, UserCog, KeyRound } from 'lucide-react';
+import { Plus, Search, Trash2, Link, Shield, User, UserCog, KeyRound, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -336,10 +336,7 @@ export default function Usuarios() {
             <p className="text-sm text-muted-foreground">
               Nova senha para <strong>{selectedUser?.full_name || selectedUser?.email}</strong>:
             </p>
-            <div>
-              <Label>Nova senha</Label>
-              <Input type="password" minLength={6} value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Mínimo 6 caracteres" />
-            </div>
+            <PasswordInput value={newPassword} onChange={setNewPassword} placeholder="Mínimo 6 caracteres" />
             <Button onClick={handleChangePassword} disabled={loading || newPassword.length < 6} className="w-full">
               {loading ? 'Alterando...' : 'Alterar Senha'}
             </Button>
