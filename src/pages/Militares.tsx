@@ -55,7 +55,7 @@ export default function Militares() {
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
-  const [senha, setSenha] = useState('');
+  
   const [lesoes, setLesoes] = useState<Lesao[]>([]);
 
   const fetchMilitares = async () => {
@@ -136,13 +136,13 @@ export default function Militares() {
         if (error) throw error;
         toast.success('Militar atualizado com sucesso!');
       } else {
-        if (!senha) { toast.error('Defina uma senha para o militar.'); setLoading(false); return; }
+        const autoSenha = crypto.randomUUID().slice(0, 16);
 
         // 1) Create auth user + role + link via edge function
         const userResult = await callManageUsers({
           action: 'create',
           email: form.email || null,
-          password: senha,
+          password: autoSenha,
           full_name: form.nome_completo,
           role: 'military',
           nip: form.nip,
@@ -176,7 +176,7 @@ export default function Militares() {
         toast.success('Militar cadastrado com sucesso!');
       }
       setDialogOpen(false); setEditing(null); setForm(emptyForm);
-      setPhotoFile(null); setSenha(''); setLesoes([]);
+      setPhotoFile(null); setLesoes([]);
       fetchMilitares();
     } catch (error: any) { toast.error(error.message || 'Erro ao salvar militar.'); }
     setLoading(false);
@@ -202,7 +202,7 @@ export default function Militares() {
   };
 
   const openNew = () => {
-    setEditing(null); setForm(emptyForm); setPhotoFile(null); setSenha(''); setLesoes([]);
+    setEditing(null); setForm(emptyForm); setPhotoFile(null); setLesoes([]);
     setDialogOpen(true);
   };
 
@@ -356,12 +356,6 @@ export default function Militares() {
                 <Label>E-mail</Label>
                 <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
               </div>
-              {!editing && (
-                <div className="space-y-2">
-                  <Label>Senha *</Label>
-                  <Input type="password" value={senha} onChange={(e) => setSenha(e.target.value)} required placeholder="Senha para acesso" />
-                </div>
-              )}
               <div className="space-y-2">
                 <Label>Foto</Label>
                 <Input type="file" accept="image/*" onChange={(e) => setPhotoFile(e.target.files?.[0] || null)} />
