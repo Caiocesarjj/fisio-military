@@ -31,6 +31,14 @@ function toCsv(rows: any[], columns: string[]): string {
 export default function Configuracoes() {
   const [exporting, setExporting] = useState('');
   const [lastBackup, setLastBackup] = useState<string | null>(localStorage.getItem('lastBackup'));
+  const [fisioNome, setFisioNome] = useState(localStorage.getItem('fisioNome') || '');
+  const [fisioCrefito, setFisioCrefito] = useState(localStorage.getItem('fisioCrefito') || '');
+
+  const saveFisioData = () => {
+    localStorage.setItem('fisioNome', fisioNome);
+    localStorage.setItem('fisioCrefito', fisioCrefito);
+    toast.success('Dados do fisioterapeuta salvos!');
+  };
 
   const saveTimestamp = () => {
     const ts = new Date().toLocaleString('pt-BR');
@@ -96,6 +104,37 @@ export default function Configuracoes() {
   return (
     <div className="space-y-6 animate-fade-in">
       <h1 className="text-2xl font-bold text-foreground">Configurações</h1>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg flex items-center gap-2">
+            Fisioterapeuta Responsável
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <label className="text-sm font-medium text-foreground">Nome do Fisioterapeuta</label>
+              <input
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                value={fisioNome}
+                onChange={e => setFisioNome(e.target.value)}
+                placeholder="Ex: LIEZIO MANOEL CAULA"
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-sm font-medium text-foreground">CREFITO</label>
+              <input
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                value={fisioCrefito}
+                onChange={e => setFisioCrefito(e.target.value)}
+                placeholder="Ex: CREFITO-2: 192716-F"
+              />
+            </div>
+          </div>
+          <Button onClick={saveFisioData} size="sm">Salvar</Button>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>

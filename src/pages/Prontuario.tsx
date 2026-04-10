@@ -339,16 +339,26 @@ export default function Prontuario() {
       });
     }
 
-    // 7. Assinatura
-    checkPage(25);
-    y += 5;
-    addTitle('7. Assinatura do Profissional');
-    doc.setFontSize(9);
-    doc.setFont('helvetica', 'normal');
-    doc.text('Nome: LIEZIO MANOEL CAULA', marginL, y); y += 5;
-    doc.text('CREFITO-2: 192716-F', marginL, y); y += 10;
-    doc.line(marginL, y, marginL + 60, y); y += 4;
-    doc.text('Assinatura', marginL, y);
+    // Assinatura
+    const fisioNome = localStorage.getItem('fisioNome') || '';
+    const fisioCrefito = localStorage.getItem('fisioCrefito') || '';
+    if (fisioNome || fisioCrefito) {
+      checkPage(30);
+      y += 15;
+      doc.setFontSize(9);
+      doc.setDrawColor(0);
+      doc.line(pw / 2 - 30, y, pw / 2 + 30, y);
+      y += 5;
+      if (fisioNome) {
+        doc.setFont('helvetica', 'bold');
+        doc.text(fisioNome, pw / 2, y, { align: 'center' });
+        y += 5;
+      }
+      if (fisioCrefito) {
+        doc.setFont('helvetica', 'normal');
+        doc.text(fisioCrefito, pw / 2, y, { align: 'center' });
+      }
+    }
 
     doc.save(`prontuario_${mil.nome_guerra.replace(/\s/g, '_')}.pdf`);
     toast.success('PDF exportado com sucesso!');
@@ -559,18 +569,18 @@ export default function Prontuario() {
                   </CardContent>
                 </Card>
 
-                {/* 7. Assinatura */}
-                <Card>
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-base">7. Assinatura do Profissional</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-sm space-y-1">
-                      <p><span className="font-medium text-muted-foreground">Nome do Fisioterapeuta:</span> <span className="text-foreground">LIEZIO MANOEL CAULA</span></p>
-                      <p><span className="font-medium text-muted-foreground">CREFITO:</span> <span className="text-foreground">CREFITO-2: 192716-F</span></p>
-                    </div>
-                  </CardContent>
-                </Card>
+              {/* Assinatura */}
+                {(localStorage.getItem('fisioNome') || localStorage.getItem('fisioCrefito')) && (
+                  <div className="mt-10 text-center space-y-1">
+                    <Separator className="mb-6" />
+                    {localStorage.getItem('fisioNome') && (
+                      <p className="text-sm font-semibold text-foreground">{localStorage.getItem('fisioNome')}</p>
+                    )}
+                    {localStorage.getItem('fisioCrefito') && (
+                      <p className="text-sm text-muted-foreground">{localStorage.getItem('fisioCrefito')}</p>
+                    )}
+                  </div>
+                )}
 
                 <div className="flex justify-end gap-2">
                   <Button type="button" variant="outline" onClick={handleExportPDF}>
