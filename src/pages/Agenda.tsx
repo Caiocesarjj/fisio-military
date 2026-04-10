@@ -60,7 +60,7 @@ export default function Agenda() {
     e.preventDefault();
     setLoading(true);
     try {
-      const { error } = await supabase.from('sessions').insert({ ...form, fisio_id: user?.id, duracao: Number(form.duracao) });
+      const { error } = await supabase.from('sessions').insert({ ...form, fisio_id: user?.id, duracao: Number(form.duracao), lesoes: formLesoes as any });
       if (error) throw error;
       toast.success('Sessão agendada!');
       setDialogOpen(false);
