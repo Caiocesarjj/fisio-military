@@ -136,38 +136,14 @@ export default function Militares() {
         if (error) throw error;
         toast.success('Militar atualizado com sucesso!');
       } else {
-        const autoSenha = crypto.randomUUID().slice(0, 16);
-
-        // 1) Create auth user + role + link via edge function
-        const userResult = await callManageUsers({
-          action: 'create',
-          email: form.email || null,
-          password: autoSenha,
-          full_name: form.nome_completo,
-          role: 'military',
-          nip: form.nip,
-        });
-        const createdUserId: string | null = userResult?.user_id || null;
-
-        // 2) Insert militar record
+        // Insert militar record (no auth user created — access is managed in Usuários)
         const { data: insertData, error: insertError } = await supabase.from('militares').insert({
           ...form, email: form.email || null, setor: form.companhia === 'CCS' ? form.setor : null,
           om: form.companhia === 'Externo' ? form.om : null,
           profile_id: null, lesoes: lesoes as any,
         }).select().single();
 
-        if (insertError) {
-          // Rollback auth user if insert failed
-          if (createdUserId) {
-            try { await callManageUsers({ action: 'delete', user_id: createdUserId }); } catch {}
-          }
-          throw insertError;
-        }
-
-        // 3) Link profile to militar by NIP
-        if (createdUserId) {
-          try { await callManageUsers({ action: 'link_nip', user_id: createdUserId, nip: form.nip }); } catch {}
-        }
+        if (insertError) throw insertError;
 
         if (photoFile && insertData) {
           const foto_url = await uploadPhoto(insertData.id, photoFile);
