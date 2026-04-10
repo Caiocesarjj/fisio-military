@@ -40,7 +40,7 @@ export default function Agenda() {
     const s = start || dateRange?.start || new Date();
     const e = end || dateRange?.end || new Date();
     const { data } = await supabase.from('sessions')
-      .select('*, militares(nome_guerra, posto_graduacao, companhia, foto_url)')
+      .select('*, militares(nome_guerra, posto_graduacao, companhia, foto_url), session_notes(nivel_dor)')
       .gte('data_hora', s.toISOString())
       .lte('data_hora', e.toISOString())
       .order('data_hora');
@@ -70,11 +70,16 @@ export default function Agenda() {
     await supabase.from('sessions').update({ status }).eq('id', sessionId);
     // Save pain level as session note if status is realizado
     if (status === 'realizado' && detailDialog) {
-      await supabase.from('session_notes').insert({
-        session_id: sessionId,
-        militar_id: detailDialog.militar_id,
-        nivel_dor: painLevel,
-      });
+      const existingNote = detailDialog.session_notes?.[0];
+      if (existingNote) {
+        await supabase.from('session_notes').update({ nivel_dor: painLevel }).eq('id', existingNote.id);
+      } else {
+        await supabase.from('session_notes').insert({
+          session_id: sessionId,
+          militar_id: detailDialog.militar_id,
+          nivel_dor: painLevel,
+        });
+      }
     }
     toast.success(`Status atualizado para "${status}".`);
     setDetailDialog(null);
@@ -100,7 +105,10 @@ export default function Agenda() {
   }));
 
   const handleEventClick = (info: EventClickArg) => {
-    setDetailDialog(info.event.extendedProps.session);
+    const session = info.event.extendedProps.session;
+    const existingNote = session.session_notes?.[0];
+    setPainLevel(existingNote?.nivel_dor ?? 0);
+    setDetailDialog(session);
   };
 
   const handleDateClick = (arg: any) => {
