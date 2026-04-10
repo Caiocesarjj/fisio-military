@@ -78,14 +78,13 @@ export default function Relatorios() {
           companhia: cia,
           totalMilitares: ciaMil.filter((m: any) => m.ativo).length,
           realizadas,
-          faltas,
           taxa: total > 0 ? Math.round((realizadas / total) * 100) : 0,
           lesoesComuns: topLesoes || '-',
         };
       });
 
       setCompanyData(rows);
-      setChartData(rows.map((r) => ({ name: r.companhia, Realizadas: r.realizadas, Faltas: r.faltas })));
+      setChartData(rows.map((r) => ({ name: r.companhia, Realizadas: r.realizadas })));
       setLoading(false);
     };
     fetchData();
