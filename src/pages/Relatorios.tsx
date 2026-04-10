@@ -104,8 +104,8 @@ export default function Relatorios() {
 
     autoTable(doc, {
       startY: 30,
-      head: [['Companhia', 'Militares', 'Realizadas', 'Faltas', 'Taxa %', 'Lesões Comuns']],
-      body: companyData.map((r) => [r.companhia, r.totalMilitares, r.realizadas, r.faltas, `${r.taxa}%`, r.lesoesComuns]),
+      head: [['Companhia', 'Militares', 'Realizadas', 'Taxa %', 'Lesões Comuns']],
+      body: companyData.map((r) => [r.companhia, r.totalMilitares, r.realizadas, `${r.taxa}%`, r.lesoesComuns]),
       theme: 'striped',
       headStyles: { fillColor: [30, 58, 95] },
       margin: { left: 15, right: 15 },
