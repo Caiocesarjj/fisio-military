@@ -11,6 +11,48 @@ const normalizeNip = (value: string) => {
   return `${digits.slice(0, 2)}.${digits.slice(2, 6)}.${digits.slice(6)}`;
 };
 
+const ensureProfileAndLink = async (
+  adminClient: ReturnType<typeof createClient>,
+  militar: { profile_id?: string | null; email?: string | null; nip: string },
+  email: string
+) => {
+  const { data: userList } = await adminClient.auth.admin.listUsers({ perPage: 1000 });
+  const authUser = userList?.users?.find((user: { id: string; email?: string | null; user_metadata?: { full_name?: string | null } }) => user.email === email);
+
+  if (!authUser) return;
+
+  let profileId = militar.profile_id || null;
+
+  if (!profileId) {
+    const { data: existingProfile } = await adminClient
+      .from("profiles")
+      .select("id")
+      .eq("user_id", authUser.id)
+      .maybeSingle();
+
+    if (existingProfile?.id) {
+      profileId = existingProfile.id;
+    } else {
+      const { data: newProfile, error: profileError } = await adminClient
+        .from("profiles")
+        .insert({
+          user_id: authUser.id,
+          email,
+          full_name: authUser.user_metadata?.full_name || null,
+        })
+        .select("id")
+        .single();
+
+      if (profileError) throw profileError;
+      profileId = newProfile.id;
+    }
+  }
+
+  if (profileId) {
+    await adminClient.from("militares").update({ profile_id: profileId }).in("nip", [militar.nip, normalizeNip(militar.nip) || militar.nip]);
+  }
+};
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -84,6 +126,8 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    await ensureProfileAndLink(adminClient, { ...militar, nip: normalizedNip }, email);
 
     return new Response(JSON.stringify({ email }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

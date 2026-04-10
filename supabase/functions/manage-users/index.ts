@@ -11,6 +11,29 @@ const normalizeNip = (value: string) => {
   return `${digits.slice(0, 2)}.${digits.slice(2, 6)}.${digits.slice(6)}`;
 };
 
+const ensureProfile = async (adminClient: ReturnType<typeof createClient>, userId: string, email: string, fullName?: string | null) => {
+  const { data: existingProfile } = await adminClient
+    .from("profiles")
+    .select("id")
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (existingProfile) return existingProfile;
+
+  const { data: newProfile, error: profileError } = await adminClient
+    .from("profiles")
+    .insert({
+      user_id: userId,
+      email,
+      full_name: fullName || null,
+    })
+    .select("id")
+    .single();
+
+  if (profileError) throw profileError;
+  return newProfile;
+};
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -61,15 +84,10 @@ Deno.serve(async (req) => {
       if (createError) throw createError;
 
       const userId = newUser.user.id;
+      const profile = await ensureProfile(adminClient, userId, userEmail, full_name);
       await adminClient.from("user_roles").insert({ user_id: userId, role });
 
       if (role === "military" && normalizedNip) {
-        const { data: profile } = await adminClient
-          .from("profiles")
-          .select("id")
-          .eq("user_id", userId)
-          .single();
-
         if (profile) {
           await adminClient
             .from("militares")
@@ -148,11 +166,15 @@ Deno.serve(async (req) => {
 
       const normalizedNip = normalizeNip(String(nip));
 
-      const { data: profile } = await adminClient
-        .from("profiles")
-        .select("id")
-        .eq("user_id", user_id)
-        .single();
+      const { data: userData, error: userError } = await adminClient.auth.admin.getUserById(user_id);
+      if (userError || !userData?.user?.email) throw new Error("Usuário não encontrado");
+
+      const profile = await ensureProfile(
+        adminClient,
+        user_id,
+        userData.user.email,
+        userData.user.user_metadata?.full_name || null
+      );
 
       if (profile) {
         await adminClient.from("militares").update({ profile_id: null }).eq("profile_id", profile.id);
