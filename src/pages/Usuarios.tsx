@@ -29,6 +29,21 @@ interface Militar {
   nome_guerra: string;
 }
 
+function PasswordInput({ value, onChange, placeholder }: { value: string; onChange: (v: string) => void; placeholder?: string }) {
+  const [show, setShow] = useState(false);
+  return (
+    <div>
+      <Label>Nova senha</Label>
+      <div className="relative">
+        <Input type={show ? 'text' : 'password'} minLength={6} value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} className="pr-10" />
+        <button type="button" onClick={() => setShow(!show)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+          {show ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function Usuarios() {
   const { session } = useAuth();
   const [users, setUsers] = useState<AppUser[]>([]);
