@@ -109,6 +109,14 @@ export default function Agenda() {
     const session = info.event.extendedProps.session;
     const existingNote = session.session_notes?.[0];
     setPainLevel(existingNote?.nivel_dor ?? 0);
+    const dtLocal = new Date(session.data_hora);
+    const isoLocal = new Date(dtLocal.getTime() - dtLocal.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+    setEditForm({
+      data_hora: isoLocal,
+      duracao: session.duracao || 60,
+      tipo: session.tipo || 'presencial',
+      anotacao_clinica: session.anotacao_clinica || '',
+    });
     setDetailDialog(session);
   };
 
