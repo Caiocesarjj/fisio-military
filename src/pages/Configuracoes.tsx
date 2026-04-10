@@ -119,7 +119,7 @@ export default function Configuracoes() {
                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 value={fisioNome}
                 onChange={e => setFisioNome(e.target.value)}
-                placeholder="Ex: LIEZIO MANOEL CAULA"
+                placeholder="Nome completo do fisioterapeuta"
               />
             </div>
             <div className="space-y-1">
@@ -128,7 +128,7 @@ export default function Configuracoes() {
                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 value={fisioCrefito}
                 onChange={e => setFisioCrefito(e.target.value)}
-                placeholder="Ex: CREFITO-2: 192716-F"
+                placeholder="Ex: CREFITO-2: 000000-X"
               />
             </div>
           </div>
