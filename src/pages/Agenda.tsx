@@ -100,7 +100,10 @@ export default function Agenda() {
   }));
 
   const handleEventClick = (info: EventClickArg) => {
-    setDetailDialog(info.event.extendedProps.session);
+    const session = info.event.extendedProps.session;
+    const existingNote = session.session_notes?.[0];
+    setPainLevel(existingNote?.nivel_dor ?? 0);
+    setDetailDialog(session);
   };
 
   const handleDateClick = (arg: any) => {
