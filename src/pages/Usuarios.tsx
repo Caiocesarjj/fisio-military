@@ -61,9 +61,24 @@ export default function Usuarios() {
   const [form, setForm] = useState({ email: '', password: '', full_name: '', role: 'military' as string, nip: '' });
 
   const callEdge = async (body: any) => {
-    const { data, error } = await supabase.functions.invoke('manage-users', { body });
-    if (error) throw new Error(error.message);
-    if (data?.error) throw new Error(data.error);
+    const { data: sessionData } = await supabase.auth.getSession();
+    const accessToken = sessionData?.session?.access_token;
+    if (!accessToken) throw new Error('Sessão expirada. Faça login novamente.');
+
+    const response = await fetch(
+      `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/manage-users`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`,
+          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+        },
+        body: JSON.stringify(body),
+      }
+    );
+    const data = await response.json();
+    if (!response.ok || data?.error) throw new Error(data?.error || `Erro ${response.status}`);
     return data;
   };
 
