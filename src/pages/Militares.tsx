@@ -55,7 +55,7 @@ export default function Militares() {
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
-  const [senha, setSenha] = useState('');
+  const [senha] = useState(() => crypto.randomUUID().slice(0, 16));
   const [lesoes, setLesoes] = useState<Lesao[]>([]);
 
   const fetchMilitares = async () => {
