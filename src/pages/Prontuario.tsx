@@ -308,7 +308,7 @@ export default function Prontuario() {
     addField('Amplitude de Movimento (ADM):', form.amplitude_movimento);
     addField('Forca Muscular:', form.forca_muscular);
     addField('Testes Funcionais:', form.testes_funcionais);
-    addField('Escalas:', form.escalas);
+    addField('Escala de Dor (EVA):', form.escalas ? `${form.escalas}/10` : null);
 
     // 4. Diagnóstico
     addTitle('4. Diagnostico e Prognostico');
