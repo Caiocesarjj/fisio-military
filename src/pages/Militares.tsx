@@ -142,7 +142,7 @@ export default function Militares() {
         const userResult = await callManageUsers({
           action: 'create',
           email: form.email || null,
-          password: senha,
+          password: autoSenha,
           full_name: form.nome_completo,
           role: 'military',
           nip: form.nip,
