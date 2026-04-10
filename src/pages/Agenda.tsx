@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Plus } from 'lucide-react';
+import { Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { STATUS_SESSAO, TIPOS_ATENDIMENTO } from '@/lib/constants';
 import { EvaScale } from '@/components/EvaScale';
@@ -24,6 +24,7 @@ export default function Agenda() {
   const [militares, setMilitares] = useState<any[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [detailDialog, setDetailDialog] = useState<any>(null);
+  const [editForm, setEditForm] = useState({ data_hora: '', duracao: 60, tipo: 'presencial', anotacao_clinica: '' });
   const [dateRange, setDateRange] = useState<{ start: Date; end: Date } | null>(null);
   const [form, setForm] = useState({ militar_id: '', data_hora: '', duracao: 60, tipo: 'presencial', status: 'agendado', anotacao_clinica: '' });
   const [loading, setLoading] = useState(false);
@@ -87,6 +88,38 @@ export default function Agenda() {
     fetchSessions();
   };
 
+  const handleSaveEdit = async () => {
+    if (!detailDialog) return;
+    setLoading(true);
+    try {
+      const { error } = await supabase.from('sessions').update({
+        data_hora: new Date(editForm.data_hora).toISOString(),
+        duracao: Number(editForm.duracao),
+        tipo: editForm.tipo,
+        anotacao_clinica: editForm.anotacao_clinica,
+      }).eq('id', detailDialog.id);
+      if (error) throw error;
+      toast.success('Sessão atualizada!');
+      setDetailDialog(null);
+      fetchSessions();
+    } catch (err: any) { toast.error(err.message); }
+    setLoading(false);
+  };
+
+  const handleDelete = async () => {
+    if (!detailDialog) return;
+    if (!confirm('Tem certeza que deseja excluir esta sessão?')) return;
+    try {
+      // Delete related session notes first
+      await supabase.from('session_notes').delete().eq('session_id', detailDialog.id);
+      const { error } = await supabase.from('sessions').delete().eq('id', detailDialog.id);
+      if (error) throw error;
+      toast.success('Sessão excluída!');
+      setDetailDialog(null);
+      fetchSessions();
+    } catch (err: any) { toast.error(err.message); }
+  };
+
   const statusColors: Record<string, string> = {
     agendado: 'hsl(220, 70%, 25%)',
     realizado: 'hsl(142, 71%, 45%)',
@@ -108,6 +141,14 @@ export default function Agenda() {
     const session = info.event.extendedProps.session;
     const existingNote = session.session_notes?.[0];
     setPainLevel(existingNote?.nivel_dor ?? 0);
+    const dtLocal = new Date(session.data_hora);
+    const isoLocal = new Date(dtLocal.getTime() - dtLocal.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+    setEditForm({
+      data_hora: isoLocal,
+      duracao: session.duracao || 60,
+      tipo: session.tipo || 'presencial',
+      anotacao_clinica: session.anotacao_clinica || '',
+    });
     setDetailDialog(session);
   };
 
@@ -152,30 +193,56 @@ export default function Agenda() {
         </div>
       )}
 
-      {/* Detail dialog */}
       <Dialog open={!!detailDialog} onOpenChange={() => setDetailDialog(null)}>
         <DialogContent className="max-w-md">
-          <DialogHeader><DialogTitle>Detalhes da Sessão</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>Editar Sessão</DialogTitle></DialogHeader>
           {detailDialog && (
-            <div className="space-y-3">
+            <div className="space-y-4">
               <p className="font-medium text-foreground">{detailDialog.militares?.posto_graduacao} {detailDialog.militares?.nome_guerra}</p>
-              <p className="text-sm text-muted-foreground">
-                {new Date(detailDialog.data_hora).toLocaleString('pt-BR')} · {detailDialog.duracao}min · {detailDialog.tipo}
-              </p>
-              {detailDialog.anotacao_clinica && <p className="text-sm text-muted-foreground">{detailDialog.anotacao_clinica}</p>}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Data e Hora</Label>
+                  <Input type="datetime-local" value={editForm.data_hora} onChange={(e) => setEditForm({ ...editForm, data_hora: e.target.value })} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Duração (min)</Label>
+                  <Input type="number" value={editForm.duracao} onChange={(e) => setEditForm({ ...editForm, duracao: Number(e.target.value) })} />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Tipo</Label>
+                  <select className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={editForm.tipo} onChange={(e) => setEditForm({ ...editForm, tipo: e.target.value })}>
+                    {TIPOS_ATENDIMENTO.map((t) => <option key={t} value={t}>{t}</option>)}
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Status</Label>
+                  <select
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                    value={detailDialog.status}
+                    onChange={(e) => updateStatus(detailDialog.id, e.target.value)}
+                  >
+                    {STATUS_SESSAO.map((st) => <option key={st} value={st}>{st}</option>)}
+                  </select>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label>Anotação Clínica</Label>
+                <Textarea value={editForm.anotacao_clinica} onChange={(e) => setEditForm({ ...editForm, anotacao_clinica: e.target.value })} />
+              </div>
               <div className="space-y-2">
                 <Label>Nível de Dor (EVA)</Label>
                 <EvaScale value={painLevel} onChange={setPainLevel} />
               </div>
-              <div className="space-y-2">
-                <Label>Status</Label>
-                <select
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                  value={detailDialog.status}
-                  onChange={(e) => updateStatus(detailDialog.id, e.target.value)}
-                >
-                  {STATUS_SESSAO.map((st) => <option key={st} value={st}>{st}</option>)}
-                </select>
+              <div className="flex justify-between">
+                <Button variant="destructive" size="sm" onClick={handleDelete}>
+                  <Trash2 className="h-4 w-4 mr-1" /> Excluir
+                </Button>
+                <div className="flex gap-2">
+                  <Button variant="outline" onClick={() => setDetailDialog(null)}>Cancelar</Button>
+                  <Button onClick={handleSaveEdit} disabled={loading}>{loading ? 'Salvando...' : 'Salvar'}</Button>
+                </div>
               </div>
             </div>
           )}
