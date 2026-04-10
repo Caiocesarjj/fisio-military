@@ -19,6 +19,7 @@ import Auditoria from "./pages/Auditoria";
 import PerfilMilitar from "./pages/PerfilMilitar";
 import Configuracoes from "./pages/Configuracoes";
 import Usuarios from "./pages/Usuarios";
+import Prontuario from "./pages/Prontuario";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -60,6 +61,7 @@ function AppRoutes() {
           <Route path="/relatorios" element={<Relatorios />} />
           <Route path="/auditoria" element={<Auditoria />} />
           <Route path="/usuarios" element={<Usuarios />} />
+          <Route path="/prontuario" element={<Prontuario />} />
           <Route path="/configuracoes" element={<Configuracoes />} />
         </Route>
         <Route path="*" element={<NotFound />} />
