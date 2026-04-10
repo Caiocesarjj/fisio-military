@@ -159,7 +159,6 @@ export default function Relatorios() {
                 <TableHead>Companhia</TableHead>
                 <TableHead className="text-center">Militares</TableHead>
                 <TableHead className="text-center">Realizadas</TableHead>
-                <TableHead className="text-center">Faltas</TableHead>
                 <TableHead className="text-center">Taxa %</TableHead>
                 <TableHead>Lesões Comuns</TableHead>
               </TableRow>
@@ -170,7 +169,6 @@ export default function Relatorios() {
                   <TableCell className="font-medium">{row.companhia}</TableCell>
                   <TableCell className="text-center">{row.totalMilitares}</TableCell>
                   <TableCell className="text-center">{row.realizadas}</TableCell>
-                  <TableCell className="text-center">{row.faltas}</TableCell>
                   <TableCell className="text-center">
                     <Badge variant="secondary" className={`text-xs ${row.taxa >= 70 ? 'bg-emerald-100 text-emerald-700' : row.taxa >= 40 ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'}`}>
                       {row.taxa}%
