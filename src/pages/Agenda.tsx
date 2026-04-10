@@ -295,6 +295,11 @@ export default function Agenda() {
                 </select>
               </div>
             </div>
+            <div className="space-y-2"><Label>Queixa</Label><Textarea value={form.queixa} onChange={(e) => setForm({ ...form, queixa: e.target.value })} placeholder="Queixa principal do atendimento" /></div>
+            <div className="space-y-2">
+              <Label>Lesões / Regiões Tratadas</Label>
+              <LesaoSelector lesoes={formLesoes} onChange={setFormLesoes} />
+            </div>
             <div className="space-y-2"><Label>Anotação Clínica</Label><Textarea value={form.anotacao_clinica} onChange={(e) => setForm({ ...form, anotacao_clinica: e.target.value })} /></div>
             <div className="flex justify-end gap-2">
               <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
