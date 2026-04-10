@@ -236,6 +236,14 @@ export default function Agenda() {
                 </div>
               </div>
               <div className="space-y-2">
+                <Label>Queixa</Label>
+                <Textarea value={editForm.queixa} onChange={(e) => setEditForm({ ...editForm, queixa: e.target.value })} placeholder="Queixa principal do atendimento" />
+              </div>
+              <div className="space-y-2">
+                <Label>Lesões / Regiões Tratadas</Label>
+                <LesaoSelector lesoes={editLesoes} onChange={setEditLesoes} />
+              </div>
+              <div className="space-y-2">
                 <Label>Anotação Clínica</Label>
                 <Textarea value={editForm.anotacao_clinica} onChange={(e) => setEditForm({ ...editForm, anotacao_clinica: e.target.value })} />
               </div>
