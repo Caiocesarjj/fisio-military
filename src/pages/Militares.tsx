@@ -136,7 +136,7 @@ export default function Militares() {
         if (error) throw error;
         toast.success('Militar atualizado com sucesso!');
       } else {
-        if (!senha) { toast.error('Defina uma senha para o militar.'); setLoading(false); return; }
+        const autoSenha = crypto.randomUUID().slice(0, 16);
 
         // 1) Create auth user + role + link via edge function
         const userResult = await callManageUsers({
