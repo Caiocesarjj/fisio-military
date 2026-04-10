@@ -39,6 +39,26 @@ export default function Exercicios() {
   const [editing, setEditing] = useState<Exercise | null>(null);
   const [form, setForm] = useState(emptyForm);
   const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const videoInputRef = useRef<HTMLInputElement>(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
+
+  const uploadFile = async (file: File, folder: string): Promise<string | null> => {
+    const ext = file.name.split('.').pop();
+    const fileName = `${folder}/${crypto.randomUUID()}.${ext}`;
+    setUploading(true);
+    try {
+      const { error } = await supabase.storage.from('exercise-media').upload(fileName, file);
+      if (error) throw error;
+      const { data: urlData } = supabase.storage.from('exercise-media').getPublicUrl(fileName);
+      return urlData.publicUrl;
+    } catch (err: any) {
+      toast.error('Erro no upload: ' + err.message);
+      return null;
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const fetchExercises = async () => {
     const { data } = await supabase.from('exercises').select('*').order('nome');
