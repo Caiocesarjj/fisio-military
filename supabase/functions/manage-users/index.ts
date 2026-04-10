@@ -105,10 +105,16 @@ Deno.serve(async (req) => {
       const { user_id } = payload;
       if (!user_id) throw new Error("Missing user_id");
 
-      await adminClient.from("militares").update({ profile_id: null }).eq(
-        "profile_id",
-        (await adminClient.from("profiles").select("id").eq("user_id", user_id).single()).data?.id || ""
-      );
+      // Unlink militares if profile exists
+      const { data: profile } = await adminClient
+        .from("profiles")
+        .select("id")
+        .eq("user_id", user_id)
+        .maybeSingle();
+
+      if (profile?.id) {
+        await adminClient.from("militares").update({ profile_id: null }).eq("profile_id", profile.id);
+      }
 
       await adminClient.from("user_roles").delete().eq("user_id", user_id);
       await adminClient.from("profiles").delete().eq("user_id", user_id);
