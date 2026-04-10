@@ -88,6 +88,38 @@ export default function Agenda() {
     fetchSessions();
   };
 
+  const handleSaveEdit = async () => {
+    if (!detailDialog) return;
+    setLoading(true);
+    try {
+      const { error } = await supabase.from('sessions').update({
+        data_hora: new Date(editForm.data_hora).toISOString(),
+        duracao: Number(editForm.duracao),
+        tipo: editForm.tipo,
+        anotacao_clinica: editForm.anotacao_clinica,
+      }).eq('id', detailDialog.id);
+      if (error) throw error;
+      toast.success('Sessão atualizada!');
+      setDetailDialog(null);
+      fetchSessions();
+    } catch (err: any) { toast.error(err.message); }
+    setLoading(false);
+  };
+
+  const handleDelete = async () => {
+    if (!detailDialog) return;
+    if (!confirm('Tem certeza que deseja excluir esta sessão?')) return;
+    try {
+      // Delete related session notes first
+      await supabase.from('session_notes').delete().eq('session_id', detailDialog.id);
+      const { error } = await supabase.from('sessions').delete().eq('id', detailDialog.id);
+      if (error) throw error;
+      toast.success('Sessão excluída!');
+      setDetailDialog(null);
+      fetchSessions();
+    } catch (err: any) { toast.error(err.message); }
+  };
+
   const statusColors: Record<string, string> = {
     agendado: 'hsl(220, 70%, 25%)',
     realizado: 'hsl(142, 71%, 45%)',
