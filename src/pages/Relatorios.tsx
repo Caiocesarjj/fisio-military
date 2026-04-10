@@ -18,7 +18,6 @@ interface CompanyRow {
   companhia: string;
   totalMilitares: number;
   realizadas: number;
-  faltas: number;
   taxa: number;
   lesoesComuns: string;
 }
