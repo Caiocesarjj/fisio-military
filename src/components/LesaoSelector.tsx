@@ -5,7 +5,7 @@ import { Plus, X } from 'lucide-react';
 
 const SEGMENTOS: Record<string, string[]> = {
   'Membro Superior': ['Ombro', 'Cotovelo', 'Punho', 'Mão', 'Dedos da Mão'],
-  'Membro Inferior': ['Quadril', 'Coxa', 'Joelho', 'Panturrilha', 'Tornozelo', 'Pé', 'Dedos do Pé', 'Fascite Plantar', 'Esporão de Calcâneo'],
+  'Membro Inferior': ['Quadril', 'Coxa', 'Joelho', 'Panturrilha', 'Tendão de Aquiles', 'Tornozelo', 'Pé', 'Dedos do Pé', 'Fascite Plantar', 'Esporão de Calcâneo'],
   'Coluna': ['Cervical', 'Torácica', 'Lombar', 'Sacral'],
 };
 
