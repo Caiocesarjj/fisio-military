@@ -303,6 +303,12 @@ export default function Militares() {
                   <Input value={form.setor} onChange={(e) => setForm({ ...form, setor: e.target.value })} required />
                 </div>
               )}
+              {form.companhia === 'Externo' && (
+                <div className="space-y-2">
+                  <Label>OM (Organização Militar) *</Label>
+                  <Input value={form.om} onChange={(e) => setForm({ ...form, om: e.target.value })} placeholder="Ex: CIAA, CIAW, HNMd..." required />
+                </div>
+              )}
               <div className="space-y-2">
                 <Label>Telefone</Label>
                 <Input value={form.telefone} onChange={(e) => setForm({ ...form, telefone: e.target.value })} />
