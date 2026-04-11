@@ -223,10 +223,7 @@ export default function Exercicios() {
             </div>
             <div className="space-y-2">
               <Label>Fase</Label>
-              <select className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={form.fase} onChange={(e) => setForm({ ...form, fase: e.target.value })}>
-                <option value="">Selecione...</option>
-                {FASES_EXERCICIO.map((f) => <option key={f} value={f}>{f}</option>)}
-              </select>
+              <Input value={form.fase} onChange={(e) => setForm({ ...form, fase: e.target.value })} placeholder="Ex: Fase aguda, Fase de fortalecimento..." />
             </div>
             <div className="space-y-2"><Label>Descrição</Label><Textarea value={form.descricao} onChange={(e) => setForm({ ...form, descricao: e.target.value })} /></div>
             <div className="space-y-2"><Label>Instruções</Label><Textarea value={form.instrucoes} onChange={(e) => setForm({ ...form, instrucoes: e.target.value })} /></div>
