@@ -56,6 +56,7 @@ export type Database = {
           created_at: string
           descricao: string | null
           dificuldade: string
+          fase: string | null
           id: string
           imagem_url: string | null
           instrucoes: string | null
@@ -68,6 +69,7 @@ export type Database = {
           created_at?: string
           descricao?: string | null
           dificuldade?: string
+          fase?: string | null
           id?: string
           imagem_url?: string | null
           instrucoes?: string | null
@@ -80,6 +82,7 @@ export type Database = {
           created_at?: string
           descricao?: string | null
           dificuldade?: string
+          fase?: string | null
           id?: string
           imagem_url?: string | null
           instrucoes?: string | null
