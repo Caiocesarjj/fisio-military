@@ -16,7 +16,7 @@ function getYouTubeId(url: string): string | null {
   return match ? match[1] : null;
 }
 import { toast } from 'sonner';
-import { CATEGORIAS_EXERCICIO, DIFICULDADES } from '@/lib/constants';
+import { CATEGORIAS_EXERCICIO, DIFICULDADES, FASES_EXERCICIO } from '@/lib/constants';
 
 interface Exercise {
   id: string;
@@ -27,9 +27,10 @@ interface Exercise {
   instrucoes: string;
   video_url: string;
   imagem_url: string;
+  fase: string;
 }
 
-const emptyForm = { nome: '', descricao: '', categoria: '', dificuldade: 'Moderado', instrucoes: '', video_url: '', imagem_url: '' };
+const emptyForm = { nome: '', descricao: '', categoria: '', dificuldade: 'Moderado', instrucoes: '', video_url: '', imagem_url: '', fase: '' };
 
 export default function Exercicios() {
   const [exercises, setExercises] = useState<Exercise[]>([]);
@@ -105,7 +106,7 @@ export default function Exercicios() {
 
   const openEdit = (ex: Exercise) => {
     setEditing(ex);
-    setForm({ nome: ex.nome, descricao: ex.descricao || '', categoria: ex.categoria, dificuldade: ex.dificuldade, instrucoes: ex.instrucoes || '', video_url: ex.video_url || '', imagem_url: ex.imagem_url || '' });
+    setForm({ nome: ex.nome, descricao: ex.descricao || '', categoria: ex.categoria, dificuldade: ex.dificuldade, instrucoes: ex.instrucoes || '', video_url: ex.video_url || '', imagem_url: ex.imagem_url || '', fase: ex.fase || '' });
     setDialogOpen(true);
   };
 
@@ -219,6 +220,13 @@ export default function Exercicios() {
                   {DIFICULDADES.map((d) => <option key={d} value={d}>{d}</option>)}
                 </select>
               </div>
+            </div>
+            <div className="space-y-2">
+              <Label>Fase</Label>
+              <select className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={form.fase} onChange={(e) => setForm({ ...form, fase: e.target.value })}>
+                <option value="">Selecione...</option>
+                {FASES_EXERCICIO.map((f) => <option key={f} value={f}>{f}</option>)}
+              </select>
             </div>
             <div className="space-y-2"><Label>Descrição</Label><Textarea value={form.descricao} onChange={(e) => setForm({ ...form, descricao: e.target.value })} /></div>
             <div className="space-y-2"><Label>Instruções</Label><Textarea value={form.instrucoes} onChange={(e) => setForm({ ...form, instrucoes: e.target.value })} /></div>
