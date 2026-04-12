@@ -20,7 +20,7 @@ export default function MilitaryLayout() {
       <header className="border-b bg-card">
         <div className="mx-auto flex h-14 max-w-4xl items-center justify-between px-4 md:px-6">
           <div className="flex items-center gap-2">
-            <Shield className="h-5 w-5 text-primary" />
+            <img src="/logo-tonelero.jpg" alt="Logo" className="h-6 w-6 rounded-full object-cover" />
             <span className="font-bold text-primary">Fisioteria Tonelero</span>
           </div>
 

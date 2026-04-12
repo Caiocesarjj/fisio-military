@@ -49,9 +49,7 @@ export default function Login() {
     <div className="min-h-screen gradient-navy flex items-center justify-center p-4">
       <Card className="w-full max-w-md border-0 shadow-2xl">
         <CardHeader className="text-center space-y-4 pb-2">
-          <div className="mx-auto w-16 h-16 rounded-full bg-primary flex items-center justify-center">
-            <Shield className="w-8 h-8 text-primary-foreground" />
-          </div>
+          <img src="/logo-tonelero.jpg" alt="Fisioteria Tonelero" className="mx-auto w-20 h-20 rounded-full object-cover shadow-lg" />
           <div>
             <h1 className="text-2xl font-bold text-foreground">Fisioteria Tonelero</h1>
             <p className="text-sm text-muted-foreground">Gestão de Fisioterapia</p>

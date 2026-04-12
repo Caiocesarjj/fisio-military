@@ -54,7 +54,7 @@ export function AppSidebar() {
         <SidebarGroup>
           <SidebarGroupLabel className="px-3 py-4">
             <div className="flex items-center gap-2">
-              <Shield className="w-5 h-5 text-sidebar-primary" />
+              <img src="/logo-tonelero.jpg" alt="Logo" className="w-6 h-6 rounded-full object-cover" />
               {!collapsed && <span className="font-bold text-sm text-sidebar-primary">Fisioteria Tonelero</span>}
             </div>
           </SidebarGroupLabel>
