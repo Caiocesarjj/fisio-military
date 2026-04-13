@@ -1,5 +1,6 @@
 import { AspectRatio } from '@/components/ui/aspect-ratio';
 import { Badge } from '@/components/ui/badge';
+import { ExerciseDuvidas } from './ExerciseDuvidas';
 
 type ExercisePreviewProps = {
   planExercise: any;
@@ -75,6 +76,7 @@ export function ExercisePreview({ planExercise }: ExercisePreviewProps) {
           {planExercise.observacoes && <p className="text-sm text-foreground">{planExercise.observacoes}</p>}
         </div>
       </div>
+      <ExerciseDuvidas exerciseId={exercise?.id || planExercise.exercise_id} exerciseName={exercise?.nome || 'Exercício'} />
     </div>
   );
 }

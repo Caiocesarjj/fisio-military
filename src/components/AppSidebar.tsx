@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import {
   LayoutDashboard,
   Users,
@@ -11,10 +12,12 @@ import {
   Settings,
   UserCog,
   FileText,
+  MessageCircle,
 } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLocation } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
 import {
   Sidebar,
   SidebarContent,
@@ -35,6 +38,7 @@ const adminItems = [
   { title: 'Prontuário', url: '/prontuario', icon: FileText },
   { title: 'Exercícios', url: '/exercicios', icon: Dumbbell },
   { title: 'Planos', url: '/planos', icon: ClipboardList },
+  { title: 'Dúvidas', url: '/duvidas', icon: MessageCircle, hasBadge: true },
   { title: 'Agenda', url: '/agenda', icon: CalendarDays },
   { title: 'Relatórios', url: '/relatorios', icon: BarChart3 },
   { title: 'Usuários', url: '/usuarios', icon: UserCog },
@@ -47,6 +51,20 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === 'collapsed';
   const location = useLocation();
+  const [pendingCount, setPendingCount] = useState(0);
+
+  useEffect(() => {
+    const fetchPending = async () => {
+      const { count } = await supabase
+        .from('duvidas_exercicios')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'pendente');
+      setPendingCount(count || 0);
+    };
+    fetchPending();
+    const interval = setInterval(fetchPending, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <Sidebar collapsible="icon">
@@ -71,6 +89,11 @@ export function AppSidebar() {
                     >
                       <item.icon className="mr-2 h-4 w-4" />
                       {!collapsed && <span>{item.title}</span>}
+                      {(item as any).hasBadge && pendingCount > 0 && (
+                        <span className="ml-auto inline-flex items-center justify-center rounded-full bg-destructive text-destructive-foreground text-xs font-bold min-w-[20px] h-5 px-1.5">
+                          {pendingCount}
+                        </span>
+                      )}
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
