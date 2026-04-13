@@ -29,9 +29,11 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
 
   const fetchData = async () => {
-    const now = new Date();
-    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
-    const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59).toISOString();
+    // Force Brasília timezone (UTC-3)
+    const nowBrasilia = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Sao_Paulo' }));
+    const todayStart = new Date(nowBrasilia.getFullYear(), nowBrasilia.getMonth(), nowBrasilia.getDate()).toISOString();
+    const todayEnd = new Date(nowBrasilia.getFullYear(), nowBrasilia.getMonth(), nowBrasilia.getDate(), 23, 59, 59).toISOString();
+    const now = nowBrasilia;
     const yearStart = startOfYear(now).toISOString();
     const yearEnd = endOfYear(now).toISOString();
 
@@ -240,7 +242,9 @@ export default function Dashboard() {
                     </p>
                     <p className="text-xs text-muted-foreground">{s.militares?.companhia}</p>
                   </div>
-                  <p className="text-sm font-medium text-foreground">{format(new Date(s.data_hora), 'HH:mm')}</p>
+                  <p className="text-sm font-medium text-foreground">
+                    {new Date(s.data_hora).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' })}
+                  </p>
                   {s.status === 'agendado' ? (
                     <div className="flex gap-1">
                       <Button variant="ghost" size="icon" className="h-8 w-8 text-emerald-600" onClick={() => quickUpdate(s.id, 'realizado')}>
