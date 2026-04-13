@@ -11,6 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Plus, ChevronDown, ChevronUp, X, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
+import ExerciseMultiSelect from '@/components/ExerciseMultiSelect';
 import { format } from 'date-fns';
 
 interface InlineExercise {
