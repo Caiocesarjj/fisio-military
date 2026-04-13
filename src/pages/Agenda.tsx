@@ -269,14 +269,13 @@ export default function Agenda() {
                 <Label>Nível de Dor (EVA)</Label>
                 <EvaScale value={painLevel} onChange={setPainLevel} />
               </div>
-                <div className="flex justify-between">
-                  <Button variant="destructive" size="sm" onClick={handleDelete}>
-                    <Trash2 className="h-4 w-4 mr-1" /> Excluir
-                  </Button>
-                  <div className="flex gap-2">
-                    <Button variant="outline" onClick={() => setDetailDialog(null)}>Cancelar</Button>
-                    <Button onClick={handleSaveEdit} disabled={loading}>{loading ? 'Salvando...' : 'Salvar'}</Button>
-                  </div>
+              <div className="flex justify-between">
+                <Button variant="destructive" size="sm" onClick={handleDelete}>
+                  <Trash2 className="h-4 w-4 mr-1" /> Excluir
+                </Button>
+                <div className="flex gap-2">
+                  <Button variant="outline" onClick={() => setDetailDialog(null)}>Cancelar</Button>
+                  <Button onClick={handleSaveEdit} disabled={loading}>{loading ? 'Salvando...' : 'Salvar'}</Button>
                 </div>
               </div>
             </div>
