@@ -14,17 +14,6 @@ import { toast } from 'sonner';
 import ExerciseMultiSelect from '@/components/ExerciseMultiSelect';
 import { format } from 'date-fns';
 
-interface InlineExercise {
-  exercise_id: string;
-  nome?: string;
-  categoria?: string;
-  series: number;
-  repeticoes: number;
-  descanso: string;
-  frequencia_semanal: number;
-  observacoes: string;
-}
-
 export default function Planos() {
   const { user } = useAuth();
   const [plans, setPlans] = useState<any[]>([]);
@@ -34,7 +23,6 @@ export default function Planos() {
   const [expandedPlan, setExpandedPlan] = useState<string | null>(null);
   const [planExercises, setPlanExercises] = useState<Record<string, any[]>>({});
   const [form, setForm] = useState({ militar_id: '', nome: '', objetivo: '', data_inicio: '', data_fim: '' });
-  const [inlineExercises, setInlineExercises] = useState<InlineExercise[]>([]);
   const [selectedExerciseIds, setSelectedExerciseIds] = useState<string[]>([]);
   const [sharedConfig, setSharedConfig] = useState({ series: 3, repeticoes: 10, descanso: '60s', frequencia_semanal: 3, observacoes: '' });
   const [loading, setLoading] = useState(false);
@@ -72,26 +60,6 @@ export default function Planos() {
       setExpandedPlan(planId);
       if (!planExercises[planId]) fetchPlanExercises(planId);
     }
-  };
-
-  const addInlineExercise = () => {
-    setInlineExercises([...inlineExercises, {
-      exercise_id: '', series: 3, repeticoes: 10, descanso: '60s', frequencia_semanal: 3, observacoes: '',
-    }]);
-  };
-
-  const updateInlineExercise = (index: number, field: string, value: any) => {
-    const updated = [...inlineExercises];
-    (updated[index] as any)[field] = value;
-    if (field === 'exercise_id') {
-      const ex = exercises.find((e) => e.id === value);
-      if (ex) { updated[index].nome = ex.nome; updated[index].categoria = ex.categoria; }
-    }
-    setInlineExercises(updated);
-  };
-
-  const removeInlineExercise = (index: number) => {
-    setInlineExercises(inlineExercises.filter((_, i) => i !== index));
   };
 
   const handleCreatePlan = async (e: React.FormEvent) => {
