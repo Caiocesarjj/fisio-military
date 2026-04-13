@@ -35,13 +35,16 @@ export default function Planos() {
   const [planExercises, setPlanExercises] = useState<Record<string, any[]>>({});
   const [form, setForm] = useState({ militar_id: '', nome: '', objetivo: '', data_inicio: '', data_fim: '' });
   const [inlineExercises, setInlineExercises] = useState<InlineExercise[]>([]);
+  const [selectedExerciseIds, setSelectedExerciseIds] = useState<string[]>([]);
+  const [sharedConfig, setSharedConfig] = useState({ series: 3, repeticoes: 10, descanso: '60s', frequencia_semanal: 3, observacoes: '' });
   const [loading, setLoading] = useState(false);
   const [pageLoading, setPageLoading] = useState(true);
 
   // For adding exercises to existing plans
   const [exDialogOpen, setExDialogOpen] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<any>(null);
-  const [exForm, setExForm] = useState({ exercise_id: '', series: 3, repeticoes: 10, descanso: '60s', frequencia_semanal: 3, observacoes: '' });
+  const [addExerciseIds, setAddExerciseIds] = useState<string[]>([]);
+  const [addConfig, setAddConfig] = useState({ series: 3, repeticoes: 10, descanso: '60s', frequencia_semanal: 3, observacoes: '' });
 
   const fetchAll = async () => {
     const [plansRes, milRes, exRes] = await Promise.all([
@@ -100,27 +103,26 @@ export default function Planos() {
       }).select().single();
       if (error) throw error;
 
-      // Insert inline exercises
-      if (inlineExercises.length > 0) {
-        const exInserts = inlineExercises.filter((ie) => ie.exercise_id).map((ie) => ({
+      // Insert selected exercises with shared config
+      if (selectedExerciseIds.length > 0) {
+        const exInserts = selectedExerciseIds.map((exercise_id) => ({
           plan_id: planData.id,
-          exercise_id: ie.exercise_id,
-          series: ie.series,
-          repeticoes: ie.repeticoes,
-          descanso: ie.descanso,
-          frequencia_semanal: ie.frequencia_semanal,
-          observacoes: ie.observacoes || null,
+          exercise_id,
+          series: sharedConfig.series,
+          repeticoes: sharedConfig.repeticoes,
+          descanso: sharedConfig.descanso,
+          frequencia_semanal: sharedConfig.frequencia_semanal,
+          observacoes: sharedConfig.observacoes || null,
         }));
-        if (exInserts.length > 0) {
-          const { error: exError } = await supabase.from('plan_exercises').insert(exInserts);
-          if (exError) throw exError;
-        }
+        const { error: exError } = await supabase.from('plan_exercises').insert(exInserts);
+        if (exError) throw exError;
       }
 
       toast.success('Plano criado com exercícios!');
       setDialogOpen(false);
       setForm({ militar_id: '', nome: '', objetivo: '', data_inicio: '', data_fim: '' });
-      setInlineExercises([]);
+      setSelectedExerciseIds([]);
+      setSharedConfig({ series: 3, repeticoes: 10, descanso: '60s', frequencia_semanal: 3, observacoes: '' });
       fetchAll();
     } catch (err: any) { toast.error(err.message); }
     setLoading(false);
