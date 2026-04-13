@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -11,6 +12,7 @@ import { format } from 'date-fns';
 
 export default function Duvidas() {
   const [duvidas, setDuvidas] = useState<any[]>([]);
+  const [militaresMap, setMilitaresMap] = useState<Record<string, any>>({});
   const [loading, setLoading] = useState(true);
   const [respostas, setRespostas] = useState<Record<string, string>>({});
   const [sending, setSending] = useState<string | null>(null);
@@ -27,7 +29,34 @@ export default function Duvidas() {
     }
 
     const { data } = await query;
-    setDuvidas(data || []);
+    const items = data || [];
+    setDuvidas(items);
+
+    // Fetch militar info for each unique user_id
+    const userIds = [...new Set(items.map((d: any) => d.user_id))];
+    if (userIds.length > 0) {
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, user_id, full_name')
+        .in('user_id', userIds);
+
+      const profileIds = (profiles || []).map((p: any) => p.id);
+      const { data: mils } = profileIds.length > 0
+        ? await supabase
+            .from('militares')
+            .select('profile_id, nome_guerra, posto_graduacao, companhia, foto_url')
+            .in('profile_id', profileIds)
+        : { data: [] };
+
+      const map: Record<string, any> = {};
+      for (const uid of userIds) {
+        const profile = (profiles || []).find((p: any) => p.user_id === uid);
+        const mil = profile ? (mils || []).find((m: any) => m.profile_id === profile.id) : null;
+        map[uid] = mil ? { ...mil, email: profile?.full_name } : { nome_guerra: profile?.full_name || 'Paciente', posto_graduacao: '' };
+      }
+      setMilitaresMap(map);
+    }
+
     setLoading(false);
   };
 
@@ -90,8 +119,29 @@ export default function Duvidas() {
       ) : (
         <div className="space-y-4">
           {duvidas.map((d) => (
-            <Card key={d.id}>
+             <Card key={d.id}>
               <CardContent className="p-4 space-y-3">
+                {/* Patient info */}
+                {(() => {
+                  const mil = militaresMap[d.user_id];
+                  return mil ? (
+                    <div className="flex items-center gap-3 pb-2 border-b">
+                      <Avatar className="h-9 w-9">
+                        <AvatarImage src={mil.foto_url} />
+                        <AvatarFallback className="bg-primary text-primary-foreground text-xs font-bold">
+                          {(mil.nome_guerra || '?').slice(0, 2).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <p className="text-sm font-medium text-foreground">
+                          {mil.posto_graduacao} {mil.nome_guerra}
+                        </p>
+                        {mil.companhia && <p className="text-xs text-muted-foreground">{mil.companhia}</p>}
+                      </div>
+                    </div>
+                  ) : null;
+                })()}
+
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
                     <p className="font-medium text-foreground">{d.exercises?.nome || 'Exercício'}</p>
