@@ -212,115 +212,119 @@ export default function Agenda() {
       )}
 
       <Dialog open={!!detailDialog} onOpenChange={() => setDetailDialog(null)}>
-        <DialogContent className="max-w-md">
-          <DialogHeader><DialogTitle>Editar Sessão</DialogTitle></DialogHeader>
+        <DialogContent className="max-w-md max-h-[90vh] flex flex-col p-0">
+          <DialogHeader className="px-4 pt-4 pb-2"><DialogTitle>Editar Sessão</DialogTitle></DialogHeader>
           {detailDialog && (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between gap-2">
-                <p className="font-medium text-foreground">{detailDialog.militares?.posto_graduacao} {detailDialog.militares?.nome_guerra}</p>
-                <WhatsAppReminderButton
-                  nome={detailDialog.militares?.nome_guerra || 'Paciente'}
-                  telefone={detailDialog.militares?.telefone}
-                  dataHora={detailDialog.data_hora}
-                  size="default"
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Data e Hora</Label>
-                  <Input type="datetime-local" value={editForm.data_hora} onChange={(e) => setEditForm({ ...editForm, data_hora: e.target.value })} />
+            <>
+              <div className="flex-1 overflow-y-auto px-4 space-y-3">
+                <div className="flex items-center justify-between gap-2">
+                  <p className="font-medium text-foreground text-sm">{detailDialog.militares?.posto_graduacao} {detailDialog.militares?.nome_guerra}</p>
+                  <WhatsAppReminderButton
+                    nome={detailDialog.militares?.nome_guerra || 'Paciente'}
+                    telefone={detailDialog.militares?.telefone}
+                    dataHora={detailDialog.data_hora}
+                    size="sm"
+                  />
                 </div>
-                <div className="space-y-2">
-                  <Label>Duração (min)</Label>
-                  <Input type="number" value={editForm.duracao} onChange={(e) => setEditForm({ ...editForm, duracao: Number(e.target.value) })} />
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <Label className="text-xs">Data e Hora</Label>
+                    <Input type="datetime-local" className="h-9 text-sm" value={editForm.data_hora} onChange={(e) => setEditForm({ ...editForm, data_hora: e.target.value })} />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs">Duração (min)</Label>
+                    <Input type="number" className="h-9 text-sm" value={editForm.duracao} onChange={(e) => setEditForm({ ...editForm, duracao: Number(e.target.value) })} />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <Label className="text-xs">Tipo</Label>
+                    <select className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1.5 text-sm" value={editForm.tipo} onChange={(e) => setEditForm({ ...editForm, tipo: e.target.value })}>
+                      {TIPOS_ATENDIMENTO.map((t) => <option key={t} value={t}>{t}</option>)}
+                    </select>
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs">Status</Label>
+                    <select
+                      className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1.5 text-sm"
+                      value={detailDialog.status}
+                      onChange={(e) => updateStatus(detailDialog.id, e.target.value)}
+                    >
+                      {STATUS_SESSAO.map((st) => <option key={st} value={st}>{st}</option>)}
+                    </select>
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">Queixa</Label>
+                  <Textarea className="text-sm min-h-[60px]" value={editForm.queixa} onChange={(e) => setEditForm({ ...editForm, queixa: e.target.value })} placeholder="Queixa principal do atendimento" />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">Lesões / Regiões Tratadas</Label>
+                  <LesaoSelector lesoes={editLesoes} onChange={setEditLesoes} />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">Anotação Clínica</Label>
+                  <Textarea className="text-sm min-h-[60px]" value={editForm.anotacao_clinica} onChange={(e) => setEditForm({ ...editForm, anotacao_clinica: e.target.value })} />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">Nível de Dor (EVA)</Label>
+                  <EvaScale value={painLevel} onChange={setPainLevel} />
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Tipo</Label>
-                  <select className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={editForm.tipo} onChange={(e) => setEditForm({ ...editForm, tipo: e.target.value })}>
-                    {TIPOS_ATENDIMENTO.map((t) => <option key={t} value={t}>{t}</option>)}
-                  </select>
-                </div>
-                <div className="space-y-2">
-                  <Label>Status</Label>
-                  <select
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                    value={detailDialog.status}
-                    onChange={(e) => updateStatus(detailDialog.id, e.target.value)}
-                  >
-                    {STATUS_SESSAO.map((st) => <option key={st} value={st}>{st}</option>)}
-                  </select>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label>Queixa</Label>
-                <Textarea value={editForm.queixa} onChange={(e) => setEditForm({ ...editForm, queixa: e.target.value })} placeholder="Queixa principal do atendimento" />
-              </div>
-              <div className="space-y-2">
-                <Label>Lesões / Regiões Tratadas</Label>
-                <LesaoSelector lesoes={editLesoes} onChange={setEditLesoes} />
-              </div>
-              <div className="space-y-2">
-                <Label>Anotação Clínica</Label>
-                <Textarea value={editForm.anotacao_clinica} onChange={(e) => setEditForm({ ...editForm, anotacao_clinica: e.target.value })} />
-              </div>
-              <div className="space-y-2">
-                <Label>Nível de Dor (EVA)</Label>
-                <EvaScale value={painLevel} onChange={setPainLevel} />
-              </div>
-              <div className="flex justify-between">
+              <div className="flex justify-between px-4 py-3 border-t bg-background sticky bottom-0">
                 <Button variant="destructive" size="sm" onClick={handleDelete}>
                   <Trash2 className="h-4 w-4 mr-1" /> Excluir
                 </Button>
                 <div className="flex gap-2">
-                  <Button variant="outline" onClick={() => setDetailDialog(null)}>Cancelar</Button>
-                  <Button onClick={handleSaveEdit} disabled={loading}>{loading ? 'Salvando...' : 'Salvar'}</Button>
+                  <Button variant="outline" size="sm" onClick={() => setDetailDialog(null)}>Cancelar</Button>
+                  <Button size="sm" onClick={handleSaveEdit} disabled={loading}>{loading ? 'Salvando...' : 'Salvar'}</Button>
                 </div>
               </div>
-            </div>
+            </>
           )}
         </DialogContent>
       </Dialog>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader><DialogTitle>Agendar Sessão</DialogTitle></DialogHeader>
-          <form onSubmit={handleCreate} className="space-y-4">
-            <div className="space-y-2">
-              <Label>Militar *</Label>
-              <select className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={form.militar_id} onChange={(e) => setForm({ ...form, militar_id: e.target.value })} required>
-                <option value="">Selecione...</option>
-                {militares.map((m) => <option key={m.id} value={m.id}>{m.posto_graduacao} {m.nome_guerra}</option>)}
-              </select>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2"><Label>Data e Hora *</Label><Input type="datetime-local" value={form.data_hora} onChange={(e) => setForm({ ...form, data_hora: e.target.value })} required /></div>
-              <div className="space-y-2"><Label>Duração (min)</Label><Input type="number" value={form.duracao} onChange={(e) => setForm({ ...form, duracao: Number(e.target.value) })} /></div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Tipo</Label>
-                <select className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={form.tipo} onChange={(e) => setForm({ ...form, tipo: e.target.value })}>
-                  {TIPOS_ATENDIMENTO.map((t) => <option key={t} value={t}>{t}</option>)}
+        <DialogContent className="max-w-lg max-h-[90vh] flex flex-col p-0">
+          <DialogHeader className="px-4 pt-4 pb-2"><DialogTitle>Agendar Sessão</DialogTitle></DialogHeader>
+          <form onSubmit={handleCreate} className="flex flex-col flex-1 overflow-hidden">
+            <div className="flex-1 overflow-y-auto px-4 space-y-3">
+              <div className="space-y-1">
+                <Label className="text-xs">Militar *</Label>
+                <select className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1.5 text-sm" value={form.militar_id} onChange={(e) => setForm({ ...form, militar_id: e.target.value })} required>
+                  <option value="">Selecione...</option>
+                  {militares.map((m) => <option key={m.id} value={m.id}>{m.posto_graduacao} {m.nome_guerra}</option>)}
                 </select>
               </div>
-              <div className="space-y-2">
-                <Label>Status</Label>
-                <select className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
-                  {STATUS_SESSAO.map((s) => <option key={s} value={s}>{s}</option>)}
-                </select>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1"><Label className="text-xs">Data e Hora *</Label><Input type="datetime-local" className="h-9 text-sm" value={form.data_hora} onChange={(e) => setForm({ ...form, data_hora: e.target.value })} required /></div>
+                <div className="space-y-1"><Label className="text-xs">Duração (min)</Label><Input type="number" className="h-9 text-sm" value={form.duracao} onChange={(e) => setForm({ ...form, duracao: Number(e.target.value) })} /></div>
               </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <Label className="text-xs">Tipo</Label>
+                  <select className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1.5 text-sm" value={form.tipo} onChange={(e) => setForm({ ...form, tipo: e.target.value })}>
+                    {TIPOS_ATENDIMENTO.map((t) => <option key={t} value={t}>{t}</option>)}
+                  </select>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">Status</Label>
+                  <select className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1.5 text-sm" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
+                    {STATUS_SESSAO.map((s) => <option key={s} value={s}>{s}</option>)}
+                  </select>
+                </div>
+              </div>
+              <div className="space-y-1"><Label className="text-xs">Queixa</Label><Textarea className="text-sm min-h-[60px]" value={form.queixa} onChange={(e) => setForm({ ...form, queixa: e.target.value })} placeholder="Queixa principal do atendimento" /></div>
+              <div className="space-y-1">
+                <Label className="text-xs">Lesões / Regiões Tratadas</Label>
+                <LesaoSelector lesoes={formLesoes} onChange={setFormLesoes} />
+              </div>
+              <div className="space-y-1"><Label className="text-xs">Anotação Clínica</Label><Textarea className="text-sm min-h-[60px]" value={form.anotacao_clinica} onChange={(e) => setForm({ ...form, anotacao_clinica: e.target.value })} /></div>
             </div>
-            <div className="space-y-2"><Label>Queixa</Label><Textarea value={form.queixa} onChange={(e) => setForm({ ...form, queixa: e.target.value })} placeholder="Queixa principal do atendimento" /></div>
-            <div className="space-y-2">
-              <Label>Lesões / Regiões Tratadas</Label>
-              <LesaoSelector lesoes={formLesoes} onChange={setFormLesoes} />
-            </div>
-            <div className="space-y-2"><Label>Anotação Clínica</Label><Textarea value={form.anotacao_clinica} onChange={(e) => setForm({ ...form, anotacao_clinica: e.target.value })} /></div>
-            <div className="flex justify-end gap-2">
-              <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
-              <Button type="submit" disabled={loading}>{loading ? 'Agendando...' : 'Agendar'}</Button>
+            <div className="flex justify-end gap-2 px-4 py-3 border-t bg-background sticky bottom-0">
+              <Button type="button" variant="outline" size="sm" onClick={() => setDialogOpen(false)}>Cancelar</Button>
+              <Button type="submit" size="sm" disabled={loading}>{loading ? 'Agendando...' : 'Agendar'}</Button>
             </div>
           </form>
         </DialogContent>
