@@ -28,7 +28,34 @@ export default function Duvidas() {
     }
 
     const { data } = await query;
-    setDuvidas(data || []);
+    const items = data || [];
+    setDuvidas(items);
+
+    // Fetch militar info for each unique user_id
+    const userIds = [...new Set(items.map((d: any) => d.user_id))];
+    if (userIds.length > 0) {
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, user_id, full_name')
+        .in('user_id', userIds);
+
+      const profileIds = (profiles || []).map((p: any) => p.id);
+      const { data: mils } = profileIds.length > 0
+        ? await supabase
+            .from('militares')
+            .select('profile_id, nome_guerra, posto_graduacao, companhia, foto_url')
+            .in('profile_id', profileIds)
+        : { data: [] };
+
+      const map: Record<string, any> = {};
+      for (const uid of userIds) {
+        const profile = (profiles || []).find((p: any) => p.user_id === uid);
+        const mil = profile ? (mils || []).find((m: any) => m.profile_id === profile.id) : null;
+        map[uid] = mil ? { ...mil, email: profile?.full_name } : { nome_guerra: profile?.full_name || 'Paciente', posto_graduacao: '' };
+      }
+      setMilitaresMap(map);
+    }
+
     setLoading(false);
   };
 
