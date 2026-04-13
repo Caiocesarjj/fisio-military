@@ -153,6 +153,47 @@ export default function Duvidas() {
                   </Badge>
                 </div>
 
+                {/* Exercise media preview */}
+                {(() => {
+                  const ex = d.exercises;
+                  const ytMatch = ex?.video_url?.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|.*&v=))([^?&]+)/);
+                  const ytId = ytMatch?.[1];
+                  const isGif = ex?.video_url && /\.gif(\?.*)?$/i.test(ex.video_url);
+                  const isDirect = ex?.video_url && /\.(mp4|webm|ogg)(\?.*)?$/i.test(ex.video_url);
+
+                  if (ytId) {
+                    return (
+                      <div className="rounded-lg overflow-hidden border max-w-[280px]">
+                        <AspectRatio ratio={16 / 9}>
+                          <iframe src={`https://www.youtube.com/embed/${ytId}`} title={ex?.nome} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen className="h-full w-full" />
+                        </AspectRatio>
+                      </div>
+                    );
+                  }
+                  if (isGif) {
+                    return (
+                      <div className="rounded-lg overflow-hidden border max-w-[280px]">
+                        <AspectRatio ratio={16 / 9}><img src={ex.video_url} alt={ex?.nome} className="h-full w-full object-cover" /></AspectRatio>
+                      </div>
+                    );
+                  }
+                  if (isDirect) {
+                    return (
+                      <div className="rounded-lg overflow-hidden border max-w-[280px]">
+                        <AspectRatio ratio={16 / 9}><video src={ex.video_url} controls className="h-full w-full object-cover" preload="metadata" /></AspectRatio>
+                      </div>
+                    );
+                  }
+                  if (ex?.imagem_url) {
+                    return (
+                      <div className="rounded-lg overflow-hidden border max-w-[280px]">
+                        <AspectRatio ratio={16 / 9}><img src={ex.imagem_url} alt={ex?.nome} loading="lazy" className="h-full w-full object-cover" /></AspectRatio>
+                      </div>
+                    );
+                  }
+                  return null;
+                })()}
+
                 <p className="text-sm text-muted-foreground">
                   {format(new Date(d.created_at), 'dd/MM/yyyy HH:mm')}
                 </p>
