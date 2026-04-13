@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { CalendarSkeleton } from '@/components/Skeletons';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -13,6 +13,7 @@ import { STATUS_SESSAO, TIPOS_ATENDIMENTO } from '@/lib/constants';
 import { EvaScale } from '@/components/EvaScale';
 import { LesaoSelector, type Lesao } from '@/components/LesaoSelector';
 import { WhatsAppReminderButton } from '@/components/WhatsAppReminderButton';
+import { toDateTimeLocalFromStoredSession, toStoredSessionDateTime } from '@/lib/sessionDateTime';
 
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
@@ -35,7 +36,6 @@ export default function Agenda() {
   const [painLevel, setPainLevel] = useState(0);
   const [calLoading, setCalLoading] = useState(false);
 
-  // Fetch militares once on mount
   useEffect(() => {
     supabase.from('militares').select('id, nome_guerra, posto_graduacao').eq('status_militar', 'ativo')
       .then(({ data }) => setMilitares(data || []));
@@ -61,20 +61,27 @@ export default function Agenda() {
     e.preventDefault();
     setLoading(true);
     try {
-      const { error } = await supabase.from('sessions').insert({ ...form, fisio_id: user?.id, duracao: Number(form.duracao), lesoes: formLesoes as any });
+      const { error } = await supabase.from('sessions').insert({
+        ...form,
+        data_hora: toStoredSessionDateTime(form.data_hora),
+        fisio_id: user?.id,
+        duracao: Number(form.duracao),
+        lesoes: formLesoes as any,
+      });
       if (error) throw error;
       toast.success('Sessão agendada!');
       setDialogOpen(false);
       setForm({ militar_id: '', data_hora: '', duracao: 60, tipo: 'presencial', status: 'agendado', anotacao_clinica: '', queixa: '' });
       setFormLesoes([]);
       fetchSessions();
-    } catch (err: any) { toast.error(err.message); }
+    } catch (err: any) {
+      toast.error(err.message);
+    }
     setLoading(false);
   };
 
   const updateStatus = async (sessionId: string, status: string) => {
     await supabase.from('sessions').update({ status }).eq('id', sessionId);
-    // Save pain level as session note if status is realizado
     if (status === 'realizado' && detailDialog) {
       const existingNote = detailDialog.session_notes?.[0];
       if (existingNote) {
@@ -98,7 +105,7 @@ export default function Agenda() {
     setLoading(true);
     try {
       const { error } = await supabase.from('sessions').update({
-        data_hora: new Date(editForm.data_hora).toISOString(),
+        data_hora: toStoredSessionDateTime(editForm.data_hora),
         duracao: Number(editForm.duracao),
         tipo: editForm.tipo,
         anotacao_clinica: editForm.anotacao_clinica,
@@ -109,7 +116,9 @@ export default function Agenda() {
       toast.success('Sessão atualizada!');
       setDetailDialog(null);
       fetchSessions();
-    } catch (err: any) { toast.error(err.message); }
+    } catch (err: any) {
+      toast.error(err.message);
+    }
     setLoading(false);
   };
 
@@ -117,14 +126,15 @@ export default function Agenda() {
     if (!detailDialog) return;
     if (!confirm('Tem certeza que deseja excluir esta sessão?')) return;
     try {
-      // Delete related session notes first
       await supabase.from('session_notes').delete().eq('session_id', detailDialog.id);
       const { error } = await supabase.from('sessions').delete().eq('id', detailDialog.id);
       if (error) throw error;
       toast.success('Sessão excluída!');
       setDetailDialog(null);
       fetchSessions();
-    } catch (err: any) { toast.error(err.message); }
+    } catch (err: any) {
+      toast.error(err.message);
+    }
   };
 
   const statusColors: Record<string, string> = {
@@ -148,10 +158,8 @@ export default function Agenda() {
     const session = info.event.extendedProps.session;
     const existingNote = session.session_notes?.[0];
     setPainLevel(existingNote?.nivel_dor ?? 0);
-    const dtLocal = new Date(session.data_hora);
-    const isoLocal = new Date(dtLocal.getTime() - dtLocal.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
     setEditForm({
-      data_hora: isoLocal,
+      data_hora: toDateTimeLocalFromStoredSession(session.data_hora),
       duracao: session.duracao || 60,
       tipo: session.tipo || 'presencial',
       anotacao_clinica: session.anotacao_clinica || '',
@@ -162,7 +170,7 @@ export default function Agenda() {
   };
 
   const handleDateClick = (arg: any) => {
-    const dt = arg.dateStr.length > 10 ? arg.dateStr.slice(0, 16) : arg.dateStr + 'T08:00';
+    const dt = arg.dateStr.length > 10 ? arg.dateStr.slice(0, 16) : `${arg.dateStr}T08:00`;
     setForm({ ...form, data_hora: dt });
     setDialogOpen(true);
   };
@@ -197,7 +205,7 @@ export default function Agenda() {
             slotMinTime="06:00:00"
             slotMaxTime="22:00:00"
             allDaySlot={false}
-            timeZone="America/Sao_Paulo"
+            timeZone="UTC"
             eventTimeFormat={{ hour: '2-digit', minute: '2-digit', hour12: false }}
           />
         </div>
@@ -274,7 +282,6 @@ export default function Agenda() {
         </DialogContent>
       </Dialog>
 
-      {/* Create dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-lg">
           <DialogHeader><DialogTitle>Agendar Sessão</DialogTitle></DialogHeader>

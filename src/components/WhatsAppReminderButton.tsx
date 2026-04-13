@@ -3,8 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { MessageCircle, Check } from 'lucide-react';
 import { toast } from 'sonner';
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+import { formatStoredSessionDateLong, formatStoredSessionTime } from '@/lib/sessionDateTime';
 
 interface WhatsAppReminderButtonProps {
   nome: string;
@@ -29,22 +28,18 @@ export function WhatsAppReminderButton({ nome, telefone, dataHora, size = 'sm' }
       return;
     }
 
-    const dt = new Date(dataHora);
-    const data = format(dt, "dd 'de' MMMM 'de' yyyy", { locale: ptBR });
-    const hora = format(dt, 'HH:mm');
-
     const mensagem = `Olá ${nome}! 👋
 Passando para lembrar do seu atendimento de fisioterapia.
 
-📅 Data: ${data}
-⏰ Horário: ${hora}
+📅 Data: ${formatStoredSessionDateLong(dataHora)}
+⏰ Horário: ${formatStoredSessionTime(dataHora)}
 
 Por favor, confirme sua presença.`;
 
     const phone = formatPhone(telefone);
     const url = `https://wa.me/${phone}?text=${encodeURIComponent(mensagem)}`;
 
-    window.open(url, '_blank');
+    window.open(url, '_blank', 'noopener,noreferrer');
     toast.success('Mensagem pronta para envio!');
     setSent(true);
   };
@@ -74,7 +69,7 @@ Por favor, confirme sua presença.`;
         </Button>
       </TooltipTrigger>
       <TooltipContent>
-        <p>Enviar lembrete para o paciente via WhatsApp</p>
+        <p>Enviar lembrete para o paciente</p>
       </TooltipContent>
     </Tooltip>
   );
