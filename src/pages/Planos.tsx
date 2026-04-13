@@ -11,18 +11,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Plus, ChevronDown, ChevronUp, X, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
+import ExerciseMultiSelect from '@/components/ExerciseMultiSelect';
 import { format } from 'date-fns';
-
-interface InlineExercise {
-  exercise_id: string;
-  nome?: string;
-  categoria?: string;
-  series: number;
-  repeticoes: number;
-  descanso: string;
-  frequencia_semanal: number;
-  observacoes: string;
-}
 
 export default function Planos() {
   const { user } = useAuth();
@@ -33,14 +23,16 @@ export default function Planos() {
   const [expandedPlan, setExpandedPlan] = useState<string | null>(null);
   const [planExercises, setPlanExercises] = useState<Record<string, any[]>>({});
   const [form, setForm] = useState({ militar_id: '', nome: '', objetivo: '', data_inicio: '', data_fim: '' });
-  const [inlineExercises, setInlineExercises] = useState<InlineExercise[]>([]);
+  const [selectedExerciseIds, setSelectedExerciseIds] = useState<string[]>([]);
+  const [sharedConfig, setSharedConfig] = useState({ series: 3, repeticoes: 10, descanso: '60s', frequencia_semanal: 3, observacoes: '' });
   const [loading, setLoading] = useState(false);
   const [pageLoading, setPageLoading] = useState(true);
 
   // For adding exercises to existing plans
   const [exDialogOpen, setExDialogOpen] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<any>(null);
-  const [exForm, setExForm] = useState({ exercise_id: '', series: 3, repeticoes: 10, descanso: '60s', frequencia_semanal: 3, observacoes: '' });
+  const [addExerciseIds, setAddExerciseIds] = useState<string[]>([]);
+  const [addConfig, setAddConfig] = useState({ series: 3, repeticoes: 10, descanso: '60s', frequencia_semanal: 3, observacoes: '' });
 
   const fetchAll = async () => {
     const [plansRes, milRes, exRes] = await Promise.all([
@@ -70,26 +62,6 @@ export default function Planos() {
     }
   };
 
-  const addInlineExercise = () => {
-    setInlineExercises([...inlineExercises, {
-      exercise_id: '', series: 3, repeticoes: 10, descanso: '60s', frequencia_semanal: 3, observacoes: '',
-    }]);
-  };
-
-  const updateInlineExercise = (index: number, field: string, value: any) => {
-    const updated = [...inlineExercises];
-    (updated[index] as any)[field] = value;
-    if (field === 'exercise_id') {
-      const ex = exercises.find((e) => e.id === value);
-      if (ex) { updated[index].nome = ex.nome; updated[index].categoria = ex.categoria; }
-    }
-    setInlineExercises(updated);
-  };
-
-  const removeInlineExercise = (index: number) => {
-    setInlineExercises(inlineExercises.filter((_, i) => i !== index));
-  };
-
   const handleCreatePlan = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -99,27 +71,26 @@ export default function Planos() {
       }).select().single();
       if (error) throw error;
 
-      // Insert inline exercises
-      if (inlineExercises.length > 0) {
-        const exInserts = inlineExercises.filter((ie) => ie.exercise_id).map((ie) => ({
+      // Insert selected exercises with shared config
+      if (selectedExerciseIds.length > 0) {
+        const exInserts = selectedExerciseIds.map((exercise_id) => ({
           plan_id: planData.id,
-          exercise_id: ie.exercise_id,
-          series: ie.series,
-          repeticoes: ie.repeticoes,
-          descanso: ie.descanso,
-          frequencia_semanal: ie.frequencia_semanal,
-          observacoes: ie.observacoes || null,
+          exercise_id,
+          series: sharedConfig.series,
+          repeticoes: sharedConfig.repeticoes,
+          descanso: sharedConfig.descanso,
+          frequencia_semanal: sharedConfig.frequencia_semanal,
+          observacoes: sharedConfig.observacoes || null,
         }));
-        if (exInserts.length > 0) {
-          const { error: exError } = await supabase.from('plan_exercises').insert(exInserts);
-          if (exError) throw exError;
-        }
+        const { error: exError } = await supabase.from('plan_exercises').insert(exInserts);
+        if (exError) throw exError;
       }
 
       toast.success('Plano criado com exercícios!');
       setDialogOpen(false);
       setForm({ militar_id: '', nome: '', objetivo: '', data_inicio: '', data_fim: '' });
-      setInlineExercises([]);
+      setSelectedExerciseIds([]);
+      setSharedConfig({ series: 3, repeticoes: 10, descanso: '60s', frequencia_semanal: 3, observacoes: '' });
       fetchAll();
     } catch (err: any) { toast.error(err.message); }
     setLoading(false);
@@ -127,15 +98,24 @@ export default function Planos() {
 
   const handleAddExercise = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (addExerciseIds.length === 0) { toast.error('Selecione ao menos um exercício.'); return; }
     setLoading(true);
     try {
-      const { error } = await supabase.from('plan_exercises').insert({
-        plan_id: selectedPlan.id, ...exForm, series: Number(exForm.series), repeticoes: Number(exForm.repeticoes), frequencia_semanal: Number(exForm.frequencia_semanal),
-      });
+      const inserts = addExerciseIds.map((exercise_id) => ({
+        plan_id: selectedPlan.id,
+        exercise_id,
+        series: Number(addConfig.series),
+        repeticoes: Number(addConfig.repeticoes),
+        descanso: addConfig.descanso,
+        frequencia_semanal: Number(addConfig.frequencia_semanal),
+        observacoes: addConfig.observacoes || null,
+      }));
+      const { error } = await supabase.from('plan_exercises').insert(inserts);
       if (error) throw error;
-      toast.success('Exercício adicionado ao plano!');
+      toast.success(`${addExerciseIds.length} exercício(s) adicionado(s) ao plano!`);
       setExDialogOpen(false);
-      setExForm({ exercise_id: '', series: 3, repeticoes: 10, descanso: '60s', frequencia_semanal: 3, observacoes: '' });
+      setAddExerciseIds([]);
+      setAddConfig({ series: 3, repeticoes: 10, descanso: '60s', frequencia_semanal: 3, observacoes: '' });
       fetchPlanExercises(selectedPlan.id);
     } catch (err: any) { toast.error(err.message); }
     setLoading(false);
@@ -247,59 +227,45 @@ export default function Planos() {
               <div className="space-y-2"><Label>Término</Label><Input type="date" value={form.data_fim} onChange={(e) => setForm({ ...form, data_fim: e.target.value })} /></div>
             </div>
 
-            {/* Inline exercises section */}
+            {/* Exercise multi-select section */}
             <div className="border-t pt-4 space-y-3">
-              <div className="flex items-center justify-between">
-                <Label className="text-base font-semibold">Exercícios do Plano</Label>
-                <Button type="button" size="sm" variant="outline" onClick={addInlineExercise}>
-                  <Plus className="h-3 w-3 mr-1" /> Adicionar Exercício
-                </Button>
-              </div>
-
-              {inlineExercises.map((ie, idx) => (
-                <Card key={idx} className="relative">
-                  <Button type="button" size="icon" variant="ghost" className="absolute top-2 right-2 h-6 w-6 text-destructive" onClick={() => removeInlineExercise(idx)}>
-                    <X className="h-4 w-4" />
-                  </Button>
+              <ExerciseMultiSelect
+                exercises={exercises}
+                selected={selectedExerciseIds}
+                onChange={setSelectedExerciseIds}
+                label="Exercícios do Plano"
+              />
+              {selectedExerciseIds.length > 0 && (
+                <Card>
                   <CardContent className="p-3 space-y-3">
-                    <div className="space-y-1">
-                      <Label className="text-xs">Exercício *</Label>
-                      <select className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm"
-                        value={ie.exercise_id} onChange={(e) => updateInlineExercise(idx, 'exercise_id', e.target.value)}>
-                        <option value="">Selecione...</option>
-                        {exercises.map((ex) => <option key={ex.id} value={ex.id}>{ex.nome} ({ex.categoria})</option>)}
-                      </select>
-                    </div>
-                    <div className="grid grid-cols-4 gap-2">
+                    <Label className="text-xs font-semibold">Configuração dos exercícios selecionados</Label>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                       <div className="space-y-1">
                         <Label className="text-xs">Séries</Label>
-                        <Input type="number" className="h-9" value={ie.series} onChange={(e) => updateInlineExercise(idx, 'series', Number(e.target.value))} />
+                        <Input type="number" className="h-9" value={sharedConfig.series} onChange={(e) => setSharedConfig({ ...sharedConfig, series: Number(e.target.value) })} />
                       </div>
                       <div className="space-y-1">
                         <Label className="text-xs">Repetições</Label>
-                        <Input type="number" className="h-9" value={ie.repeticoes} onChange={(e) => updateInlineExercise(idx, 'repeticoes', Number(e.target.value))} />
+                        <Input type="number" className="h-9" value={sharedConfig.repeticoes} onChange={(e) => setSharedConfig({ ...sharedConfig, repeticoes: Number(e.target.value) })} />
                       </div>
                       <div className="space-y-1">
                         <Label className="text-xs">Descanso</Label>
-                        <Input className="h-9" value={ie.descanso} onChange={(e) => updateInlineExercise(idx, 'descanso', e.target.value)} />
+                        <Input className="h-9" value={sharedConfig.descanso} onChange={(e) => setSharedConfig({ ...sharedConfig, descanso: e.target.value })} />
                       </div>
                       <div className="space-y-1">
                         <Label className="text-xs">Freq. Semanal</Label>
                         <select className="flex h-9 w-full rounded-md border border-input bg-background px-2 py-1 text-sm"
-                          value={ie.frequencia_semanal} onChange={(e) => updateInlineExercise(idx, 'frequencia_semanal', Number(e.target.value))}>
+                          value={sharedConfig.frequencia_semanal} onChange={(e) => setSharedConfig({ ...sharedConfig, frequencia_semanal: Number(e.target.value) })}>
                           {[1,2,3,4,5].map((n) => <option key={n} value={n}>{n}x/semana</option>)}
                         </select>
                       </div>
                     </div>
                     <div className="space-y-1">
                       <Label className="text-xs">Observações</Label>
-                      <Input className="h-9" value={ie.observacoes} onChange={(e) => updateInlineExercise(idx, 'observacoes', e.target.value)} placeholder="Opcional..." />
+                      <Input className="h-9" value={sharedConfig.observacoes} onChange={(e) => setSharedConfig({ ...sharedConfig, observacoes: e.target.value })} placeholder="Opcional..." />
                     </div>
                   </CardContent>
                 </Card>
-              ))}
-              {inlineExercises.length === 0 && (
-                <p className="text-sm text-muted-foreground text-center py-2">Nenhum exercício adicionado ao plano.</p>
               )}
             </div>
 
@@ -313,26 +279,29 @@ export default function Planos() {
 
       {/* Add Exercise to existing Plan Dialog */}
       <Dialog open={exDialogOpen} onOpenChange={setExDialogOpen}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader><DialogTitle>Adicionar Exercício ao Plano</DialogTitle></DialogHeader>
-          <form onSubmit={handleAddExercise} className="space-y-4">
-            <div className="space-y-2">
-              <Label>Exercício *</Label>
-              <select className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={exForm.exercise_id} onChange={(e) => setExForm({ ...exForm, exercise_id: e.target.value })} required>
-                <option value="">Selecione...</option>
-                {exercises.map((ex) => <option key={ex.id} value={ex.id}>{ex.nome} ({ex.categoria})</option>)}
-              </select>
-            </div>
-            <div className="grid grid-cols-3 gap-4">
-              <div className="space-y-2"><Label>Séries</Label><Input type="number" value={exForm.series} onChange={(e) => setExForm({ ...exForm, series: Number(e.target.value) })} /></div>
-              <div className="space-y-2"><Label>Repetições</Label><Input type="number" value={exForm.repeticoes} onChange={(e) => setExForm({ ...exForm, repeticoes: Number(e.target.value) })} /></div>
-              <div className="space-y-2"><Label>Descanso</Label><Input value={exForm.descanso} onChange={(e) => setExForm({ ...exForm, descanso: e.target.value })} /></div>
-            </div>
-            <div className="space-y-2"><Label>Frequência Semanal</Label><Input type="number" value={exForm.frequencia_semanal} onChange={(e) => setExForm({ ...exForm, frequencia_semanal: Number(e.target.value) })} /></div>
-            <div className="space-y-2"><Label>Observações</Label><Textarea value={exForm.observacoes} onChange={(e) => setExForm({ ...exForm, observacoes: e.target.value })} /></div>
-            <div className="flex justify-end gap-2">
+        <DialogContent className="max-w-lg max-h-[90vh] flex flex-col p-0">
+          <DialogHeader className="px-4 pt-4 pb-2"><DialogTitle>Adicionar Exercícios ao Plano</DialogTitle></DialogHeader>
+          <form onSubmit={handleAddExercise} className="flex-1 overflow-y-auto px-4 space-y-4 pb-2">
+            <ExerciseMultiSelect
+              exercises={exercises}
+              selected={addExerciseIds}
+              onChange={setAddExerciseIds}
+            />
+            {addExerciseIds.length > 0 && (
+              <div className="space-y-3">
+                <Label className="text-xs font-semibold">Configuração</Label>
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="space-y-1"><Label className="text-xs">Séries</Label><Input type="number" className="h-9" value={addConfig.series} onChange={(e) => setAddConfig({ ...addConfig, series: Number(e.target.value) })} /></div>
+                  <div className="space-y-1"><Label className="text-xs">Repetições</Label><Input type="number" className="h-9" value={addConfig.repeticoes} onChange={(e) => setAddConfig({ ...addConfig, repeticoes: Number(e.target.value) })} /></div>
+                  <div className="space-y-1"><Label className="text-xs">Descanso</Label><Input className="h-9" value={addConfig.descanso} onChange={(e) => setAddConfig({ ...addConfig, descanso: e.target.value })} /></div>
+                </div>
+                <div className="space-y-1"><Label className="text-xs">Frequência Semanal</Label><Input type="number" className="h-9" value={addConfig.frequencia_semanal} onChange={(e) => setAddConfig({ ...addConfig, frequencia_semanal: Number(e.target.value) })} /></div>
+                <div className="space-y-1"><Label className="text-xs">Observações</Label><Textarea value={addConfig.observacoes} onChange={(e) => setAddConfig({ ...addConfig, observacoes: e.target.value })} /></div>
+              </div>
+            )}
+            <div className="flex justify-end gap-2 pb-2">
               <Button type="button" variant="outline" onClick={() => setExDialogOpen(false)}>Cancelar</Button>
-              <Button type="submit" disabled={loading}>{loading ? 'Adicionando...' : 'Adicionar'}</Button>
+              <Button type="submit" disabled={loading || addExerciseIds.length === 0}>{loading ? 'Adicionando...' : `Adicionar (${addExerciseIds.length})`}</Button>
             </div>
           </form>
         </DialogContent>
