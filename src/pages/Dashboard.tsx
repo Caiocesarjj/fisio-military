@@ -6,6 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Users, CalendarDays, ClipboardList, TrendingUp, Check, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { format, startOfWeek, endOfWeek, subWeeks } from 'date-fns';
+import { WhatsAppReminderButton } from '@/components/WhatsAppReminderButton';
 import { ptBR } from 'date-fns/locale';
 import { DashboardSkeleton } from '@/components/Skeletons';
 import { toast } from 'sonner';
@@ -42,7 +43,7 @@ export default function Dashboard() {
 
     const [militaresRes, todayRes, plansRes, sessionsYearRes, allMilitaresRes] = await Promise.all([
       supabase.from('militares').select('id', { count: 'exact' }).eq('ativo', true),
-      supabase.from('sessions').select('*, militares(nome_guerra, posto_graduacao, companhia, foto_url)')
+      supabase.from('sessions').select('*, militares(nome_guerra, posto_graduacao, companhia, foto_url, telefone)')
         .gte('data_hora', todayStart).lte('data_hora', todayEnd).order('data_hora'),
       supabase.from('treatment_plans').select('id', { count: 'exact' }).eq('ativo', true),
       supabase.from('sessions').select('id, data_hora, status').gte('data_hora', yearStart).lte('data_hora', yearEnd),
@@ -223,31 +224,41 @@ export default function Dashboard() {
           ) : (
             <div className="space-y-3">
               {todaySessions.map((s) => (
-                <div key={s.id} className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
-                  <Avatar className="h-10 w-10">
-                    <AvatarImage src={s.militares?.foto_url} />
-                    <AvatarFallback className="bg-primary text-primary-foreground text-xs">
-                      {s.militares?.nome_guerra?.slice(0, 2).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-sm text-foreground truncate">
-                      {s.militares?.posto_graduacao} {s.militares?.nome_guerra}
-                    </p>
-                    <p className="text-xs text-muted-foreground">{s.militares?.companhia}</p>
-                  </div>
-                  <p className="text-sm font-medium text-foreground">{formatStoredSessionTime(s.data_hora)}</p>
-                  {s.status === 'agendado' ? (
-                    <div className="flex gap-1">
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-emerald-600" onClick={() => quickUpdate(s.id, 'realizado')}>
-                        <Check className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => quickUpdate(s.id, 'faltou')}>
-                        <X className="h-4 w-4" />
-                      </Button>
+                <div key={s.id} className="flex flex-col gap-2 p-3 rounded-lg bg-muted/50">
+                  <div className="flex items-center gap-3">
+                    <Avatar className="h-10 w-10">
+                      <AvatarImage src={s.militares?.foto_url} />
+                      <AvatarFallback className="bg-primary text-primary-foreground text-xs">
+                        {s.militares?.nome_guerra?.slice(0, 2).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm text-foreground truncate">
+                        {s.militares?.posto_graduacao} {s.militares?.nome_guerra}
+                      </p>
+                      <p className="text-xs text-muted-foreground">{s.militares?.companhia}</p>
                     </div>
-                  ) : (
-                    <Badge variant={s.status === 'realizado' ? 'default' : 'secondary'} className="text-xs">{s.status}</Badge>
+                    <p className="text-sm font-medium text-foreground">{formatStoredSessionTime(s.data_hora)}</p>
+                    {s.status === 'agendado' ? (
+                      <div className="flex gap-1">
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-emerald-600" onClick={() => quickUpdate(s.id, 'realizado')}>
+                          <Check className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => quickUpdate(s.id, 'faltou')}>
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <Badge variant={s.status === 'realizado' ? 'default' : 'secondary'} className="text-xs">{s.status}</Badge>
+                    )}
+                  </div>
+                  {s.status === 'agendado' && (
+                    <WhatsAppReminderButton
+                      nome={s.militares?.nome_guerra || 'Paciente'}
+                      telefone={s.militares?.telefone}
+                      dataHora={s.data_hora}
+                      size="sm"
+                    />
                   )}
                 </div>
               ))}
