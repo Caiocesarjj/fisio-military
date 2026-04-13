@@ -62,7 +62,6 @@ export default function Militares() {
   const [lesoes, setLesoes] = useState<Lesao[]>([]);
   const [fraturas, setFraturas] = useState<string[]>([]);
   const [tcleMilitar, setTcleMilitar] = useState<Militar | null>(null);
-  const [fraturas, setFraturas] = useState<string[]>([]);
 
   const fetchMilitares = async () => {
     setFetching(true);
