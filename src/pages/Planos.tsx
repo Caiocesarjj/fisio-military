@@ -259,59 +259,45 @@ export default function Planos() {
               <div className="space-y-2"><Label>Término</Label><Input type="date" value={form.data_fim} onChange={(e) => setForm({ ...form, data_fim: e.target.value })} /></div>
             </div>
 
-            {/* Inline exercises section */}
+            {/* Exercise multi-select section */}
             <div className="border-t pt-4 space-y-3">
-              <div className="flex items-center justify-between">
-                <Label className="text-base font-semibold">Exercícios do Plano</Label>
-                <Button type="button" size="sm" variant="outline" onClick={addInlineExercise}>
-                  <Plus className="h-3 w-3 mr-1" /> Adicionar Exercício
-                </Button>
-              </div>
-
-              {inlineExercises.map((ie, idx) => (
-                <Card key={idx} className="relative">
-                  <Button type="button" size="icon" variant="ghost" className="absolute top-2 right-2 h-6 w-6 text-destructive" onClick={() => removeInlineExercise(idx)}>
-                    <X className="h-4 w-4" />
-                  </Button>
+              <ExerciseMultiSelect
+                exercises={exercises}
+                selected={selectedExerciseIds}
+                onChange={setSelectedExerciseIds}
+                label="Exercícios do Plano"
+              />
+              {selectedExerciseIds.length > 0 && (
+                <Card>
                   <CardContent className="p-3 space-y-3">
-                    <div className="space-y-1">
-                      <Label className="text-xs">Exercício *</Label>
-                      <select className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm"
-                        value={ie.exercise_id} onChange={(e) => updateInlineExercise(idx, 'exercise_id', e.target.value)}>
-                        <option value="">Selecione...</option>
-                        {exercises.map((ex) => <option key={ex.id} value={ex.id}>{ex.nome} ({ex.categoria})</option>)}
-                      </select>
-                    </div>
-                    <div className="grid grid-cols-4 gap-2">
+                    <Label className="text-xs font-semibold">Configuração dos exercícios selecionados</Label>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                       <div className="space-y-1">
                         <Label className="text-xs">Séries</Label>
-                        <Input type="number" className="h-9" value={ie.series} onChange={(e) => updateInlineExercise(idx, 'series', Number(e.target.value))} />
+                        <Input type="number" className="h-9" value={sharedConfig.series} onChange={(e) => setSharedConfig({ ...sharedConfig, series: Number(e.target.value) })} />
                       </div>
                       <div className="space-y-1">
                         <Label className="text-xs">Repetições</Label>
-                        <Input type="number" className="h-9" value={ie.repeticoes} onChange={(e) => updateInlineExercise(idx, 'repeticoes', Number(e.target.value))} />
+                        <Input type="number" className="h-9" value={sharedConfig.repeticoes} onChange={(e) => setSharedConfig({ ...sharedConfig, repeticoes: Number(e.target.value) })} />
                       </div>
                       <div className="space-y-1">
                         <Label className="text-xs">Descanso</Label>
-                        <Input className="h-9" value={ie.descanso} onChange={(e) => updateInlineExercise(idx, 'descanso', e.target.value)} />
+                        <Input className="h-9" value={sharedConfig.descanso} onChange={(e) => setSharedConfig({ ...sharedConfig, descanso: e.target.value })} />
                       </div>
                       <div className="space-y-1">
                         <Label className="text-xs">Freq. Semanal</Label>
                         <select className="flex h-9 w-full rounded-md border border-input bg-background px-2 py-1 text-sm"
-                          value={ie.frequencia_semanal} onChange={(e) => updateInlineExercise(idx, 'frequencia_semanal', Number(e.target.value))}>
+                          value={sharedConfig.frequencia_semanal} onChange={(e) => setSharedConfig({ ...sharedConfig, frequencia_semanal: Number(e.target.value) })}>
                           {[1,2,3,4,5].map((n) => <option key={n} value={n}>{n}x/semana</option>)}
                         </select>
                       </div>
                     </div>
                     <div className="space-y-1">
                       <Label className="text-xs">Observações</Label>
-                      <Input className="h-9" value={ie.observacoes} onChange={(e) => updateInlineExercise(idx, 'observacoes', e.target.value)} placeholder="Opcional..." />
+                      <Input className="h-9" value={sharedConfig.observacoes} onChange={(e) => setSharedConfig({ ...sharedConfig, observacoes: e.target.value })} placeholder="Opcional..." />
                     </div>
                   </CardContent>
                 </Card>
-              ))}
-              {inlineExercises.length === 0 && (
-                <p className="text-sm text-muted-foreground text-center py-2">Nenhum exercício adicionado ao plano.</p>
               )}
             </div>
 
