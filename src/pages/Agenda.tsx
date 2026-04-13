@@ -196,6 +196,7 @@ export default function Agenda() {
             slotMinTime="06:00:00"
             slotMaxTime="22:00:00"
             allDaySlot={false}
+            timeZone="America/Sao_Paulo"
             eventTimeFormat={{ hour: '2-digit', minute: '2-digit', hour12: false }}
           />
         </div>
