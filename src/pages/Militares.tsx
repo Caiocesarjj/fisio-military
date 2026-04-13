@@ -120,8 +120,8 @@ export default function Militares() {
     e.preventDefault();
     setLoading(true);
     try {
-      if (form.companhia === 'CCS' && !form.setor.trim()) {
-        toast.error('O campo Setor é obrigatório para CCS.');
+      if ((form.companhia === 'CCS' || form.companhia === 'Cia Apoio') && !form.setor.trim()) {
+        toast.error('O campo Setor é obrigatório para ' + form.companhia + '.');
         setLoading(false);
         return;
       }
@@ -134,7 +134,7 @@ export default function Militares() {
         let foto_url = editing.foto_url;
         if (photoFile) foto_url = await uploadPhoto(editing.id, photoFile);
         const { error } = await supabase.from('militares').update({
-          ...form, setor: form.companhia === 'CCS' ? form.setor : null,
+          ...form, setor: (form.companhia === 'CCS' || form.companhia === 'Cia Apoio') ? form.setor : null,
           om: form.companhia === 'Externo' ? form.om : null,
           foto_url, lesoes: lesoes as any, fraturas: fraturas as any,
         }).eq('id', editing.id);
@@ -143,7 +143,7 @@ export default function Militares() {
       } else {
         // Insert militar record (no auth user created — access is managed in Usuários)
         const { data: insertData, error: insertError } = await supabase.from('militares').insert({
-          ...form, email: form.email || null, setor: form.companhia === 'CCS' ? form.setor : null,
+          ...form, email: form.email || null, setor: (form.companhia === 'CCS' || form.companhia === 'Cia Apoio') ? form.setor : null,
           om: form.companhia === 'Externo' ? form.om : null,
           profile_id: null, lesoes: lesoes as any, fraturas: fraturas as any,
         }).select().single();
@@ -322,7 +322,7 @@ export default function Militares() {
                   {COMPANHIAS.map((c) => <option key={c} value={c}>{c}</option>)}
                 </select>
               </div>
-              {form.companhia === 'CCS' && (
+              {(form.companhia === 'CCS' || form.companhia === 'Cia Apoio') && (
                 <div className="space-y-2">
                   <Label>Setor *</Label>
                   <Input value={form.setor} onChange={(e) => setForm({ ...form, setor: e.target.value })} required />
