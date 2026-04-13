@@ -216,7 +216,15 @@ export default function Agenda() {
           <DialogHeader><DialogTitle>Editar Sessão</DialogTitle></DialogHeader>
           {detailDialog && (
             <div className="space-y-4">
-              <p className="font-medium text-foreground">{detailDialog.militares?.posto_graduacao} {detailDialog.militares?.nome_guerra}</p>
+              <div className="flex items-center justify-between gap-2">
+                <p className="font-medium text-foreground">{detailDialog.militares?.posto_graduacao} {detailDialog.militares?.nome_guerra}</p>
+                <WhatsAppReminderButton
+                  nome={detailDialog.militares?.nome_guerra || 'Paciente'}
+                  telefone={detailDialog.militares?.telefone}
+                  dataHora={detailDialog.data_hora}
+                  size="default"
+                />
+              </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Data e Hora</Label>
@@ -261,20 +269,13 @@ export default function Agenda() {
                 <Label>Nível de Dor (EVA)</Label>
                 <EvaScale value={painLevel} onChange={setPainLevel} />
               </div>
-              <div className="flex flex-col gap-3">
-                <WhatsAppReminderButton
-                  nome={detailDialog.militares?.nome_guerra || 'Paciente'}
-                  telefone={detailDialog.militares?.telefone}
-                  dataHora={detailDialog.data_hora}
-                />
-                <div className="flex justify-between">
-                  <Button variant="destructive" size="sm" onClick={handleDelete}>
-                    <Trash2 className="h-4 w-4 mr-1" /> Excluir
-                  </Button>
-                  <div className="flex gap-2">
-                    <Button variant="outline" onClick={() => setDetailDialog(null)}>Cancelar</Button>
-                    <Button onClick={handleSaveEdit} disabled={loading}>{loading ? 'Salvando...' : 'Salvar'}</Button>
-                  </div>
+              <div className="flex justify-between">
+                <Button variant="destructive" size="sm" onClick={handleDelete}>
+                  <Trash2 className="h-4 w-4 mr-1" /> Excluir
+                </Button>
+                <div className="flex gap-2">
+                  <Button variant="outline" onClick={() => setDetailDialog(null)}>Cancelar</Button>
+                  <Button onClick={handleSaveEdit} disabled={loading}>{loading ? 'Salvando...' : 'Salvar'}</Button>
                 </div>
               </div>
             </div>
