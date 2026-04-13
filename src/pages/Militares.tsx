@@ -260,6 +260,9 @@ export default function Militares() {
                     <Button variant="ghost" size="icon" onClick={() => openEdit(m)}>
                       <Edit className="h-4 w-4" />
                     </Button>
+                    <Button variant="ghost" size="icon" onClick={() => setTcleMilitar(m)} title="Gerar TCLE">
+                      <FileText className="h-4 w-4" />
+                    </Button>
                     <Button variant="ghost" size="icon" onClick={() => toggleAtivo(m)}>
                       <UserX className="h-4 w-4" />
                     </Button>
