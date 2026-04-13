@@ -367,6 +367,10 @@ export default function Militares() {
           </form>
         </DialogContent>
       </Dialog>
+
+      {tcleMilitar && (
+        <TCLEModal open={!!tcleMilitar} onOpenChange={(o) => !o && setTcleMilitar(null)} militar={tcleMilitar} />
+      )}
     </div>
   );
 }
