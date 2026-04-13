@@ -15,6 +15,7 @@ import { toast } from 'sonner';
 import { IMaskInput } from 'react-imask';
 import { POSTOS_GRADUACOES, COMPANHIAS } from '@/lib/constants';
 import { LesaoSelector, LesaoBadges, type Lesao } from '@/components/LesaoSelector';
+import { FraturaSelector, FraturaBadges } from '@/components/FraturaSelector';
 import { MilitarListSkeleton } from '@/components/Skeletons';
 
 interface Militar {
@@ -32,6 +33,7 @@ interface Militar {
   diagnostico: string | null;
   observacoes: string | null;
   lesoes: Lesao[] | null;
+  fraturas: string[] | null;
   ativo: boolean;
   status_militar: string;
 }
@@ -57,11 +59,12 @@ export default function Militares() {
   const [fetching, setFetching] = useState(true);
   
   const [lesoes, setLesoes] = useState<Lesao[]>([]);
+  const [fraturas, setFraturas] = useState<string[]>([]);
 
   const fetchMilitares = async () => {
     setFetching(true);
     const { data } = await supabase.from('militares').select('*').order('nome_guerra');
-    setMilitares((data || []).map((d: any) => ({ ...d, lesoes: Array.isArray(d.lesoes) ? d.lesoes : [] })));
+    setMilitares((data || []).map((d: any) => ({ ...d, lesoes: Array.isArray(d.lesoes) ? d.lesoes : [], fraturas: Array.isArray(d.fraturas) ? d.fraturas : [] })));
     setFetching(false);
   };
 
@@ -131,7 +134,7 @@ export default function Militares() {
         const { error } = await supabase.from('militares').update({
           ...form, setor: form.companhia === 'CCS' ? form.setor : null,
           om: form.companhia === 'Externo' ? form.om : null,
-          foto_url, lesoes: lesoes as any,
+          foto_url, lesoes: lesoes as any, fraturas: fraturas as any,
         }).eq('id', editing.id);
         if (error) throw error;
         toast.success('Militar atualizado com sucesso!');
@@ -140,7 +143,7 @@ export default function Militares() {
         const { data: insertData, error: insertError } = await supabase.from('militares').insert({
           ...form, email: form.email || null, setor: form.companhia === 'CCS' ? form.setor : null,
           om: form.companhia === 'Externo' ? form.om : null,
-          profile_id: null, lesoes: lesoes as any,
+          profile_id: null, lesoes: lesoes as any, fraturas: fraturas as any,
         }).select().single();
 
         if (insertError) throw insertError;
@@ -152,7 +155,7 @@ export default function Militares() {
         toast.success('Militar cadastrado com sucesso!');
       }
       setDialogOpen(false); setEditing(null); setForm(emptyForm);
-      setPhotoFile(null); setLesoes([]);
+      setPhotoFile(null); setLesoes([]); setFraturas([]);
       fetchMilitares();
     } catch (error: any) { toast.error(error.message || 'Erro ao salvar militar.'); }
     setLoading(false);
@@ -174,11 +177,12 @@ export default function Militares() {
       observacoes: m.observacoes || '',
     });
     setLesoes(m.lesoes || []);
+    setFraturas(m.fraturas || []);
     setDialogOpen(true);
   };
 
   const openNew = () => {
-    setEditing(null); setForm(emptyForm); setPhotoFile(null); setLesoes([]);
+    setEditing(null); setForm(emptyForm); setPhotoFile(null); setLesoes([]); setFraturas([]);
     setDialogOpen(true);
   };
 
@@ -245,6 +249,7 @@ export default function Militares() {
                       <span className="text-xs text-muted-foreground font-mono">{m.nip}</span>
                     </div>
                     <LesaoBadges lesoes={m.lesoes || []} />
+                    <FraturaBadges fraturas={m.fraturas || []} />
                   </div>
                   <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
                     <Button variant="ghost" size="icon" onClick={() => navigate(`/militares/${m.id}`)}>
@@ -341,6 +346,7 @@ export default function Militares() {
               <Label>Lesões</Label>
               <LesaoSelector lesoes={lesoes} onChange={setLesoes} />
             </div>
+            <FraturaSelector selected={fraturas} onChange={setFraturas} />
             <div className="space-y-2">
               <Label>Diagnóstico Principal</Label>
               <Textarea value={form.diagnostico} onChange={(e) => setForm({ ...form, diagnostico: e.target.value })} />

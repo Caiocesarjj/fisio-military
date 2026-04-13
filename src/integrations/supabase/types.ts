@@ -101,6 +101,7 @@ export type Database = {
           diagnostico: string | null
           email: string | null
           foto_url: string | null
+          fraturas: Json | null
           id: string
           lesoes: Json | null
           motivo_alta: string | null
@@ -125,6 +126,7 @@ export type Database = {
           diagnostico?: string | null
           email?: string | null
           foto_url?: string | null
+          fraturas?: Json | null
           id?: string
           lesoes?: Json | null
           motivo_alta?: string | null
@@ -149,6 +151,7 @@ export type Database = {
           diagnostico?: string | null
           email?: string | null
           foto_url?: string | null
+          fraturas?: Json | null
           id?: string
           lesoes?: Json | null
           motivo_alta?: string | null
