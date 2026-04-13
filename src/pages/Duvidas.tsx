@@ -6,7 +6,8 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Skeleton } from '@/components/ui/skeleton';
-import { MessageCircle, Send } from 'lucide-react';
+import { MessageCircle, Send, Play } from 'lucide-react';
+import { AspectRatio } from '@/components/ui/aspect-ratio';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 
@@ -21,7 +22,7 @@ export default function Duvidas() {
   const fetchDuvidas = async () => {
     let query = supabase
       .from('duvidas_exercicios')
-      .select('*, exercises(nome, categoria)')
+      .select('*, exercises(nome, categoria, video_url, imagem_url)')
       .order('created_at', { ascending: false });
 
     if (filter !== 'todos') {
