@@ -11,6 +11,7 @@ import { format } from 'date-fns';
 
 export default function Duvidas() {
   const [duvidas, setDuvidas] = useState<any[]>([]);
+  const [militaresMap, setMilitaresMap] = useState<Record<string, any>>({});
   const [loading, setLoading] = useState(true);
   const [respostas, setRespostas] = useState<Record<string, string>>({});
   const [sending, setSending] = useState<string | null>(null);
