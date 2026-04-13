@@ -10,7 +10,8 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Plus, Search, Edit, UserX, X, Eye } from 'lucide-react';
+import { Plus, Search, Edit, UserX, X, Eye, FileText } from 'lucide-react';
+import TCLEModal from '@/components/TCLEModal';
 import { toast } from 'sonner';
 import { IMaskInput } from 'react-imask';
 import { POSTOS_GRADUACOES, COMPANHIAS } from '@/lib/constants';
@@ -60,6 +61,7 @@ export default function Militares() {
   
   const [lesoes, setLesoes] = useState<Lesao[]>([]);
   const [fraturas, setFraturas] = useState<string[]>([]);
+  const [tcleMilitar, setTcleMilitar] = useState<Militar | null>(null);
 
   const fetchMilitares = async () => {
     setFetching(true);
@@ -258,6 +260,9 @@ export default function Militares() {
                     <Button variant="ghost" size="icon" onClick={() => openEdit(m)}>
                       <Edit className="h-4 w-4" />
                     </Button>
+                    <Button variant="ghost" size="icon" onClick={() => setTcleMilitar(m)} title="Gerar TCLE">
+                      <FileText className="h-4 w-4" />
+                    </Button>
                     <Button variant="ghost" size="icon" onClick={() => toggleAtivo(m)}>
                       <UserX className="h-4 w-4" />
                     </Button>
@@ -362,6 +367,10 @@ export default function Militares() {
           </form>
         </DialogContent>
       </Dialog>
+
+      {tcleMilitar && (
+        <TCLEModal open={!!tcleMilitar} onOpenChange={(o) => !o && setTcleMilitar(null)} militar={tcleMilitar} />
+      )}
     </div>
   );
 }
