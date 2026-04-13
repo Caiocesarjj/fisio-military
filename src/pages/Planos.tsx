@@ -311,26 +311,29 @@ export default function Planos() {
 
       {/* Add Exercise to existing Plan Dialog */}
       <Dialog open={exDialogOpen} onOpenChange={setExDialogOpen}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader><DialogTitle>Adicionar Exercício ao Plano</DialogTitle></DialogHeader>
-          <form onSubmit={handleAddExercise} className="space-y-4">
-            <div className="space-y-2">
-              <Label>Exercício *</Label>
-              <select className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={exForm.exercise_id} onChange={(e) => setExForm({ ...exForm, exercise_id: e.target.value })} required>
-                <option value="">Selecione...</option>
-                {exercises.map((ex) => <option key={ex.id} value={ex.id}>{ex.nome} ({ex.categoria})</option>)}
-              </select>
-            </div>
-            <div className="grid grid-cols-3 gap-4">
-              <div className="space-y-2"><Label>Séries</Label><Input type="number" value={exForm.series} onChange={(e) => setExForm({ ...exForm, series: Number(e.target.value) })} /></div>
-              <div className="space-y-2"><Label>Repetições</Label><Input type="number" value={exForm.repeticoes} onChange={(e) => setExForm({ ...exForm, repeticoes: Number(e.target.value) })} /></div>
-              <div className="space-y-2"><Label>Descanso</Label><Input value={exForm.descanso} onChange={(e) => setExForm({ ...exForm, descanso: e.target.value })} /></div>
-            </div>
-            <div className="space-y-2"><Label>Frequência Semanal</Label><Input type="number" value={exForm.frequencia_semanal} onChange={(e) => setExForm({ ...exForm, frequencia_semanal: Number(e.target.value) })} /></div>
-            <div className="space-y-2"><Label>Observações</Label><Textarea value={exForm.observacoes} onChange={(e) => setExForm({ ...exForm, observacoes: e.target.value })} /></div>
-            <div className="flex justify-end gap-2">
+        <DialogContent className="max-w-lg max-h-[90vh] flex flex-col p-0">
+          <DialogHeader className="px-4 pt-4 pb-2"><DialogTitle>Adicionar Exercícios ao Plano</DialogTitle></DialogHeader>
+          <form onSubmit={handleAddExercise} className="flex-1 overflow-y-auto px-4 space-y-4 pb-2">
+            <ExerciseMultiSelect
+              exercises={exercises}
+              selected={addExerciseIds}
+              onChange={setAddExerciseIds}
+            />
+            {addExerciseIds.length > 0 && (
+              <div className="space-y-3">
+                <Label className="text-xs font-semibold">Configuração</Label>
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="space-y-1"><Label className="text-xs">Séries</Label><Input type="number" className="h-9" value={addConfig.series} onChange={(e) => setAddConfig({ ...addConfig, series: Number(e.target.value) })} /></div>
+                  <div className="space-y-1"><Label className="text-xs">Repetições</Label><Input type="number" className="h-9" value={addConfig.repeticoes} onChange={(e) => setAddConfig({ ...addConfig, repeticoes: Number(e.target.value) })} /></div>
+                  <div className="space-y-1"><Label className="text-xs">Descanso</Label><Input className="h-9" value={addConfig.descanso} onChange={(e) => setAddConfig({ ...addConfig, descanso: e.target.value })} /></div>
+                </div>
+                <div className="space-y-1"><Label className="text-xs">Frequência Semanal</Label><Input type="number" className="h-9" value={addConfig.frequencia_semanal} onChange={(e) => setAddConfig({ ...addConfig, frequencia_semanal: Number(e.target.value) })} /></div>
+                <div className="space-y-1"><Label className="text-xs">Observações</Label><Textarea value={addConfig.observacoes} onChange={(e) => setAddConfig({ ...addConfig, observacoes: e.target.value })} /></div>
+              </div>
+            )}
+            <div className="flex justify-end gap-2 pb-2">
               <Button type="button" variant="outline" onClick={() => setExDialogOpen(false)}>Cancelar</Button>
-              <Button type="submit" disabled={loading}>{loading ? 'Adicionando...' : 'Adicionar'}</Button>
+              <Button type="submit" disabled={loading || addExerciseIds.length === 0}>{loading ? 'Adicionando...' : `Adicionar (${addExerciseIds.length})`}</Button>
             </div>
           </form>
         </DialogContent>
