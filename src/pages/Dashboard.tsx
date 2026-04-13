@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Users, CalendarDays, ClipboardList, TrendingUp, Check, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { format, startOfWeek, endOfWeek, subWeeks, startOfYear, endOfYear } from 'date-fns';
+import { format, startOfWeek, endOfWeek, subWeeks } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { DashboardSkeleton } from '@/components/Skeletons';
 import { toast } from 'sonner';
@@ -13,6 +13,13 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, LineChart, Line, Legend,
 } from 'recharts';
+import {
+  formatStoredSessionTime,
+  getBrasiliaCalendarDate,
+  getBrasiliaYear,
+  getStoredSessionDayRangeForBrasilia,
+  getStoredSessionYearRangeForBrasilia,
+} from '@/lib/sessionDateTime';
 
 const PIE_COLORS = [
   'hsl(220, 70%, 25%)', 'hsl(45, 93%, 47%)', 'hsl(142, 71%, 45%)',
@@ -29,13 +36,9 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
 
   const fetchData = async () => {
-    // Force Brasília timezone (UTC-3)
-    const nowBrasilia = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Sao_Paulo' }));
-    const todayStart = new Date(nowBrasilia.getFullYear(), nowBrasilia.getMonth(), nowBrasilia.getDate()).toISOString();
-    const todayEnd = new Date(nowBrasilia.getFullYear(), nowBrasilia.getMonth(), nowBrasilia.getDate(), 23, 59, 59).toISOString();
-    const now = nowBrasilia;
-    const yearStart = startOfYear(now).toISOString();
-    const yearEnd = endOfYear(now).toISOString();
+    const { start: todayStart, end: todayEnd } = getStoredSessionDayRangeForBrasilia();
+    const { start: yearStart, end: yearEnd } = getStoredSessionYearRangeForBrasilia();
+    const now = new Date(`${getBrasiliaCalendarDate()}T12:00:00Z`);
 
     const [militaresRes, todayRes, plansRes, sessionsYearRes, allMilitaresRes] = await Promise.all([
       supabase.from('militares').select('id', { count: 'exact' }).eq('ativo', true),
@@ -50,7 +53,6 @@ export default function Dashboard() {
     const yearSessions = sessionsYearRes.data || [];
     const allMil = allMilitaresRes.data || [];
 
-    // Stats
     const totalSessions = yearSessions.length;
     const realized = yearSessions.filter((s: any) => s.status === 'realizado').length;
     const presenceRate = totalSessions > 0 ? Math.round((realized / totalSessions) * 100) : 0;
@@ -63,7 +65,6 @@ export default function Dashboard() {
     });
     setTodaySessions(todaySess);
 
-    // Weekly presence (last 8 weeks)
     const weeks: any[] = [];
     for (let i = 7; i >= 0; i--) {
       const ws = startOfWeek(subWeeks(now, i), { locale: ptBR });
@@ -78,12 +79,10 @@ export default function Dashboard() {
     }
     setWeeklyPresence(weeks);
 
-    // Company distribution
     const ciaMap: Record<string, number> = {};
     allMil.forEach((m: any) => { ciaMap[m.companhia] = (ciaMap[m.companhia] || 0) + 1; });
     setCompanyDist(Object.entries(ciaMap).map(([name, value]) => ({ name, value })));
 
-    // Top 5 injuries
     const lesaoMap: Record<string, number> = {};
     allMil.forEach((m: any) => {
       if (Array.isArray(m.lesoes)) {
@@ -94,12 +93,11 @@ export default function Dashboard() {
     });
     setTopLesoes(Object.entries(lesaoMap).map(([name, total]) => ({ name, total })).sort((a, b) => b.total - a.total).slice(0, 5));
 
-    // Monthly sessions line
     const monthMap: Record<string, number> = {};
     const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
     months.forEach((m) => { monthMap[m] = 0; });
     yearSessions.forEach((s: any) => {
-      const idx = new Date(s.data_hora).getMonth();
+      const idx = new Date(s.data_hora).getUTCMonth();
       monthMap[months[idx]]++;
     });
     setMonthlyLine(months.map((m) => ({ name: m, sessoes: monthMap[m] })));
@@ -128,7 +126,6 @@ export default function Dashboard() {
     <div className="space-y-6 animate-fade-in">
       <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
 
-      {/* Metrics */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {metricCards.map((card) => (
           <Card key={card.title}>
@@ -145,7 +142,6 @@ export default function Dashboard() {
         ))}
       </div>
 
-      {/* Charts row 1 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader><CardTitle className="text-lg">Presença Semanal (últimos 2 meses)</CardTitle></CardHeader>
@@ -183,7 +179,6 @@ export default function Dashboard() {
         </Card>
       </div>
 
-      {/* Charts row 2 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader><CardTitle className="text-lg">Top 5 Lesões</CardTitle></CardHeader>
@@ -205,7 +200,7 @@ export default function Dashboard() {
         </Card>
 
         <Card>
-          <CardHeader><CardTitle className="text-lg">Sessões por Mês ({new Date().getFullYear()})</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="text-lg">Sessões por Mês ({getBrasiliaYear()})</CardTitle></CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={250}>
               <LineChart data={monthlyLine}>
@@ -220,7 +215,6 @@ export default function Dashboard() {
         </Card>
       </div>
 
-      {/* Today's sessions */}
       <Card>
         <CardHeader><CardTitle className="text-lg">Sessões de Hoje</CardTitle></CardHeader>
         <CardContent>
@@ -242,9 +236,7 @@ export default function Dashboard() {
                     </p>
                     <p className="text-xs text-muted-foreground">{s.militares?.companhia}</p>
                   </div>
-                  <p className="text-sm font-medium text-foreground">
-                    {new Date(s.data_hora).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' })}
-                  </p>
+                  <p className="text-sm font-medium text-foreground">{formatStoredSessionTime(s.data_hora)}</p>
                   {s.status === 'agendado' ? (
                     <div className="flex gap-1">
                       <Button variant="ghost" size="icon" className="h-8 w-8 text-emerald-600" onClick={() => quickUpdate(s.id, 'realizado')}>
