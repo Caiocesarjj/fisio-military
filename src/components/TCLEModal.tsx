@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -6,7 +6,8 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import { FileText, Download, Loader2 } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { FileText, Download, Loader2, Printer } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import SignaturePad from '@/components/SignaturePad';
@@ -19,6 +20,7 @@ interface Militar {
   nome_guerra: string;
   posto_graduacao: string;
   companhia: string;
+  diagnostico?: string | null;
 }
 
 interface TCLEModalProps {
@@ -49,6 +51,7 @@ export default function TCLEModal({ open, onOpenChange, militar }: TCLEModalProp
   const [fisioNome, setFisioNome] = useState(localStorage.getItem('fisioNome') || '');
   const [fisioCrefito, setFisioCrefito] = useState(localStorage.getItem('fisioCrefito') || '');
   const [autorizaImagem, setAutorizaImagem] = useState<boolean | null>(null);
+  const [assinaturaDigital, setAssinaturaDigital] = useState(false);
   const [pacienteAssinatura, setPacienteAssinatura] = useState<string | null>(null);
   const [fisioAssinatura, setFisioAssinatura] = useState<string | null>(
     localStorage.getItem('fisioAssinatura')
@@ -59,7 +62,8 @@ export default function TCLEModal({ open, onOpenChange, militar }: TCLEModalProp
     day: '2-digit', month: 'long', year: 'numeric',
   });
 
-  const canGenerate = pacienteAssinatura && fisioAssinatura && autorizaImagem !== null && fisioNome.trim() && fisioCrefito.trim();
+  const canGenerate = autorizaImagem !== null && fisioNome.trim() && fisioCrefito.trim() &&
+    (!assinaturaDigital || (pacienteAssinatura && fisioAssinatura));
 
   const saveFisioSignature = (dataUrl: string | null) => {
     setFisioAssinatura(dataUrl);
@@ -67,106 +71,126 @@ export default function TCLEModal({ open, onOpenChange, militar }: TCLEModalProp
     else localStorage.removeItem('fisioAssinatura');
   };
 
-  const generatePDF = async () => {
-    if (!canGenerate) return;
-    setGenerating(true);
+  const buildPDF = (forPrint = false) => {
+    const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+    const pw = 210;
+    const margin = 20;
+    const contentW = pw - margin * 2;
+    let y = 20;
 
-    try {
-      const doc = new jsPDF({ unit: 'mm', format: 'a4' });
-      const pw = 210;
-      const margin = 20;
-      const contentW = pw - margin * 2;
-      let y = 20;
-
-      // Helper
-      const addText = (text: string, size: number, style: 'normal' | 'bold' = 'normal', align: 'left' | 'center' = 'left') => {
-        doc.setFontSize(size);
-        doc.setFont('helvetica', style);
-        const lines = doc.splitTextToSize(text, contentW);
-        if (y + lines.length * (size * 0.4) > 280) {
-          doc.addPage();
-          y = 20;
-        }
-        doc.text(lines, align === 'center' ? pw / 2 : margin, y, { align });
-        y += lines.length * (size * 0.45) + 2;
-      };
-
-      // Header
-      addText('TERMO DE CONSENTIMENTO LIVRE E ESCLARECIDO', 14, 'bold', 'center');
-      addText('(TCLE)', 12, 'bold', 'center');
-      y += 5;
-
-      // Patient info
-      addText(`Paciente: ${militar.nome_completo}`, 10, 'bold');
-      addText(`NIP: ${militar.nip}    |    Posto/Graduação: ${militar.posto_graduacao}`, 10);
-      addText(`Companhia: ${militar.companhia}`, 10);
-      y += 3;
-
-      doc.setDrawColor(200);
-      doc.line(margin, y, pw - margin, y);
-      y += 5;
-
-      // Body paragraphs
-      const paragraphs = TCLE_TEXT.split('\n\n').slice(1); // skip title
-      for (const p of paragraphs) {
-        addText(p.trim(), 9);
-        y += 1;
+    const addText = (text: string, size: number, style: 'normal' | 'bold' = 'normal', align: 'left' | 'center' = 'left') => {
+      doc.setFontSize(size);
+      doc.setFont('helvetica', style);
+      const lines = doc.splitTextToSize(text, contentW);
+      if (y + lines.length * (size * 0.4) > 280) {
+        doc.addPage();
+        y = 20;
       }
+      doc.text(lines, align === 'center' ? pw / 2 : margin, y, { align });
+      y += lines.length * (size * 0.45) + 2;
+    };
 
-      y += 3;
+    // Header
+    addText('TERMO DE CONSENTIMENTO LIVRE E ESCLARECIDO', 14, 'bold', 'center');
+    addText('(TCLE)', 12, 'bold', 'center');
+    y += 5;
 
-      // Image authorization
-      addText('AUTORIZAÇÃO PARA USO DE IMAGEM:', 10, 'bold');
-      addText(autorizaImagem ? '[X] Autorizo o uso de imagem' : '[ ] Autorizo o uso de imagem', 9);
-      addText(!autorizaImagem ? '[X] Não autorizo o uso de imagem' : '[ ] Não autorizo o uso de imagem', 9);
+    // Patient info
+    addText(`Paciente: ${militar.nome_completo}`, 10, 'bold');
+    addText(`NIP: ${militar.nip}    |    Posto/Graduação: ${militar.posto_graduacao}`, 10);
+    addText(`Companhia: ${militar.companhia}`, 10);
 
-      y += 5;
+    // Queixa / Diagnóstico
+    if (militar.diagnostico) {
+      y += 2;
+      addText(`Queixa / Diagnóstico: ${militar.diagnostico}`, 10, 'bold');
+    }
 
-      // Location and date
-      addText(`Campo Grande, Rio de Janeiro – RJ, ${dataAtual}`, 10, 'normal', 'center');
-      y += 10;
+    y += 3;
+    doc.setDrawColor(200);
+    doc.line(margin, y, pw - margin, y);
+    y += 5;
 
-      // Signatures - check if we need a new page
-      if (y > 230) { doc.addPage(); y = 30; }
+    // Body paragraphs
+    const paragraphs = TCLE_TEXT.split('\n\n').slice(1);
+    for (const p of paragraphs) {
+      addText(p.trim(), 9);
+      y += 1;
+    }
 
-      const sigW = 70;
-      const sigH = 25;
+    y += 3;
 
-      // Patient signature
-      const leftX = margin + 5;
-      const rightX = pw / 2 + 10;
+    // Image authorization
+    addText('AUTORIZAÇÃO PARA USO DE IMAGEM:', 10, 'bold');
+    addText(autorizaImagem ? '[X] Autorizo o uso de imagem' : '[ ] Autorizo o uso de imagem', 9);
+    addText(!autorizaImagem ? '[X] Não autorizo o uso de imagem' : '[ ] Não autorizo o uso de imagem', 9);
 
+    y += 5;
+
+    // Location and date
+    addText(`Campo Grande, Rio de Janeiro – RJ, ${dataAtual}`, 10, 'normal', 'center');
+    y += 10;
+
+    // Signatures
+    if (y > 230) { doc.addPage(); y = 30; }
+
+    const sigW = 70;
+    const sigH = 25;
+    const leftX = margin + 5;
+    const rightX = pw / 2 + 10;
+
+    if (assinaturaDigital && !forPrint) {
       if (pacienteAssinatura) {
         doc.addImage(pacienteAssinatura, 'PNG', leftX, y, sigW, sigH);
       }
       if (fisioAssinatura) {
         doc.addImage(fisioAssinatura, 'PNG', rightX, y, sigW, sigH);
       }
+    }
 
-      y += sigH + 2;
+    y += sigH + 2;
 
-      doc.setDrawColor(0);
-      doc.line(leftX, y, leftX + sigW, y);
-      doc.line(rightX, y, rightX + sigW, y);
-      y += 4;
+    doc.setDrawColor(0);
+    doc.line(leftX, y, leftX + sigW, y);
+    doc.line(rightX, y, rightX + sigW, y);
+    y += 4;
 
-      doc.setFontSize(8);
-      doc.setFont('helvetica', 'bold');
-      doc.text(militar.nome_completo, leftX + sigW / 2, y, { align: 'center' });
-      doc.text(fisioNome, rightX + sigW / 2, y, { align: 'center' });
-      y += 3.5;
-      doc.setFont('helvetica', 'normal');
-      doc.text('Assinatura do Paciente ou Responsável Legal', leftX + sigW / 2, y, { align: 'center' });
-      doc.text(`Fisioterapeuta – CREFITO ${fisioCrefito}`, rightX + sigW / 2, y, { align: 'center' });
-      y += 3;
-      doc.text(`NIP: ${militar.nip}`, leftX + sigW / 2, y, { align: 'center' });
-      doc.text('Assinatura do Fisioterapeuta Responsável', rightX + sigW / 2, y, { align: 'center' });
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'bold');
+    doc.text(militar.nome_completo, leftX + sigW / 2, y, { align: 'center' });
+    doc.text(fisioNome, rightX + sigW / 2, y, { align: 'center' });
+    y += 3.5;
+    doc.setFont('helvetica', 'normal');
+    doc.text('Assinatura do Paciente ou Responsável Legal', leftX + sigW / 2, y, { align: 'center' });
+    doc.text(`Fisioterapeuta – CREFITO ${fisioCrefito}`, rightX + sigW / 2, y, { align: 'center' });
+    y += 3;
+    doc.text(`NIP: ${militar.nip}`, leftX + sigW / 2, y, { align: 'center' });
+    doc.text('Assinatura do Fisioterapeuta Responsável', rightX + sigW / 2, y, { align: 'center' });
 
-      // Save locally
+    return doc;
+  };
+
+  const handlePrint = () => {
+    if (!canGenerate) return;
+    const doc = buildPDF(true);
+    const blobUrl = doc.output('bloburl');
+    const printWindow = window.open(blobUrl as unknown as string, '_blank');
+    if (printWindow) {
+      printWindow.addEventListener('load', () => printWindow.print());
+    }
+    localStorage.setItem('fisioNome', fisioNome);
+    localStorage.setItem('fisioCrefito', fisioCrefito);
+  };
+
+  const generatePDF = async () => {
+    if (!canGenerate) return;
+    setGenerating(true);
+
+    try {
+      const doc = buildPDF(false);
       const pdfBlob = doc.output('blob');
       const fileName = `tcle_${militar.nip.replace(/\./g, '')}_${Date.now()}.pdf`;
 
-      // Upload to storage
       const { error } = await supabase.storage
         .from('tcle-documents')
         .upload(`${militar.id}/${fileName}`, pdfBlob, {
@@ -176,10 +200,8 @@ export default function TCLEModal({ open, onOpenChange, militar }: TCLEModalProp
 
       if (error) throw error;
 
-      // Also download
       doc.save(`TCLE_${militar.nome_guerra}.pdf`);
 
-      // Save fisio data
       localStorage.setItem('fisioNome', fisioNome);
       localStorage.setItem('fisioCrefito', fisioCrefito);
 
@@ -208,6 +230,11 @@ export default function TCLEModal({ open, onOpenChange, militar }: TCLEModalProp
             <div className="bg-muted/50 rounded-lg p-3 space-y-1">
               <p className="text-sm font-semibold text-foreground">{militar.nome_completo}</p>
               <p className="text-xs text-muted-foreground">NIP: {militar.nip} • {militar.posto_graduacao} • {militar.companhia}</p>
+              {militar.diagnostico && (
+                <p className="text-xs text-foreground/80 mt-1">
+                  <span className="font-semibold">Queixa/Diagnóstico:</span> {militar.diagnostico}
+                </p>
+              )}
             </div>
 
             {/* TCLE text */}
@@ -249,39 +276,66 @@ export default function TCLEModal({ open, onOpenChange, militar }: TCLEModalProp
 
             <Separator />
 
-            {/* Signatures */}
-            <div className="space-y-3">
-              <Label className="text-sm font-semibold">Assinaturas *</Label>
-              <p className="text-xs text-muted-foreground">Campo Grande, Rio de Janeiro – RJ, {dataAtual}</p>
+            {/* Signature mode toggle */}
+            <div className="flex items-center justify-between">
+              <div>
+                <Label className="text-sm font-semibold">Assinatura Digital</Label>
+                <p className="text-xs text-muted-foreground">
+                  {assinaturaDigital ? 'Assinar digitalmente na tela' : 'Imprimir para assinatura física'}
+                </p>
+              </div>
+              <Switch checked={assinaturaDigital} onCheckedChange={setAssinaturaDigital} />
+            </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <SignaturePad label="Assinatura do Paciente" onSignatureChange={setPacienteAssinatura} height={100} />
-                  <p className="text-[10px] text-center font-medium">{militar.nome_completo}</p>
-                  <p className="text-[10px] text-center text-muted-foreground">Assinatura do Paciente ou Responsável Legal</p>
-                </div>
-                <div className="space-y-1">
-                  <SignaturePad
-                    label="Assinatura do Fisioterapeuta"
-                    onSignatureChange={saveFisioSignature}
-                    initialSignature={fisioAssinatura}
-                    height={100}
-                  />
-                  <p className="text-[10px] text-center font-medium">{fisioNome || '—'}</p>
-                  <p className="text-[10px] text-center text-muted-foreground">CREFITO {fisioCrefito || '—'}</p>
+            {/* Signatures - only show pads when digital */}
+            {assinaturaDigital && (
+              <div className="space-y-3">
+                <Label className="text-sm font-semibold">Assinaturas *</Label>
+                <p className="text-xs text-muted-foreground">Campo Grande, Rio de Janeiro – RJ, {dataAtual}</p>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <SignaturePad label="Assinatura do Paciente" onSignatureChange={setPacienteAssinatura} height={100} />
+                    <p className="text-[10px] text-center font-medium">{militar.nome_completo}</p>
+                    <p className="text-[10px] text-center text-muted-foreground">Assinatura do Paciente ou Responsável Legal</p>
+                  </div>
+                  <div className="space-y-1">
+                    <SignaturePad
+                      label="Assinatura do Fisioterapeuta"
+                      onSignatureChange={saveFisioSignature}
+                      initialSignature={fisioAssinatura}
+                      height={100}
+                    />
+                    <p className="text-[10px] text-center font-medium">{fisioNome || '—'}</p>
+                    <p className="text-[10px] text-center text-muted-foreground">CREFITO {fisioCrefito || '—'}</p>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
+
+            {!assinaturaDigital && (
+              <div className="bg-muted/30 rounded-lg p-3 border border-dashed">
+                <p className="text-xs text-muted-foreground text-center">
+                  O documento será gerado com espaço para assinaturas físicas. Use o botão <strong>"Imprimir"</strong> para imprimir e assinar manualmente.
+                </p>
+              </div>
+            )}
           </div>
         </ScrollArea>
 
         {/* Actions */}
         <div className="border-t p-3 flex justify-between items-center gap-2">
           <Button variant="outline" size="sm" onClick={() => onOpenChange(false)}>Cancelar</Button>
-          <Button size="sm" disabled={!canGenerate || generating} onClick={generatePDF}>
-            {generating ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Download className="h-4 w-4 mr-1" />}
-            Gerar PDF
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" disabled={!canGenerate} onClick={handlePrint}>
+              <Printer className="h-4 w-4 mr-1" />
+              Imprimir
+            </Button>
+            <Button size="sm" disabled={!canGenerate || generating} onClick={generatePDF}>
+              {generating ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Download className="h-4 w-4 mr-1" />}
+              Gerar PDF
+            </Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
