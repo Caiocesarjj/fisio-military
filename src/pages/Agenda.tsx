@@ -44,7 +44,7 @@ export default function Agenda() {
     const s = start || dateRange?.start || new Date();
     const e = end || dateRange?.end || new Date();
     const { data } = await supabase.from('sessions')
-      .select('*, militares(nome_guerra, posto_graduacao, companhia, foto_url), session_notes(nivel_dor)')
+      .select('*, militares(nome_guerra, posto_graduacao, companhia, foto_url, telefone), session_notes(nivel_dor)')
       .gte('data_hora', s.toISOString())
       .lte('data_hora', e.toISOString())
       .order('data_hora');
