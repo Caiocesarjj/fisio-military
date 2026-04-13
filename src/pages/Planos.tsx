@@ -130,15 +130,24 @@ export default function Planos() {
 
   const handleAddExercise = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (addExerciseIds.length === 0) { toast.error('Selecione ao menos um exercício.'); return; }
     setLoading(true);
     try {
-      const { error } = await supabase.from('plan_exercises').insert({
-        plan_id: selectedPlan.id, ...exForm, series: Number(exForm.series), repeticoes: Number(exForm.repeticoes), frequencia_semanal: Number(exForm.frequencia_semanal),
-      });
+      const inserts = addExerciseIds.map((exercise_id) => ({
+        plan_id: selectedPlan.id,
+        exercise_id,
+        series: Number(addConfig.series),
+        repeticoes: Number(addConfig.repeticoes),
+        descanso: addConfig.descanso,
+        frequencia_semanal: Number(addConfig.frequencia_semanal),
+        observacoes: addConfig.observacoes || null,
+      }));
+      const { error } = await supabase.from('plan_exercises').insert(inserts);
       if (error) throw error;
-      toast.success('Exercício adicionado ao plano!');
+      toast.success(`${addExerciseIds.length} exercício(s) adicionado(s) ao plano!`);
       setExDialogOpen(false);
-      setExForm({ exercise_id: '', series: 3, repeticoes: 10, descanso: '60s', frequencia_semanal: 3, observacoes: '' });
+      setAddExerciseIds([]);
+      setAddConfig({ series: 3, repeticoes: 10, descanso: '60s', frequencia_semanal: 3, observacoes: '' });
       fetchPlanExercises(selectedPlan.id);
     } catch (err: any) { toast.error(err.message); }
     setLoading(false);
