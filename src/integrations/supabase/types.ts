@@ -50,6 +50,47 @@ export type Database = {
         }
         Relationships: []
       }
+      duvidas_exercicios: {
+        Row: {
+          created_at: string
+          exercise_id: string
+          id: string
+          mensagem: string
+          responded_at: string | null
+          resposta: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          exercise_id: string
+          id?: string
+          mensagem: string
+          responded_at?: string | null
+          resposta?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          exercise_id?: string
+          id?: string
+          mensagem?: string
+          responded_at?: string | null
+          resposta?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "duvidas_exercicios_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "exercises"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       exercises: {
         Row: {
           categoria: string
