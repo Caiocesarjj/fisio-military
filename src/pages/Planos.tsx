@@ -30,6 +30,16 @@ export default function Planos() {
   const [sharedConfig, setSharedConfig] = useState({ series: 3, repeticoes: 10, descanso: '60s', frequencia_semanal: 3, observacoes: '' });
   const [loading, setLoading] = useState(false);
   const [pageLoading, setPageLoading] = useState(true);
+  const [exSearch, setExSearch] = useState('');
+  const [exCatFilter, setExCatFilter] = useState('');
+
+  const filteredCreateExercises = useMemo(() => {
+    return exercises.filter((ex) => {
+      const matchSearch = ex.nome.toLowerCase().includes(exSearch.toLowerCase());
+      const matchCat = !exCatFilter || ex.categoria === exCatFilter;
+      return matchSearch && matchCat;
+    });
+  }, [exercises, exSearch, exCatFilter]);
 
   // For adding exercises to existing plans
   const [exDialogOpen, setExDialogOpen] = useState(false);
