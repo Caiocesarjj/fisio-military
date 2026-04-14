@@ -85,7 +85,7 @@ export default function ExerciseMultiSelect({ exercises, selected, onChange, lab
       )}
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-md max-h-[90vh] flex flex-col p-0">
+        <DialogContent className="max-w-lg max-h-[90vh] flex flex-col p-0">
           <DialogHeader className="px-4 pt-4 pb-2">
             <DialogTitle>Selecionar Exercícios</DialogTitle>
           </DialogHeader>
@@ -120,33 +120,45 @@ export default function ExerciseMultiSelect({ exercises, selected, onChange, lab
             )}
           </div>
 
-          <ScrollArea className="flex-1 min-h-0 px-4 pb-2" style={{ maxHeight: '50vh' }}>
-            {Object.keys(grouped).sort().map((cat) => (
-              <div key={cat} className="mb-3">
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">{cat}</p>
-                {grouped[cat].map((ex) => {
-                  const isSelected = selected.includes(ex.id);
-                  return (
-                    <label
-                      key={ex.id}
-                      className={`flex items-center gap-3 px-3 py-2 rounded-md cursor-pointer transition-colors ${
-                        isSelected ? 'bg-primary/10' : 'hover:bg-muted/50'
-                      }`}
-                    >
-                      <Checkbox
-                        checked={isSelected}
-                        onCheckedChange={() => toggle(ex.id)}
-                      />
-                      <span className="text-sm flex-1">{ex.nome}</span>
-                      <span className="text-xs text-muted-foreground">({ex.categoria})</span>
-                    </label>
-                  );
-                })}
-              </div>
-            ))}
-            {filtered.length === 0 && (
-              <p className="text-center text-sm text-muted-foreground py-6">Nenhum exercício encontrado.</p>
-            )}
+          <ScrollArea className="flex-1 min-h-0 px-4 pb-2" style={{ maxHeight: '55vh' }}>
+            <div className="space-y-3 pr-2">
+              {Object.keys(grouped).sort().map((cat) => (
+                <div key={cat}>
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 sticky top-0 bg-background py-1 z-10">{cat}</p>
+                  <div className="grid grid-cols-1 gap-2">
+                    {grouped[cat].map((ex) => {
+                      const isSelected = selected.includes(ex.id);
+                      return (
+                        <label
+                          key={ex.id}
+                          className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-all ${
+                            isSelected
+                              ? 'border-primary bg-primary/10 shadow-sm'
+                              : 'border-border hover:border-muted-foreground/30 hover:bg-muted/50'
+                          }`}
+                        >
+                          <Checkbox
+                            checked={isSelected}
+                            onCheckedChange={() => toggle(ex.id)}
+                            className="mt-0.5"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-foreground leading-tight">{ex.nome}</p>
+                            <p className="text-xs text-muted-foreground mt-0.5">{ex.categoria}</p>
+                          </div>
+                          {isSelected && (
+                            <Check className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                          )}
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+              {filtered.length === 0 && (
+                <p className="text-center text-sm text-muted-foreground py-6">Nenhum exercício encontrado.</p>
+              )}
+            </div>
           </ScrollArea>
 
           <div className="flex justify-end gap-2 px-4 py-3 border-t bg-background">
