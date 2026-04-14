@@ -16,7 +16,6 @@ import { toast } from 'sonner';
 import ExerciseMultiSelect from '@/components/ExerciseMultiSelect';
 import { CATEGORIAS_EXERCICIO } from '@/lib/constants';
 import { format } from 'date-fns';
-import { format } from 'date-fns';
 
 export default function Planos() {
   const { user } = useAuth();
