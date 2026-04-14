@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -9,9 +9,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Plus, ChevronDown, ChevronUp, X, Trash2 } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Plus, ChevronDown, ChevronUp, Trash2, Search, Check } from 'lucide-react';
 import { toast } from 'sonner';
 import ExerciseMultiSelect from '@/components/ExerciseMultiSelect';
+import { CATEGORIAS_EXERCICIO } from '@/lib/constants';
+import { format } from 'date-fns';
 import { format } from 'date-fns';
 
 export default function Planos() {
