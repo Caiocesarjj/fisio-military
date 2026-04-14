@@ -33,6 +33,7 @@ export const CATEGORIAS_EXERCICIO = [
   'Tornozelo',
   'Neurológico',
   'Respiratório',
+  'Fascite Plantar',
   'Pós-operatório',
 ];
 
