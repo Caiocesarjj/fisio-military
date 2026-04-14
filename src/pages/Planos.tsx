@@ -240,14 +240,76 @@ export default function Planos() {
               <div className="space-y-2"><Label>Término</Label><Input type="date" value={form.data_fim} onChange={(e) => setForm({ ...form, data_fim: e.target.value })} /></div>
             </div>
 
-            {/* Exercise multi-select section */}
+            {/* Exercise inline selection with scroll and cards */}
             <div className="border-t pt-4 space-y-3">
-              <ExerciseMultiSelect
-                exercises={exercises}
-                selected={selectedExerciseIds}
-                onChange={setSelectedExerciseIds}
-                label="Exercícios do Plano"
-              />
+              <Label className="text-sm font-semibold">Exercícios do Plano</Label>
+              <div className="space-y-2">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Buscar exercício..."
+                    value={exSearch}
+                    onChange={(e) => setExSearch(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+                <select
+                  className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm"
+                  value={exCatFilter}
+                  onChange={(e) => setExCatFilter(e.target.value)}
+                >
+                  <option value="">Todas categorias</option>
+                  {CATEGORIAS_EXERCICIO.map((c) => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
+                </select>
+              </div>
+
+              {selectedExerciseIds.length > 0 && (
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                  <span>{selectedExerciseIds.length} exercício{selectedExerciseIds.length > 1 ? 's' : ''} selecionado{selectedExerciseIds.length > 1 ? 's' : ''}</span>
+                  <Button type="button" variant="ghost" size="sm" className="h-6 text-xs" onClick={() => setSelectedExerciseIds([])}>Limpar</Button>
+                </div>
+              )}
+
+              <ScrollArea className="border rounded-lg" style={{ maxHeight: '240px' }}>
+                <div className="p-2 space-y-1.5">
+                  {filteredCreateExercises.length === 0 ? (
+                    <p className="text-center text-sm text-muted-foreground py-4">Nenhum exercício encontrado.</p>
+                  ) : (
+                    filteredCreateExercises.map((ex) => {
+                      const isSelected = selectedExerciseIds.includes(ex.id);
+                      return (
+                        <label
+                          key={ex.id}
+                          className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all ${
+                            isSelected
+                              ? 'border-primary bg-primary/10 shadow-sm'
+                              : 'border-border hover:border-muted-foreground/30 hover:bg-muted/50'
+                          }`}
+                        >
+                          <Checkbox
+                            checked={isSelected}
+                            onCheckedChange={() => {
+                              setSelectedExerciseIds(
+                                isSelected
+                                  ? selectedExerciseIds.filter((id) => id !== ex.id)
+                                  : [...selectedExerciseIds, ex.id]
+                              );
+                            }}
+                          />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-foreground leading-tight">{ex.nome}</p>
+                            <p className="text-xs text-muted-foreground">{ex.categoria}</p>
+                          </div>
+                          {isSelected && <Check className="h-4 w-4 text-primary shrink-0" />}
+                        </label>
+                      );
+                    })
+                  )}
+                </div>
+              </ScrollArea>
+
               {selectedExerciseIds.length > 0 && (
                 <Card>
                   <CardContent className="p-3 space-y-3">
