@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -268,13 +268,15 @@ export default function PainelMilitar() {
       </div>
 
       {respostasNaoLidas > 0 && (
-        <Alert className="border-primary bg-primary/10">
-          <MessageCircle className="h-4 w-4 text-primary" />
-          <AlertTitle className="text-primary">Novas respostas!</AlertTitle>
-          <AlertDescription className="text-foreground">
-            Você tem {respostasNaoLidas} dúvida(s) respondida(s) pelo fisioterapeuta. Veja nos seus exercícios no plano.
-          </AlertDescription>
-        </Alert>
+        <Link to="/painel/plano" className="block">
+          <Alert className="border-primary bg-primary/10 cursor-pointer hover:bg-primary/15 transition-colors">
+            <MessageCircle className="h-4 w-4 text-primary" />
+            <AlertTitle className="text-primary">Novas respostas!</AlertTitle>
+            <AlertDescription className="text-foreground">
+              Você tem {respostasNaoLidas} dúvida(s) respondida(s) pelo fisioterapeuta. Toque aqui para ver →
+            </AlertDescription>
+          </Alert>
+        </Link>
       )}
 
       {section === 'inicio' && (
