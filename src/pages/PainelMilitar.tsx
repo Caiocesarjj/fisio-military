@@ -5,7 +5,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { CalendarDays, ClipboardList, History, User as UserIcon } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { CalendarDays, ClipboardList, History, User as UserIcon, MessageCircle } from 'lucide-react';
 import { ChangePasswordCard } from '@/components/ChangePasswordCard';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -19,6 +20,7 @@ export default function PainelMilitar() {
   const [nextSessions, setNextSessions] = useState<any[]>([]);
   const [pastSessions, setPastSessions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [respostasNaoLidas, setRespostasNaoLidas] = useState(0);
 
   useEffect(() => {
     let active = true;
@@ -86,12 +88,21 @@ export default function PainelMilitar() {
           .limit(10),
       ]);
 
+      // Fetch unread answered duvidas
+      const { count: unreadCount } = await supabase
+        .from('duvidas_exercicios')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .eq('status', 'respondido')
+        .eq('lida_pelo_paciente', false);
+
       if (!active) return;
 
       setMilitar(mil);
       setPlans(plansRes.data || []);
       setNextSessions(nextRes.data || []);
       setPastSessions(pastRes.data || []);
+      setRespostasNaoLidas(unreadCount || 0);
       setLoading(false);
     };
 
@@ -255,6 +266,16 @@ export default function PainelMilitar() {
           <p className="text-sm text-muted-foreground">{militar.companhia}{militar.setor ? ` · ${militar.setor}` : ''}</p>
         </div>
       </div>
+
+      {respostasNaoLidas > 0 && (
+        <Alert className="border-primary bg-primary/10">
+          <MessageCircle className="h-4 w-4 text-primary" />
+          <AlertTitle className="text-primary">Novas respostas!</AlertTitle>
+          <AlertDescription className="text-foreground">
+            Você tem {respostasNaoLidas} dúvida(s) respondida(s) pelo fisioterapeuta. Veja nos seus exercícios no plano.
+          </AlertDescription>
+        </Alert>
+      )}
 
       {section === 'inicio' && (
         <div className="grid gap-4 md:grid-cols-3">
