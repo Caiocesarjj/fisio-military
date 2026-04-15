@@ -55,7 +55,7 @@ export default function Planos() {
   const fetchPlanExercises = async (planId: string) => {
     const { data } = await supabase
       .from('plan_exercises')
-      .select('*, exercises(nome, categoria)')
+      .select('*, exercises(id, nome, categoria, dificuldade, fase, descricao, instrucoes, video_url, imagem_url)')
       .eq('plan_id', planId);
 
     setPlanExercises((prev) => ({ ...prev, [planId]: data || [] }));
