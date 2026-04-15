@@ -233,15 +233,14 @@ export default function Planos() {
                     </Button>
                   </div>
                   {(planExercises[plan.id] || []).map((pe) => (
-                    <div key={pe.id} className="flex items-start justify-between rounded bg-muted/50 p-3 text-sm">
-                      <div>
-                        <p className="font-medium text-foreground">{pe.exercises?.nome}</p>
-                        <p className="text-muted-foreground">
-                          {pe.series}x{pe.repeticoes} · Descanso: {pe.descanso} · {pe.frequencia_semanal}x/semana
-                        </p>
-                        {pe.observacoes && <p className="mt-1 text-xs text-muted-foreground">{pe.observacoes}</p>}
-                      </div>
-                      <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => handleDeleteExercise(pe.id, plan.id)}>
+                    <div key={pe.id} className="relative">
+                      <ExercisePreview planExercise={pe} />
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="absolute right-2 top-2 h-7 w-7 text-destructive bg-background/80 hover:bg-destructive/10 z-10"
+                        onClick={() => handleDeleteExercise(pe.id, plan.id)}
+                      >
                         <Trash2 className="h-3.5 w-3.5" />
                       </Button>
                     </div>
