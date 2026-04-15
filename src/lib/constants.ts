@@ -24,17 +24,29 @@ export const POSTOS_GRADUACOES = {
 export const COMPANHIAS = ['1ª Cia', '2ª Cia', '3ª Cia', 'Cia Apoio', 'CCS', 'Externo'];
 
 export const CATEGORIAS_EXERCICIO = [
+  'Bíceps Braquial',
   'Coluna',
-  'Joelho',
-  'Mão',
-  'Ombro',
-  'Punho',
-  'Quadril',
-  'Tornozelo',
-  'Neurológico',
-  'Respiratório',
   'Fascite Plantar',
+  'Joelho',
+  'Lesão Gastrocnêmio e Sóleo',
+  'Lesão Posterior',
+  'Mão',
+  'Neurológico',
+  'Ombro',
+  'Outras Lesões Articulares',
+  'Outras Lesões Musculares',
   'Pós-operatório',
+  'Pubalgia',
+  'Punho',
+  'Quadríceps Anterior',
+  'Quadril',
+  'Respiratório',
+  'Síndrome da Banda Iliotibial',
+  'Síndrome do Piriforme',
+  'Tendinopatia de Aquiles',
+  'Tibial Anterior (Canelite)',
+  'Tornozelo',
+  'Tríceps',
 ];
 
 export const DIFICULDADES = ['Fácil', 'Moderado', 'Difícil', 'Avançado'];
