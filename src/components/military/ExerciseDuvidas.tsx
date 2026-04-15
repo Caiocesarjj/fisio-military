@@ -33,6 +33,23 @@ export function ExerciseDuvidas({ exerciseId, exerciseName }: Props) {
 
   useEffect(() => { fetchDuvidas(); }, [exerciseId, user]);
 
+  // Mark unread responses as read when expanding
+  useEffect(() => {
+    if (!expanded || !user) return;
+    const unread = duvidas.filter(d => d.status === 'respondido' && !d.lida_pelo_paciente);
+    if (unread.length === 0) return;
+
+    const markAsRead = async () => {
+      await supabase
+        .from('duvidas_exercicios')
+        .update({ lida_pelo_paciente: true })
+        .in('id', unread.map(d => d.id))
+        .eq('user_id', user.id);
+      fetchDuvidas();
+    };
+    markAsRead();
+  }, [expanded, duvidas.length]);
+
   const handleSend = async () => {
     if (!mensagem.trim() || !user) return;
     setSending(true);
@@ -52,6 +69,7 @@ export function ExerciseDuvidas({ exerciseId, exerciseName }: Props) {
 
   const pendentes = duvidas.filter(d => d.status === 'pendente').length;
   const respondidas = duvidas.filter(d => d.status === 'respondido').length;
+  const naoLidas = duvidas.filter(d => d.status === 'respondido' && !d.lida_pelo_paciente).length;
 
   return (
     <div className="mt-3 border-t pt-3 space-y-2">
@@ -61,8 +79,13 @@ export function ExerciseDuvidas({ exerciseId, exerciseName }: Props) {
       >
         <MessageCircle className="h-4 w-4" />
         <span>Dúvidas</span>
+        {naoLidas > 0 && (
+          <Badge variant="destructive" className="text-xs animate-pulse">
+            {naoLidas} nova(s)!
+          </Badge>
+        )}
         {pendentes > 0 && <Badge variant="secondary" className="text-xs">{pendentes} pendente(s)</Badge>}
-        {respondidas > 0 && <Badge variant="outline" className="text-xs">{respondidas} respondida(s)</Badge>}
+        {respondidas > 0 && naoLidas === 0 && <Badge variant="outline" className="text-xs">{respondidas} respondida(s)</Badge>}
         {expanded ? <ChevronUp className="h-3 w-3 ml-auto" /> : <ChevronDown className="h-3 w-3 ml-auto" />}
       </button>
 
@@ -85,7 +108,11 @@ export function ExerciseDuvidas({ exerciseId, exerciseName }: Props) {
           {duvidas.length > 0 && (
             <div className="space-y-2 max-h-60 overflow-y-auto">
               {duvidas.map((d) => (
-                <div key={d.id} className="rounded-lg bg-muted/50 p-3 space-y-1 text-sm">
+                <div key={d.id} className={`rounded-lg p-3 space-y-1 text-sm ${
+                  d.status === 'respondido' && !d.lida_pelo_paciente
+                    ? 'bg-primary/10 border border-primary/30'
+                    : 'bg-muted/50'
+                }`}>
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-muted-foreground">
                       {format(new Date(d.created_at), 'dd/MM/yyyy HH:mm')}
