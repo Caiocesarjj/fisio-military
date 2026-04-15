@@ -28,6 +28,8 @@ export function WhatsAppCredentialsButton({ nome, telefone, nip, size = 'sm' }: 
 
     const appUrl = 'https://fisioton.lovable.app';
 
+    const nipSemPontos = nip.replace(/\D/g, '');
+
     const mensagem = `Olá ${nome}! 👋
 
 Seu acesso ao sistema *Fisioteria Tonelero* está pronto! 🏥
@@ -36,8 +38,8 @@ Seu acesso ao sistema *Fisioteria Tonelero* está pronto! 🏥
 ${appUrl}
 
 🔐 *Seus dados de acesso:*
-• *Usuário (NIP):* ${nip}
-• *Senha:* ${nip}
+• *Usuário (NIP):* ${nipSemPontos}
+• *Senha:* ${nipSemPontos}
 
 ⚠️ Recomendamos alterar sua senha no primeiro acesso.
 
