@@ -66,7 +66,7 @@ export default function PainelMilitar() {
       const [plansRes, nextRes, pastRes] = await Promise.all([
         supabase
           .from('treatment_plans')
-          .select('*, plan_exercises(*, exercises(nome, categoria, instrucoes, video_url, imagem_url))')
+          .select('*, plan_exercises(*, exercises(id, nome, categoria, dificuldade, fase, descricao, instrucoes, video_url, imagem_url))')
           .eq('militar_id', mil.id)
           .eq('ativo', true),
         supabase
