@@ -39,7 +39,7 @@ export default function Planos() {
     const [plansRes, milRes, exRes] = await Promise.all([
       supabase.from('treatment_plans').select('*, militares(nome_guerra, posto_graduacao)').order('created_at', { ascending: false }),
       supabase.from('militares').select('id, nome_guerra, posto_graduacao').eq('ativo', true),
-      supabase.from('exercises').select('id, nome, categoria').order('categoria').order('nome'),
+      supabase.from('exercises').select('id, nome, categoria, dificuldade, fase, imagem_url, video_url').order('categoria').order('nome'),
     ]);
 
     setPlans(plansRes.data || []);
