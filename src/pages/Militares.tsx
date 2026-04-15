@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Plus, Search, Edit, UserX, X, Eye, FileText } from 'lucide-react';
+import { WhatsAppCredentialsButton } from '@/components/WhatsAppCredentialsButton';
 import TCLEModal from '@/components/TCLEModal';
 import { toast } from 'sonner';
 import { IMaskInput } from 'react-imask';
@@ -266,6 +267,12 @@ export default function Militares() {
                     <Button variant="ghost" size="icon" onClick={() => toggleAtivo(m)}>
                       <UserX className="h-4 w-4" />
                     </Button>
+                    <WhatsAppCredentialsButton
+                      nome={m.nome_guerra}
+                      telefone={m.telefone}
+                      nip={m.nip}
+                      size="sm"
+                    />
                   </div>
                 </div>
               </CardContent>
