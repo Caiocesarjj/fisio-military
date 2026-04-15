@@ -178,8 +178,9 @@ export default function Exercicios() {
                     <div className="flex justify-between items-start">
                       <div className="flex-1">
                         <h3 className="font-semibold text-foreground">{ex.nome}</h3>
-                        <div className="flex gap-2 mt-1">
+                        <div className="flex flex-wrap gap-2 mt-1">
                           <span className={`text-xs px-2 py-0.5 rounded-full ${diffColor[ex.dificuldade] || ''}`}>{ex.dificuldade}</span>
+                          {ex.fase && <Badge variant="outline" className="text-xs">{ex.fase}</Badge>}
                         </div>
                         {ex.descricao && <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{ex.descricao}</p>}
                       </div>
