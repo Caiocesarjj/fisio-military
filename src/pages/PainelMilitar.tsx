@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { CalendarDays, ClipboardList, History, User as UserIcon } from 'lucide-react';
+import { ChangePasswordCard } from '@/components/ChangePasswordCard';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { ExercisePreview } from '@/components/military/ExercisePreview';
@@ -282,6 +283,7 @@ export default function PainelMilitar() {
       {(section === 'inicio' || section === 'agenda') && renderSessions(nextSessions, 'Nenhuma sessão agendada.')}
       {section === 'agenda' && renderSessions(pastSessions, 'Nenhuma sessão anterior.', true)}
       {section === 'perfil' && renderProfile()}
+      {section === 'perfil' && <ChangePasswordCard />}
     </div>
   );
 }
