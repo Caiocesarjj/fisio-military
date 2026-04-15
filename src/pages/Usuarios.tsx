@@ -9,9 +9,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { Plus, Search, Trash2, Link, Shield, User, UserCog, KeyRound, Eye, EyeOff } from 'lucide-react';
+import { Plus, Search, Trash2, Link, Shield, User, UserCog, KeyRound, Eye, EyeOff, MessageCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { Skeleton } from '@/components/ui/skeleton';
+import { WhatsAppCredentialsButton } from '@/components/WhatsAppCredentialsButton';
 
 interface AppUser {
   id: string;
@@ -27,6 +28,7 @@ interface Militar {
   id: string;
   nip: string;
   nome_guerra: string;
+  telefone: string | null;
 }
 
 function PasswordInput({ value, onChange, placeholder, label = "Nova senha", required = false }: { value: string; onChange: (v: string) => void; placeholder?: string; label?: string; required?: boolean }) {
@@ -94,7 +96,7 @@ export default function Usuarios() {
   };
 
   const fetchMilitares = async () => {
-    const { data } = await supabase.from('militares').select('id, nip, nome_guerra').order('nome_guerra');
+    const { data } = await supabase.from('militares').select('id, nip, nome_guerra, telefone').order('nome_guerra');
     setMilitares(data || []);
   };
 
@@ -217,46 +219,59 @@ export default function Usuarios() {
         </div>
       ) : (
         <div className="space-y-3">
-          {filtered.map((u) => (
-            <Card key={u.id}>
-              <CardContent className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 py-4">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium text-foreground">{u.full_name || u.email}</span>
-                    {roleBadge(u.role)}
+           {filtered.map((u) => {
+              const linkedMilitar = u.militar_nip ? militares.find(m => m.nip === u.militar_nip) : null;
+              return (
+              <Card key={u.id}>
+              <CardContent className="flex flex-col gap-3 py-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="space-y-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-medium text-foreground truncate">{u.full_name || u.email}</span>
+                      {roleBadge(u.role)}
+                    </div>
+                    <p className="text-sm text-muted-foreground truncate">{u.email}</p>
+                    {u.militar_nip && (
+                      <p className="text-xs text-muted-foreground">
+                        Vinculado: <span className="font-medium">{u.militar_nome_guerra}</span> (NIP: {u.militar_nip})
+                      </p>
+                    )}
                   </div>
-                  <p className="text-sm text-muted-foreground">{u.email}</p>
-                  {u.militar_nip && (
-                    <p className="text-xs text-muted-foreground">
-                      Vinculado: <span className="font-medium">{u.militar_nome_guerra}</span> (NIP: {u.militar_nip})
-                    </p>
-                  )}
-                </div>
-                <div className="flex items-center gap-2">
-                  <Select value={u.role} onValueChange={(val) => handleRoleChange(u.id, val)}>
-                    <SelectTrigger className="w-32 h-8 text-xs">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="admin">Admin</SelectItem>
-                      <SelectItem value="military">Militar</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  {u.role === 'military' && (
-                     <Button size="sm" variant="outline" onClick={() => { setSelectedUser(u); setLinkNip(u.militar_nip || ''); setLinkDialogOpen(true); }}>
-                       <Link className="w-3 h-3 mr-1" /> Vincular NIP
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Select value={u.role} onValueChange={(val) => handleRoleChange(u.id, val)}>
+                      <SelectTrigger className="w-28 h-8 text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="admin">Admin</SelectItem>
+                        <SelectItem value="military">Militar</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {u.role === 'military' && (
+                       <Button size="sm" variant="outline" onClick={() => { setSelectedUser(u); setLinkNip(u.militar_nip || ''); setLinkDialogOpen(true); }}>
+                         <Link className="w-3 h-3 mr-1" /> <span className="hidden sm:inline">Vincular</span> NIP
+                       </Button>
+                     )}
+                     {u.role === 'military' && linkedMilitar && (
+                       <WhatsAppCredentialsButton
+                         nome={u.militar_nome_guerra || u.full_name}
+                         telefone={linkedMilitar.telefone}
+                         nip={u.militar_nip!}
+                         size="sm"
+                       />
+                     )}
+                     <Button size="sm" variant="outline" onClick={() => { setSelectedUser(u); setNewPassword(''); setPasswordDialogOpen(true); }}>
+                       <KeyRound className="w-3 h-3 mr-1" /> <span className="hidden sm:inline">Senha</span>
                      </Button>
-                   )}
-                   <Button size="sm" variant="outline" onClick={() => { setSelectedUser(u); setNewPassword(''); setPasswordDialogOpen(true); }}>
-                     <KeyRound className="w-3 h-3 mr-1" /> Senha
-                   </Button>
-                   <Button size="sm" variant="destructive" onClick={() => { setSelectedUser(u); setDeleteDialogOpen(true); }}>
-                    <Trash2 className="w-3 h-3" />
-                  </Button>
+                     <Button size="sm" variant="destructive" onClick={() => { setSelectedUser(u); setDeleteDialogOpen(true); }}>
+                      <Trash2 className="w-3 h-3" />
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>
-          ))}
+            );
+           })}
           {filtered.length === 0 && (
             <p className="text-center text-muted-foreground py-8">Nenhum usuário encontrado.</p>
           )}
