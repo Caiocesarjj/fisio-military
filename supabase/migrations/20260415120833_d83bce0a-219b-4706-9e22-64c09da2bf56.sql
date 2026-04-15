@@ -1,0 +1,1 @@
+ALTER TABLE public.duvidas_exercicios ADD COLUMN lida_pelo_paciente boolean NOT NULL DEFAULT false;

@@ -55,6 +55,7 @@ export type Database = {
           created_at: string
           exercise_id: string
           id: string
+          lida_pelo_paciente: boolean
           mensagem: string
           responded_at: string | null
           resposta: string | null
@@ -65,6 +66,7 @@ export type Database = {
           created_at?: string
           exercise_id: string
           id?: string
+          lida_pelo_paciente?: boolean
           mensagem: string
           responded_at?: string | null
           resposta?: string | null
@@ -75,6 +77,7 @@ export type Database = {
           created_at?: string
           exercise_id?: string
           id?: string
+          lida_pelo_paciente?: boolean
           mensagem?: string
           responded_at?: string | null
           resposta?: string | null
