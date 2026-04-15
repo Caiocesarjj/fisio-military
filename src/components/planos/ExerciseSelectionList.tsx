@@ -13,6 +13,7 @@ interface Exercise {
   id: string;
   nome: string;
   categoria: string;
+  fase?: string | null;
 }
 
 interface ExerciseSelectionListProps {
@@ -123,9 +124,16 @@ export default function ExerciseSelectionList({
 
                       <div className="min-w-0 flex-1 space-y-1">
                         <p className="text-sm font-medium leading-tight text-foreground">{exercise.nome}</p>
-                        <Badge variant="secondary" className="text-[11px]">
-                          {exercise.categoria}
-                        </Badge>
+                        <div className="flex flex-wrap gap-1">
+                          <Badge variant="secondary" className="text-[11px]">
+                            {exercise.categoria}
+                          </Badge>
+                          {exercise.fase && (
+                            <Badge variant="outline" className="text-[11px]">
+                              {exercise.fase}
+                            </Badge>
+                          )}
+                        </div>
                       </div>
 
                       {isSelected && <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />}
