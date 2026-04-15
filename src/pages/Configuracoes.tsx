@@ -2,8 +2,9 @@ import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Download, Database, FileSpreadsheet, FileJson } from 'lucide-react';
+import { Database, FileSpreadsheet, FileJson } from 'lucide-react';
 import { toast } from 'sonner';
+import { ChangePasswordCard } from '@/components/ChangePasswordCard';
 
 function downloadFile(content: string, filename: string, mime: string) {
   const blob = new Blob([content], { type: mime });
@@ -104,6 +105,8 @@ export default function Configuracoes() {
   return (
     <div className="space-y-6 animate-fade-in">
       <h1 className="text-2xl font-bold text-foreground">Configurações</h1>
+
+      <ChangePasswordCard />
 
       <Card>
         <CardHeader>
