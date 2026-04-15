@@ -1,4 +1,8 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState } from 'react';
+import { format } from 'date-fns';
+import { Plus, ChevronDown, ChevronUp, Trash2 } from 'lucide-react';
+import { toast } from 'sonner';
+
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -9,13 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Checkbox } from '@/components/ui/checkbox';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Plus, ChevronDown, ChevronUp, Trash2, Search, Check } from 'lucide-react';
-import { toast } from 'sonner';
-import ExerciseMultiSelect from '@/components/ExerciseMultiSelect';
-import { CATEGORIAS_EXERCICIO } from '@/lib/constants';
-import { format } from 'date-fns';
+import ExerciseSelectionList from '@/components/planos/ExerciseSelectionList';
 
 export default function Planos() {
   const { user } = useAuth();
@@ -30,18 +28,7 @@ export default function Planos() {
   const [sharedConfig, setSharedConfig] = useState({ series: 3, repeticoes: 10, descanso: '60s', frequencia_semanal: 3, observacoes: '' });
   const [loading, setLoading] = useState(false);
   const [pageLoading, setPageLoading] = useState(true);
-  const [exSearch, setExSearch] = useState('');
-  const [exCatFilter, setExCatFilter] = useState('');
 
-  const filteredCreateExercises = useMemo(() => {
-    return exercises.filter((ex) => {
-      const matchSearch = ex.nome.toLowerCase().includes(exSearch.toLowerCase());
-      const matchCat = !exCatFilter || ex.categoria === exCatFilter;
-      return matchSearch && matchCat;
-    });
-  }, [exercises, exSearch, exCatFilter]);
-
-  // For adding exercises to existing plans
   const [exDialogOpen, setExDialogOpen] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<any>(null);
   const [addExerciseIds, setAddExerciseIds] = useState<string[]>([]);
@@ -51,40 +38,54 @@ export default function Planos() {
     const [plansRes, milRes, exRes] = await Promise.all([
       supabase.from('treatment_plans').select('*, militares(nome_guerra, posto_graduacao)').order('created_at', { ascending: false }),
       supabase.from('militares').select('id, nome_guerra, posto_graduacao').eq('ativo', true),
-      supabase.from('exercises').select('id, nome, categoria'),
+      supabase.from('exercises').select('id, nome, categoria').order('categoria').order('nome'),
     ]);
+
     setPlans(plansRes.data || []);
     setMilitares(milRes.data || []);
     setExercises(exRes.data || []);
     setPageLoading(false);
   };
 
-  useEffect(() => { fetchAll(); }, []);
+  useEffect(() => {
+    fetchAll();
+  }, []);
 
   const fetchPlanExercises = async (planId: string) => {
-    const { data } = await supabase.from('plan_exercises').select('*, exercises(nome, categoria)').eq('plan_id', planId);
+    const { data } = await supabase
+      .from('plan_exercises')
+      .select('*, exercises(nome, categoria)')
+      .eq('plan_id', planId);
+
     setPlanExercises((prev) => ({ ...prev, [planId]: data || [] }));
   };
 
   const toggleExpand = (planId: string) => {
     if (expandedPlan === planId) {
       setExpandedPlan(null);
-    } else {
-      setExpandedPlan(planId);
-      if (!planExercises[planId]) fetchPlanExercises(planId);
+      return;
     }
+
+    setExpandedPlan(planId);
+    if (!planExercises[planId]) fetchPlanExercises(planId);
   };
 
   const handleCreatePlan = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+
     try {
-      const { data: planData, error } = await supabase.from('treatment_plans').insert({
-        ...form, fisio_id: user?.id,
-      }).select().single();
+      const { data: planData, error } = await supabase
+        .from('treatment_plans')
+        .insert({
+          ...form,
+          fisio_id: user?.id,
+        })
+        .select()
+        .single();
+
       if (error) throw error;
 
-      // Insert selected exercises with shared config
       if (selectedExerciseIds.length > 0) {
         const exInserts = selectedExerciseIds.map((exercise_id) => ({
           plan_id: planData.id,
@@ -95,6 +96,7 @@ export default function Planos() {
           frequencia_semanal: sharedConfig.frequencia_semanal,
           observacoes: sharedConfig.observacoes || null,
         }));
+
         const { error: exError } = await supabase.from('plan_exercises').insert(exInserts);
         if (exError) throw exError;
       }
@@ -105,14 +107,22 @@ export default function Planos() {
       setSelectedExerciseIds([]);
       setSharedConfig({ series: 3, repeticoes: 10, descanso: '60s', frequencia_semanal: 3, observacoes: '' });
       fetchAll();
-    } catch (err: any) { toast.error(err.message); }
+    } catch (err: any) {
+      toast.error(err.message);
+    }
+
     setLoading(false);
   };
 
   const handleAddExercise = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (addExerciseIds.length === 0) { toast.error('Selecione ao menos um exercício.'); return; }
+    if (addExerciseIds.length === 0) {
+      toast.error('Selecione ao menos um exercício.');
+      return;
+    }
+
     setLoading(true);
+
     try {
       const inserts = addExerciseIds.map((exercise_id) => ({
         plan_id: selectedPlan.id,
@@ -123,20 +133,30 @@ export default function Planos() {
         frequencia_semanal: Number(addConfig.frequencia_semanal),
         observacoes: addConfig.observacoes || null,
       }));
+
       const { error } = await supabase.from('plan_exercises').insert(inserts);
       if (error) throw error;
+
       toast.success(`${addExerciseIds.length} exercício(s) adicionado(s) ao plano!`);
       setExDialogOpen(false);
       setAddExerciseIds([]);
       setAddConfig({ series: 3, repeticoes: 10, descanso: '60s', frequencia_semanal: 3, observacoes: '' });
       fetchPlanExercises(selectedPlan.id);
-    } catch (err: any) { toast.error(err.message); }
+    } catch (err: any) {
+      toast.error(err.message);
+    }
+
     setLoading(false);
   };
 
   const handleDeleteExercise = async (peId: string, planId: string) => {
     const { error } = await supabase.from('plan_exercises').delete().eq('id', peId);
-    if (error) { toast.error(error.message); return; }
+
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+
     toast.success('Exercício removido do plano.');
     fetchPlanExercises(planId);
   };
@@ -144,16 +164,18 @@ export default function Planos() {
   if (pageLoading) {
     return (
       <div className="space-y-6">
-        <div className="flex justify-between items-center">
+        <div className="flex items-center justify-between">
           <Skeleton className="h-8 w-56" />
           <Skeleton className="h-10 w-32" />
         </div>
         {Array.from({ length: 4 }, (_, i) => (
-          <Card key={i}><CardContent className="p-4 space-y-2">
-            <Skeleton className="h-5 w-48" />
-            <Skeleton className="h-4 w-32" />
-            <Skeleton className="h-5 w-20" />
-          </CardContent></Card>
+          <Card key={i}>
+            <CardContent className="space-y-2 p-4">
+              <Skeleton className="h-5 w-48" />
+              <Skeleton className="h-4 w-32" />
+              <Skeleton className="h-5 w-20" />
+            </CardContent>
+          </Card>
         ))}
       </div>
     );
@@ -161,22 +183,24 @@ export default function Planos() {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
         <h1 className="text-2xl font-bold text-foreground">Planos de Tratamento</h1>
-        <Button onClick={() => setDialogOpen(true)}><Plus className="h-4 w-4 mr-1" /> Novo Plano</Button>
+        <Button onClick={() => setDialogOpen(true)}>
+          <Plus className="mr-1 h-4 w-4" /> Novo Plano
+        </Button>
       </div>
 
       <div className="space-y-4">
         {plans.map((plan) => (
           <Card key={plan.id}>
             <CardContent className="p-4">
-              <div className="flex items-center justify-between cursor-pointer" onClick={() => toggleExpand(plan.id)}>
+              <div className="flex cursor-pointer items-center justify-between" onClick={() => toggleExpand(plan.id)}>
                 <div>
                   <h3 className="font-semibold text-foreground">{plan.nome}</h3>
                   <p className="text-sm text-muted-foreground">
                     {plan.militares?.posto_graduacao} {plan.militares?.nome_guerra}
                   </p>
-                  <div className="flex gap-2 mt-1">
+                  <div className="mt-1 flex gap-2">
                     <Badge variant={plan.ativo ? 'default' : 'secondary'}>{plan.ativo ? 'Ativo' : 'Encerrado'}</Badge>
                     <span className="text-xs text-muted-foreground">
                       {format(new Date(plan.data_inicio), 'dd/MM/yyyy')}
@@ -188,22 +212,33 @@ export default function Planos() {
               </div>
 
               {expandedPlan === plan.id && (
-                <div className="mt-4 border-t pt-4 space-y-3">
-                  {plan.objetivo && <p className="text-sm text-muted-foreground"><strong>Objetivo:</strong> {plan.objetivo}</p>}
-                  <div className="flex justify-between items-center">
-                    <h4 className="font-medium text-sm text-foreground">Exercícios do Plano</h4>
-                    <Button size="sm" variant="outline" onClick={() => { setSelectedPlan(plan); setExDialogOpen(true); }}>
-                      <Plus className="h-3 w-3 mr-1" /> Adicionar
+                <div className="mt-4 space-y-3 border-t pt-4">
+                  {plan.objetivo && (
+                    <p className="text-sm text-muted-foreground">
+                      <strong>Objetivo:</strong> {plan.objetivo}
+                    </p>
+                  )}
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-sm font-medium text-foreground">Exercícios do Plano</h4>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        setSelectedPlan(plan);
+                        setExDialogOpen(true);
+                      }}
+                    >
+                      <Plus className="mr-1 h-3 w-3" /> Adicionar
                     </Button>
                   </div>
                   {(planExercises[plan.id] || []).map((pe) => (
-                    <div key={pe.id} className="p-3 rounded bg-muted/50 text-sm flex items-start justify-between">
+                    <div key={pe.id} className="flex items-start justify-between rounded bg-muted/50 p-3 text-sm">
                       <div>
                         <p className="font-medium text-foreground">{pe.exercises?.nome}</p>
                         <p className="text-muted-foreground">
                           {pe.series}x{pe.repeticoes} · Descanso: {pe.descanso} · {pe.frequencia_semanal}x/semana
                         </p>
-                        {pe.observacoes && <p className="text-xs text-muted-foreground mt-1">{pe.observacoes}</p>}
+                        {pe.observacoes && <p className="mt-1 text-xs text-muted-foreground">{pe.observacoes}</p>}
                       </div>
                       <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => handleDeleteExercise(pe.id, plan.id)}>
                         <Trash2 className="h-3.5 w-3.5" />
@@ -218,103 +253,67 @@ export default function Planos() {
             </CardContent>
           </Card>
         ))}
-        {plans.length === 0 && <p className="text-center text-muted-foreground py-8">Nenhum plano cadastrado.</p>}
+        {plans.length === 0 && <p className="py-8 text-center text-muted-foreground">Nenhum plano cadastrado.</p>}
       </div>
 
-      {/* New Plan Dialog with inline exercises */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader><DialogTitle>Novo Plano de Tratamento</DialogTitle></DialogHeader>
+        <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Novo Plano de Tratamento</DialogTitle>
+          </DialogHeader>
           <form onSubmit={handleCreatePlan} className="space-y-4">
             <div className="space-y-2">
               <Label>Militar *</Label>
-              <select className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={form.militar_id} onChange={(e) => setForm({ ...form, militar_id: e.target.value })} required>
+              <select
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                value={form.militar_id}
+                onChange={(e) => setForm({ ...form, militar_id: e.target.value })}
+                required
+              >
                 <option value="">Selecione...</option>
-                {militares.map((m) => <option key={m.id} value={m.id}>{m.posto_graduacao} {m.nome_guerra}</option>)}
+                {militares.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.posto_graduacao} {m.nome_guerra}
+                  </option>
+                ))}
               </select>
             </div>
-            <div className="space-y-2"><Label>Nome do Plano *</Label><Input value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} required /></div>
-            <div className="space-y-2"><Label>Objetivo</Label><Textarea value={form.objetivo} onChange={(e) => setForm({ ...form, objetivo: e.target.value })} /></div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2"><Label>Início *</Label><Input type="date" value={form.data_inicio} onChange={(e) => setForm({ ...form, data_inicio: e.target.value })} required /></div>
-              <div className="space-y-2"><Label>Término</Label><Input type="date" value={form.data_fim} onChange={(e) => setForm({ ...form, data_fim: e.target.value })} /></div>
+
+            <div className="space-y-2">
+              <Label>Nome do Plano *</Label>
+              <Input value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} required />
             </div>
 
-            {/* Exercise inline selection with scroll and cards */}
-            <div className="border-t pt-4 space-y-3">
-              <Label className="text-sm font-semibold">Exercícios do Plano</Label>
+            <div className="space-y-2">
+              <Label>Objetivo</Label>
+              <Textarea value={form.objetivo} onChange={(e) => setForm({ ...form, objetivo: e.target.value })} />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Buscar exercício..."
-                    value={exSearch}
-                    onChange={(e) => setExSearch(e.target.value)}
-                    className="pl-10"
-                  />
-                </div>
-                <select
-                  className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm"
-                  value={exCatFilter}
-                  onChange={(e) => setExCatFilter(e.target.value)}
-                >
-                  <option value="">Todas categorias</option>
-                  {CATEGORIAS_EXERCICIO.map((c) => (
-                    <option key={c} value={c}>{c}</option>
-                  ))}
-                </select>
+                <Label>Início *</Label>
+                <Input type="date" value={form.data_inicio} onChange={(e) => setForm({ ...form, data_inicio: e.target.value })} required />
               </div>
+              <div className="space-y-2">
+                <Label>Término</Label>
+                <Input type="date" value={form.data_fim} onChange={(e) => setForm({ ...form, data_fim: e.target.value })} />
+              </div>
+            </div>
 
-              {selectedExerciseIds.length > 0 && (
-                <div className="flex items-center justify-between text-xs text-muted-foreground">
-                  <span>{selectedExerciseIds.length} exercício{selectedExerciseIds.length > 1 ? 's' : ''} selecionado{selectedExerciseIds.length > 1 ? 's' : ''}</span>
-                  <Button type="button" variant="ghost" size="sm" className="h-6 text-xs" onClick={() => setSelectedExerciseIds([])}>Limpar</Button>
-                </div>
-              )}
-
-              <ScrollArea className="border rounded-lg" style={{ maxHeight: '240px' }}>
-                <div className="p-2 space-y-1.5">
-                  {filteredCreateExercises.length === 0 ? (
-                    <p className="text-center text-sm text-muted-foreground py-4">Nenhum exercício encontrado.</p>
-                  ) : (
-                    filteredCreateExercises.map((ex) => {
-                      const isSelected = selectedExerciseIds.includes(ex.id);
-                      return (
-                        <label
-                          key={ex.id}
-                          className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all ${
-                            isSelected
-                              ? 'border-primary bg-primary/10 shadow-sm'
-                              : 'border-border hover:border-muted-foreground/30 hover:bg-muted/50'
-                          }`}
-                        >
-                          <Checkbox
-                            checked={isSelected}
-                            onCheckedChange={() => {
-                              setSelectedExerciseIds(
-                                isSelected
-                                  ? selectedExerciseIds.filter((id) => id !== ex.id)
-                                  : [...selectedExerciseIds, ex.id]
-                              );
-                            }}
-                          />
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-foreground leading-tight">{ex.nome}</p>
-                            <p className="text-xs text-muted-foreground">{ex.categoria}</p>
-                          </div>
-                          {isSelected && <Check className="h-4 w-4 text-primary shrink-0" />}
-                        </label>
-                      );
-                    })
-                  )}
-                </div>
-              </ScrollArea>
+            <div className="space-y-3 border-t pt-4">
+              <ExerciseSelectionList
+                exercises={exercises}
+                selectedIds={selectedExerciseIds}
+                onChange={setSelectedExerciseIds}
+                label="Exercícios do Plano"
+                heightClassName="h-80"
+              />
 
               {selectedExerciseIds.length > 0 && (
                 <Card>
-                  <CardContent className="p-3 space-y-3">
+                  <CardContent className="space-y-3 p-3">
                     <Label className="text-xs font-semibold">Configuração dos exercícios selecionados</Label>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                       <div className="space-y-1">
                         <Label className="text-xs">Séries</Label>
                         <Input type="number" className="h-9" value={sharedConfig.series} onChange={(e) => setSharedConfig({ ...sharedConfig, series: Number(e.target.value) })} />
@@ -329,15 +328,27 @@ export default function Planos() {
                       </div>
                       <div className="space-y-1">
                         <Label className="text-xs">Freq. Semanal</Label>
-                        <select className="flex h-9 w-full rounded-md border border-input bg-background px-2 py-1 text-sm"
-                          value={sharedConfig.frequencia_semanal} onChange={(e) => setSharedConfig({ ...sharedConfig, frequencia_semanal: Number(e.target.value) })}>
-                          {[1,2,3,4,5].map((n) => <option key={n} value={n}>{n}x/semana</option>)}
+                        <select
+                          className="flex h-9 w-full rounded-md border border-input bg-background px-2 py-1 text-sm"
+                          value={sharedConfig.frequencia_semanal}
+                          onChange={(e) => setSharedConfig({ ...sharedConfig, frequencia_semanal: Number(e.target.value) })}
+                        >
+                          {[1, 2, 3, 4, 5].map((n) => (
+                            <option key={n} value={n}>
+                              {n}x/semana
+                            </option>
+                          ))}
                         </select>
                       </div>
                     </div>
                     <div className="space-y-1">
                       <Label className="text-xs">Observações</Label>
-                      <Input className="h-9" value={sharedConfig.observacoes} onChange={(e) => setSharedConfig({ ...sharedConfig, observacoes: e.target.value })} placeholder="Opcional..." />
+                      <Input
+                        className="h-9"
+                        value={sharedConfig.observacoes}
+                        onChange={(e) => setSharedConfig({ ...sharedConfig, observacoes: e.target.value })}
+                        placeholder="Opcional..."
+                      />
                     </div>
                   </CardContent>
                 </Card>
@@ -345,38 +356,66 @@ export default function Planos() {
             </div>
 
             <div className="flex justify-end gap-2">
-              <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
-              <Button type="submit" disabled={loading}>{loading ? 'Criando...' : 'Criar Plano'}</Button>
+              <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
+                Cancelar
+              </Button>
+              <Button type="submit" disabled={loading}>
+                {loading ? 'Criando...' : 'Criar Plano'}
+              </Button>
             </div>
           </form>
         </DialogContent>
       </Dialog>
 
-      {/* Add Exercise to existing Plan Dialog */}
       <Dialog open={exDialogOpen} onOpenChange={setExDialogOpen}>
-        <DialogContent className="max-w-lg max-h-[90vh] flex flex-col p-0">
-          <DialogHeader className="px-4 pt-4 pb-2"><DialogTitle>Adicionar Exercícios ao Plano</DialogTitle></DialogHeader>
-          <form onSubmit={handleAddExercise} className="flex-1 overflow-y-auto px-4 space-y-4 pb-2">
-            <ExerciseMultiSelect
+        <DialogContent className="max-h-[90vh] max-w-lg overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Adicionar Exercícios ao Plano</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleAddExercise} className="space-y-4">
+            <ExerciseSelectionList
               exercises={exercises}
-              selected={addExerciseIds}
+              selectedIds={addExerciseIds}
               onChange={setAddExerciseIds}
+              label="Exercícios disponíveis"
+              heightClassName="h-72"
             />
+
             {addExerciseIds.length > 0 && (
               <div className="space-y-3">
                 <Label className="text-xs font-semibold">Configuração</Label>
                 <div className="grid grid-cols-3 gap-3">
-                  <div className="space-y-1"><Label className="text-xs">Séries</Label><Input type="number" className="h-9" value={addConfig.series} onChange={(e) => setAddConfig({ ...addConfig, series: Number(e.target.value) })} /></div>
-                  <div className="space-y-1"><Label className="text-xs">Repetições</Label><Input type="number" className="h-9" value={addConfig.repeticoes} onChange={(e) => setAddConfig({ ...addConfig, repeticoes: Number(e.target.value) })} /></div>
-                  <div className="space-y-1"><Label className="text-xs">Descanso</Label><Input className="h-9" value={addConfig.descanso} onChange={(e) => setAddConfig({ ...addConfig, descanso: e.target.value })} /></div>
+                  <div className="space-y-1">
+                    <Label className="text-xs">Séries</Label>
+                    <Input type="number" className="h-9" value={addConfig.series} onChange={(e) => setAddConfig({ ...addConfig, series: Number(e.target.value) })} />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs">Repetições</Label>
+                    <Input type="number" className="h-9" value={addConfig.repeticoes} onChange={(e) => setAddConfig({ ...addConfig, repeticoes: Number(e.target.value) })} />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs">Descanso</Label>
+                    <Input className="h-9" value={addConfig.descanso} onChange={(e) => setAddConfig({ ...addConfig, descanso: e.target.value })} />
+                  </div>
                 </div>
-                <div className="space-y-1"><Label className="text-xs">Frequência Semanal</Label><Input type="number" className="h-9" value={addConfig.frequencia_semanal} onChange={(e) => setAddConfig({ ...addConfig, frequencia_semanal: Number(e.target.value) })} /></div>
-                <div className="space-y-1"><Label className="text-xs">Observações</Label><Textarea value={addConfig.observacoes} onChange={(e) => setAddConfig({ ...addConfig, observacoes: e.target.value })} /></div>
+                <div className="space-y-1">
+                  <Label className="text-xs">Frequência Semanal</Label>
+                  <Input type="number" className="h-9" value={addConfig.frequencia_semanal} onChange={(e) => setAddConfig({ ...addConfig, frequencia_semanal: Number(e.target.value) })} />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">Observações</Label>
+                  <Textarea value={addConfig.observacoes} onChange={(e) => setAddConfig({ ...addConfig, observacoes: e.target.value })} />
+                </div>
               </div>
             )}
-            <div className="flex justify-end gap-2 pb-2">
-              <Button type="button" variant="outline" onClick={() => setExDialogOpen(false)}>Cancelar</Button>
-              <Button type="submit" disabled={loading || addExerciseIds.length === 0}>{loading ? 'Adicionando...' : `Adicionar (${addExerciseIds.length})`}</Button>
+
+            <div className="flex justify-end gap-2 pb-1">
+              <Button type="button" variant="outline" onClick={() => setExDialogOpen(false)}>
+                Cancelar
+              </Button>
+              <Button type="submit" disabled={loading || addExerciseIds.length === 0}>
+                {loading ? 'Adicionando...' : `Adicionar (${addExerciseIds.length})`}
+              </Button>
             </div>
           </form>
         </DialogContent>
