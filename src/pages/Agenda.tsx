@@ -41,7 +41,7 @@ export default function Agenda() {
   const [calLoading, setCalLoading] = useState(false);
 
   useEffect(() => {
-    supabase.from('militares').select('id, nome_guerra, posto_graduacao').eq('status_militar', 'ativo')
+    supabase.from('militares').select('id, nome_guerra, posto_graduacao, nip').eq('status_militar', 'ativo')
       .then(({ data }) => setMilitares(data || []));
   }, []);
 
