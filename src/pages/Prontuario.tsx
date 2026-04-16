@@ -472,9 +472,16 @@ export default function Prontuario() {
                     <CardTitle className="text-base">2. Anamnese / Histórico</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-3">
-                    <div className="space-y-1">
+                  <div className="space-y-1">
                       <Label>Queixa Principal</Label>
                       <Textarea value={form.queixa_principal} onChange={e => setForm({ ...form, queixa_principal: e.target.value })} placeholder="Descreva a queixa principal do paciente..." />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Escala de Dor (EVA)</Label>
+                      <EvaScale
+                        value={parseInt(form.escalas) || 0}
+                        onChange={(v) => setForm({ ...form, escalas: String(v) })}
+                      />
                     </div>
                     <div className="space-y-1">
                       <Label>História da Doença Atual</Label>
@@ -524,13 +531,6 @@ export default function Prontuario() {
                     <div className="space-y-1">
                       <Label>Testes Funcionais</Label>
                       <Textarea value={form.testes_funcionais} onChange={e => setForm({ ...form, testes_funcionais: e.target.value })} />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Escala de Dor (EVA)</Label>
-                      <EvaScale
-                        value={parseInt(form.escalas) || 0}
-                        onChange={(v) => setForm({ ...form, escalas: String(v) })}
-                      />
                     </div>
                   </CardContent>
                 </Card>
