@@ -29,6 +29,7 @@ export default function Agenda() {
   const [sessions, setSessions] = useState<any[]>([]);
   const [militares, setMilitares] = useState<any[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [militarSearchOpen, setMilitarSearchOpen] = useState(false);
   const [detailDialog, setDetailDialog] = useState<any>(null);
   const [editForm, setEditForm] = useState({ data_hora: '', duracao: 60, tipo: 'presencial', anotacao_clinica: '', queixa: '' });
   const [editLesoes, setEditLesoes] = useState<Lesao[]>([]);
