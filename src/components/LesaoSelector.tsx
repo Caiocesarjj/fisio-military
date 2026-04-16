@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import { Plus, X } from 'lucide-react';
 
 const SEGMENTOS: Record<string, string[]> = {
   'Membro Superior': ['Ombro', 'Cotovelo', 'Punho', 'Mão', 'Dedos da Mão'],
   'Membro Inferior': ['Quadril', 'Coxa', 'Joelho', 'Panturrilha', 'Tendão de Aquiles', 'Tornozelo', 'Pé', 'Dedos do Pé', 'Fascite Plantar', 'Esporão de Calcâneo'],
   'Coluna': ['Cervical', 'Torácica', 'Lombar', 'Sacral'],
+  'Outras': [],
 };
 
 const REGIOES = Object.keys(SEGMENTOS);
@@ -24,12 +26,17 @@ interface LesaoSelectorProps {
 export function LesaoSelector({ lesoes, onChange }: LesaoSelectorProps) {
   const [regiao, setRegiao] = useState('');
   const [segmento, setSegmento] = useState('');
+  const [customSegmento, setCustomSegmento] = useState('');
+
+  const isOutras = regiao === 'Outras';
+  const currentSegmento = isOutras ? customSegmento.trim() : segmento;
 
   const addLesao = () => {
-    if (regiao && segmento) {
-      onChange([...lesoes, { regiao, segmento }]);
+    if (regiao && currentSegmento) {
+      onChange([...lesoes, { regiao, segmento: currentSegmento }]);
       setRegiao('');
       setSegmento('');
+      setCustomSegmento('');
     }
   };
 
@@ -54,13 +61,13 @@ export function LesaoSelector({ lesoes, onChange }: LesaoSelectorProps) {
 
       <div className="flex items-end gap-2">
         <div className="flex-1 space-y-1">
-          <select className={selectClass} value={regiao} onChange={(e) => { setRegiao(e.target.value); setSegmento(''); }}>
+          <select className={selectClass} value={regiao} onChange={(e) => { setRegiao(e.target.value); setSegmento(''); setCustomSegmento(''); }}>
             <option value="">Região...</option>
             {REGIOES.map((r) => <option key={r} value={r}>{r}</option>)}
           </select>
         </div>
 
-        {regiao && (
+        {regiao && !isOutras && (
           <div className="flex-1 space-y-1">
             <select className={selectClass} value={segmento} onChange={(e) => setSegmento(e.target.value)}>
               <option value="">Segmento...</option>
@@ -69,7 +76,18 @@ export function LesaoSelector({ lesoes, onChange }: LesaoSelectorProps) {
           </div>
         )}
 
-        <Button type="button" variant="outline" size="sm" onClick={addLesao} disabled={!regiao || !segmento}>
+        {isOutras && (
+          <div className="flex-1 space-y-1">
+            <Input
+              className="h-10 text-sm"
+              placeholder="Digite a lesão..."
+              value={customSegmento}
+              onChange={(e) => setCustomSegmento(e.target.value)}
+            />
+          </div>
+        )}
+
+        <Button type="button" variant="outline" size="sm" onClick={addLesao} disabled={!regiao || !currentSegmento}>
           <Plus className="h-4 w-4 mr-1" /> Adicionar
         </Button>
       </div>
