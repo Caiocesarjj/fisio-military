@@ -7,7 +7,10 @@ import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2, ChevronsUpDown, Check } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { STATUS_SESSAO, TIPOS_ATENDIMENTO } from '@/lib/constants';
 import { EvaScale } from '@/components/EvaScale';
@@ -26,6 +29,7 @@ export default function Agenda() {
   const [sessions, setSessions] = useState<any[]>([]);
   const [militares, setMilitares] = useState<any[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [militarSearchOpen, setMilitarSearchOpen] = useState(false);
   const [detailDialog, setDetailDialog] = useState<any>(null);
   const [editForm, setEditForm] = useState({ data_hora: '', duracao: 60, tipo: 'presencial', anotacao_clinica: '', queixa: '' });
   const [editLesoes, setEditLesoes] = useState<Lesao[]>([]);
@@ -37,7 +41,7 @@ export default function Agenda() {
   const [calLoading, setCalLoading] = useState(false);
 
   useEffect(() => {
-    supabase.from('militares').select('id, nome_guerra, posto_graduacao').eq('status_militar', 'ativo')
+    supabase.from('militares').select('id, nome_guerra, posto_graduacao, nip').eq('status_militar', 'ativo')
       .then(({ data }) => setMilitares(data || []));
   }, []);
 
@@ -292,10 +296,40 @@ export default function Agenda() {
             <div className="flex-1 overflow-y-auto px-4 space-y-3">
               <div className="space-y-1">
                 <Label className="text-xs">Militar *</Label>
-                <select className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1.5 text-sm" value={form.militar_id} onChange={(e) => setForm({ ...form, militar_id: e.target.value })} required>
-                  <option value="">Selecione...</option>
-                  {militares.map((m) => <option key={m.id} value={m.id}>{m.posto_graduacao} {m.nome_guerra}</option>)}
-                </select>
+                <Popover open={militarSearchOpen} onOpenChange={setMilitarSearchOpen}>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" role="combobox" aria-expanded={militarSearchOpen} className="w-full h-9 justify-between text-sm font-normal">
+                      {form.militar_id
+                        ? (() => { const m = militares.find(m => m.id === form.militar_id); return m ? `${m.posto_graduacao} ${m.nome_guerra}` : 'Selecione...'; })()
+                        : 'Selecione...'}
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                    <Command filter={(value, search) => {
+                      const m = militares.find(mil => mil.id === value);
+                      if (!m) return 0;
+                      const text = `${m.posto_graduacao} ${m.nome_guerra} ${m.nip}`.toLowerCase();
+                      return text.includes(search.toLowerCase()) ? 1 : 0;
+                    }}>
+                      <CommandInput placeholder="Buscar por nome ou NIP..." />
+                      <CommandList>
+                        <CommandEmpty>Nenhum militar encontrado.</CommandEmpty>
+                        <CommandGroup>
+                          {militares.map((m) => (
+                            <CommandItem key={m.id} value={m.id} onSelect={(val) => { setForm({ ...form, militar_id: val }); setMilitarSearchOpen(false); }}>
+                              <Check className={cn("mr-2 h-4 w-4", form.militar_id === m.id ? "opacity-100" : "opacity-0")} />
+                              <div className="flex flex-col">
+                                <span className="text-sm">{m.posto_graduacao} {m.nome_guerra}</span>
+                                <span className="text-xs text-muted-foreground">NIP: {m.nip}</span>
+                              </div>
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1"><Label className="text-xs">Data e Hora *</Label><Input type="datetime-local" className="h-9 text-sm" value={form.data_hora} onChange={(e) => setForm({ ...form, data_hora: e.target.value })} required /></div>
