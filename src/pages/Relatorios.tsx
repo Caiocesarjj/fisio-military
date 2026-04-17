@@ -85,6 +85,19 @@ export default function Relatorios() {
         };
       });
 
+      // Média de atendimentos por dia (apenas dias com atendimento realizado)
+      const realizadasSessions = sessions.filter((s: any) => s.status === 'realizado');
+      const diasUnicos = new Set(
+        realizadasSessions.map((s: any) => new Date(s.data_hora).toISOString().slice(0, 10))
+      );
+      const totalReal = realizadasSessions.length;
+      const diasCount = diasUnicos.size;
+      setAvgStats({
+        total: totalReal,
+        dias: diasCount,
+        media: diasCount > 0 ? totalReal / diasCount : 0,
+      });
+
       setCompanyData(rows);
       setChartData(rows.map((r) => ({ name: r.companhia, Realizadas: r.realizadas })));
       setLoading(false);
@@ -150,6 +163,34 @@ export default function Relatorios() {
           </>
         )}
       </div>
+
+      {/* Média de atendimentos por dia (dias ativos) */}
+      <Card className="border-primary/20 bg-primary/5">
+        <CardHeader>
+          <CardTitle className="text-lg flex items-center gap-2">
+            📊 Média de atendimentos por dia (dias ativos)
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="rounded-lg border bg-card p-4">
+              <p className="text-xs text-muted-foreground">Total de atendimentos</p>
+              <p className="text-2xl font-bold text-foreground mt-1">{avgStats.total}</p>
+            </div>
+            <div className="rounded-lg border bg-card p-4">
+              <p className="text-xs text-muted-foreground">Dias com atendimento</p>
+              <p className="text-2xl font-bold text-foreground mt-1">{avgStats.dias}</p>
+            </div>
+            <div className="rounded-lg border bg-primary p-4">
+              <p className="text-xs text-primary-foreground/80">Média por dia</p>
+              <p className="text-2xl font-bold text-primary-foreground mt-1">{avgStats.media.toFixed(2)}</p>
+            </div>
+          </div>
+          <p className="text-xs text-muted-foreground mt-3 italic">
+            Média considerando apenas dias com atendimento
+          </p>
+        </CardContent>
+      </Card>
 
       {/* Comparison table */}
       <Card>
