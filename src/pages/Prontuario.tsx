@@ -488,7 +488,7 @@ export default function Prontuario() {
                       <Textarea value={form.historia_doenca_atual} onChange={e => setForm({ ...form, historia_doenca_atual: e.target.value })} />
                     </div>
                     <div className="space-y-1">
-                      <Label>Doenças Associadas</Label>
+                      <Label>Histórico de Patologias Pregressa (HPP)</Label>
                       <Textarea value={form.doencas_associadas} onChange={e => setForm({ ...form, doencas_associadas: e.target.value })} />
                     </div>
                     <div className="space-y-1">
