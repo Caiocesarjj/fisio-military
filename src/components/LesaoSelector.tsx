@@ -8,6 +8,7 @@ const SEGMENTOS: Record<string, string[]> = {
   'Membro Superior': ['Ombro', 'Cotovelo', 'Punho', 'Mão', 'Dedos da Mão'],
   'Membro Inferior': ['Quadril', 'Coxa', 'Joelho', 'Panturrilha', 'Tendão de Aquiles', 'Tornozelo', 'Pé', 'Dedos do Pé', 'Fascite Plantar', 'Esporão de Calcâneo'],
   'Coluna': ['Cervical', 'Torácica', 'Lombar', 'Sacral'],
+  'Tronco': ['Muscular', 'Abdômen', 'Tórax', 'Costelas', 'Lombar'],
   'Outras': [],
 };
 
