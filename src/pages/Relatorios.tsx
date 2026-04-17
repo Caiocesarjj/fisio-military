@@ -29,6 +29,7 @@ export default function Relatorios() {
   const [customEnd, setCustomEnd] = useState('');
   const [companyData, setCompanyData] = useState<CompanyRow[]>([]);
   const [chartData, setChartData] = useState<any[]>([]);
+  const [avgStats, setAvgStats] = useState({ total: 0, dias: 0, media: 0 });
   const [loading, setLoading] = useState(true);
 
   const getDateRange = (): { start: Date; end: Date } => {
