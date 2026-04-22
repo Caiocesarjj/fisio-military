@@ -11,6 +11,7 @@ import { ChangePasswordCard } from '@/components/ChangePasswordCard';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { ExercisePreview } from '@/components/military/ExercisePreview';
+import { toast } from 'sonner';
 
 export default function PainelMilitar() {
   const { user } = useAuth();
