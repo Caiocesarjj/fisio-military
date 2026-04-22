@@ -611,6 +611,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_confirm_own_session: {
+        Args: { _session_id: string }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
