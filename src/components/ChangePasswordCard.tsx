@@ -9,7 +9,7 @@ import { toast } from 'sonner';
 
 function getPasswordErrorMessage(message: string) {
   if (message.includes('Password is known to be weak and easy to guess')) {
-    return 'Esta senha é muito fraca e fácil de adivinhar. Escolha uma senha mais forte.';
+    return 'Não foi possível alterar a senha.';
   }
 
   return `Erro ao alterar senha: ${message}`;
