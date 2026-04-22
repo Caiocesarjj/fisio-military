@@ -656,7 +656,7 @@ export default function Prontuario() {
                         <CalendarDays className="h-4 w-4" />
                         6. Evolução Diária
                       </span>
-                      <Button size="sm" onClick={() => { setEvolucaoForm(emptyEvolucao); setEvolucaoDialogOpen(true); }}>
+                      <Button size="sm" onClick={() => { setEditingEvolucaoId(null); setEvolucaoForm(emptyEvolucao); setEvolucaoDialogOpen(true); }}>
                         <Plus className="h-4 w-4 mr-1" /> Nova Evolução
                       </Button>
                     </CardTitle>
@@ -672,6 +672,14 @@ export default function Prontuario() {
                               <Badge variant="secondary" className="text-xs">
                                 {format(new Date(ev.data + 'T00:00:00'), "dd/MM/yyyy", { locale: ptBR })}
                               </Badge>
+                              <div className="flex items-center gap-2">
+                                <Button type="button" size="sm" variant="outline" onClick={() => handleEditEvolucao(ev)}>
+                                  <Pencil className="h-4 w-4 mr-1" /> Editar
+                                </Button>
+                                <Button type="button" size="sm" variant="outline" onClick={() => setEvolucaoToDelete(ev)}>
+                                  <Trash2 className="h-4 w-4 mr-1" /> Excluir
+                                </Button>
+                              </div>
                             </div>
                             {ev.procedimentos_realizados && (
                               <div className="text-sm">
@@ -707,7 +715,7 @@ export default function Prontuario() {
       <Dialog open={evolucaoDialogOpen} onOpenChange={setEvolucaoDialogOpen}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>Nova Evolução Diária</DialogTitle>
+            <DialogTitle>{editingEvolucaoId ? 'Editar Evolução Diária' : 'Nova Evolução Diária'}</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleEvolucaoSubmit} className="space-y-4">
             <div className="space-y-1">
@@ -727,12 +735,29 @@ export default function Prontuario() {
               <Textarea value={evolucaoForm.observacoes} onChange={e => setEvolucaoForm({ ...evolucaoForm, observacoes: e.target.value })} />
             </div>
             <div className="flex justify-end gap-2">
-              <Button type="button" variant="outline" onClick={() => setEvolucaoDialogOpen(false)}>Cancelar</Button>
-              <Button type="submit" disabled={loading}>{loading ? 'Salvando...' : 'Registrar'}</Button>
+              <Button type="button" variant="outline" onClick={() => { setEvolucaoDialogOpen(false); setEditingEvolucaoId(null); setEvolucaoForm(emptyEvolucao); }}>Cancelar</Button>
+              <Button type="submit" disabled={loading}>{loading ? 'Salvando...' : editingEvolucaoId ? 'Atualizar' : 'Registrar'}</Button>
             </div>
           </form>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={!!evolucaoToDelete} onOpenChange={(open) => !open && setEvolucaoToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir evolução?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Essa ação não pode ser desfeita. Confirme para remover este registro do diário de evolução.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={loading}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteEvolucao} disabled={loading}>
+              {loading ? 'Excluindo...' : 'Excluir'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
