@@ -53,7 +53,7 @@ export const DIFICULDADES = ['Fácil', 'Moderado', 'Difícil', 'Avançado'];
 
 export const FASES_EXERCICIO = ['Fase 1', 'Fase 2', 'Fase 3', 'Fase 4'];
 
-export const STATUS_SESSAO = ['agendado', 'realizado', 'faltou', 'cancelado'];
+export const STATUS_SESSAO = ['agendado', 'confirmado', 'realizado', 'faltou', 'cancelado'];
 export const TIPOS_ATENDIMENTO = ['presencial', 'online'];
 
 export function formatNip(value: string): string {
