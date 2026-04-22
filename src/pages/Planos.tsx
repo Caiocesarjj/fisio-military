@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { format } from 'date-fns';
 import { ExercisePreview } from '@/components/military/ExercisePreview';
-import { Plus, ChevronDown, ChevronUp, Trash2 } from 'lucide-react';
+import { Plus, ChevronDown, ChevronUp, Trash2, ChevronsUpDown, Check } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { supabase } from '@/integrations/supabase/client';
@@ -14,7 +14,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import ExerciseSelectionList from '@/components/planos/ExerciseSelectionList';
+import { cn } from '@/lib/utils';
 
 export default function Planos() {
   const { user } = useAuth();
@@ -29,6 +32,7 @@ export default function Planos() {
   const [sharedConfig, setSharedConfig] = useState({ series: 3, repeticoes: 10, descanso: '60s', frequencia_semanal: 3, observacoes: '' });
   const [loading, setLoading] = useState(false);
   const [pageLoading, setPageLoading] = useState(true);
+  const [militarSearchOpen, setMilitarSearchOpen] = useState(false);
 
   const [exDialogOpen, setExDialogOpen] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<any>(null);
@@ -38,7 +42,7 @@ export default function Planos() {
   const fetchAll = async () => {
     const [plansRes, milRes, exRes] = await Promise.all([
       supabase.from('treatment_plans').select('*, militares(nome_guerra, posto_graduacao)').order('created_at', { ascending: false }),
-      supabase.from('militares').select('id, nome_guerra, posto_graduacao').eq('ativo', true),
+      supabase.from('militares').select('id, nome_guerra, posto_graduacao, nip').eq('ativo', true),
       supabase.from('exercises').select('id, nome, categoria, dificuldade, fase, imagem_url, video_url').order('categoria').order('nome'),
     ]);
 
