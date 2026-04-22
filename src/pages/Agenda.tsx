@@ -142,8 +142,8 @@ export default function Agenda() {
   };
 
   const statusColors: Record<string, string> = {
-    agendado: 'hsl(var(--info))',
-    confirmado: 'hsl(var(--warning))',
+    agendado: 'hsl(var(--warning))',
+    confirmado: 'hsl(var(--info))',
     realizado: 'hsl(var(--success))',
     faltou: 'hsl(var(--destructive))',
     cancelado: 'hsl(var(--muted-foreground))',

@@ -132,9 +132,9 @@ export default function PainelMilitar() {
   }
 
   const getSessionBadgeVariant = (status: string) => {
-    if (status === 'confirmado') return 'warning';
+    if (status === 'confirmado') return 'info';
     if (status === 'realizado') return 'success';
-    if (status === 'agendado') return 'info';
+    if (status === 'agendado') return 'warning';
     if (status === 'faltou' || status === 'cancelado') return 'outline';
     return 'secondary';
   };
@@ -156,7 +156,7 @@ export default function PainelMilitar() {
               <div
                 key={session.id}
                 className={session.status === 'confirmado'
-                  ? 'flex items-center justify-between rounded-lg border border-warning/30 bg-warning/10 p-3'
+                  ? 'flex items-center justify-between rounded-lg border border-info/30 bg-info/10 p-3'
                   : 'flex items-center justify-between rounded-lg bg-muted/50 p-3'}
               >
                 <div>
@@ -168,7 +168,7 @@ export default function PainelMilitar() {
                     <p className="mt-1 text-xs text-muted-foreground">Confirme sua presença para esta sessão.</p>
                   )}
                   {!isHistory && session.status === 'confirmado' && (
-                    <p className="mt-1 text-xs font-medium text-warning">Presença confirmada.</p>
+                    <p className="mt-1 text-xs font-medium text-info">Presença confirmada.</p>
                   )}
                 </div>
                 <div className="flex flex-col items-end gap-2">
