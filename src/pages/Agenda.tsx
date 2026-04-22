@@ -142,10 +142,11 @@ export default function Agenda() {
   };
 
   const statusColors: Record<string, string> = {
-    agendado: 'hsl(220, 70%, 25%)',
-    realizado: 'hsl(142, 71%, 45%)',
-    faltou: 'hsl(0, 84%, 60%)',
-    cancelado: 'hsl(215, 16%, 47%)',
+    agendado: 'hsl(var(--info))',
+    confirmado: 'hsl(var(--warning))',
+    realizado: 'hsl(var(--success))',
+    faltou: 'hsl(var(--destructive))',
+    cancelado: 'hsl(var(--muted-foreground))',
   };
 
   const events = sessions.map((s) => ({

@@ -131,6 +131,14 @@ export default function PainelMilitar() {
     return <p className="py-12 text-center text-muted-foreground">Seu acesso militar ainda não está vinculado corretamente.</p>;
   }
 
+  const getSessionBadgeVariant = (status: string) => {
+    if (status === 'confirmado') return 'warning';
+    if (status === 'realizado') return 'success';
+    if (status === 'agendado') return 'info';
+    if (status === 'faltou' || status === 'cancelado') return 'outline';
+    return 'secondary';
+  };
+
   const renderSessions = (items: any[], emptyMessage: string, isHistory = false) => (
     <Card>
       <CardHeader>
@@ -145,7 +153,12 @@ export default function PainelMilitar() {
         ) : (
           <div className="space-y-2">
             {items.map((session) => (
-              <div key={session.id} className="flex items-center justify-between rounded-lg bg-muted/50 p-3">
+              <div
+                key={session.id}
+                className={session.status === 'confirmado'
+                  ? 'flex items-center justify-between rounded-lg border border-warning/30 bg-warning/10 p-3'
+                  : 'flex items-center justify-between rounded-lg bg-muted/50 p-3'}
+              >
                 <div>
                   <p className="text-sm font-medium text-foreground">
                     {format(new Date(session.data_hora), isHistory ? 'dd/MM/yyyy HH:mm' : "EEEE, dd/MM 'às' HH:mm", { locale: ptBR })}
@@ -154,9 +167,12 @@ export default function PainelMilitar() {
                   {!isHistory && session.status === 'agendado' && (
                     <p className="mt-1 text-xs text-muted-foreground">Confirme sua presença para esta sessão.</p>
                   )}
+                  {!isHistory && session.status === 'confirmado' && (
+                    <p className="mt-1 text-xs font-medium text-warning">Presença confirmada.</p>
+                  )}
                 </div>
                 <div className="flex flex-col items-end gap-2">
-                  <Badge variant={session.status === 'agendado' ? 'secondary' : 'outline'}>{session.status}</Badge>
+                  <Badge variant={getSessionBadgeVariant(session.status)}>{session.status}</Badge>
                   {!isHistory && session.status === 'agendado' && (
                     <button
                       type="button"
