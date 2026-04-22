@@ -8,10 +8,20 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { EvaScale } from '@/components/EvaScale';
-import { Plus, Search, FileText, CalendarDays, User, Download } from 'lucide-react';
+import { Plus, Search, FileText, CalendarDays, User, Download, Pencil, Trash2 } from 'lucide-react';
 import jsPDF from 'jspdf';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
@@ -106,6 +116,8 @@ export default function Prontuario() {
   const [evolucaoForm, setEvolucaoForm] = useState(emptyEvolucao);
   const [loading, setLoading] = useState(false);
   const [editing, setEditing] = useState(false);
+  const [editingEvolucaoId, setEditingEvolucaoId] = useState<string | null>(null);
+  const [evolucaoToDelete, setEvolucaoToDelete] = useState<Evolucao | null>(null);
 
   useEffect(() => {
     fetchMilitares();
@@ -205,17 +217,57 @@ export default function Prontuario() {
     if (!selectedProntuario || !selectedMilitar) return;
     setLoading(true);
     try {
-      const { error } = await supabase
-        .from('prontuario_evolucoes')
-        .insert({
-          ...evolucaoForm,
-          prontuario_id: selectedProntuario.id,
-          militar_id: selectedMilitar.id,
-        } as any);
+      const payload = {
+        ...evolucaoForm,
+        prontuario_id: selectedProntuario.id,
+        militar_id: selectedMilitar.id,
+      } as any;
+
+      const { error } = editingEvolucaoId
+        ? await supabase
+            .from('prontuario_evolucoes')
+            .update(payload)
+            .eq('id', editingEvolucaoId)
+        : await supabase
+            .from('prontuario_evolucoes')
+            .insert(payload);
+
       if (error) throw error;
-      toast.success('Evolução registrada!');
+      toast.success(editingEvolucaoId ? 'Evolução atualizada!' : 'Evolução registrada!');
       setEvolucaoDialogOpen(false);
       setEvolucaoForm(emptyEvolucao);
+      setEditingEvolucaoId(null);
+      fetchEvolucoes(selectedProntuario.id);
+    } catch (err: any) {
+      toast.error(err.message);
+    }
+    setLoading(false);
+  };
+
+  const handleEditEvolucao = (evolucao: Evolucao) => {
+    setEditingEvolucaoId(evolucao.id);
+    setEvolucaoForm({
+      data: evolucao.data,
+      procedimentos_realizados: evolucao.procedimentos_realizados || '',
+      resposta_paciente: evolucao.resposta_paciente || '',
+      observacoes: evolucao.observacoes || '',
+    });
+    setEvolucaoDialogOpen(true);
+  };
+
+  const handleDeleteEvolucao = async () => {
+    if (!evolucaoToDelete || !selectedProntuario) return;
+    setLoading(true);
+    try {
+      const { error } = await supabase
+        .from('prontuario_evolucoes')
+        .delete()
+        .eq('id', evolucaoToDelete.id);
+
+      if (error) throw error;
+
+      toast.success('Evolução excluída!');
+      setEvolucaoToDelete(null);
       fetchEvolucoes(selectedProntuario.id);
     } catch (err: any) {
       toast.error(err.message);
@@ -604,7 +656,7 @@ export default function Prontuario() {
                         <CalendarDays className="h-4 w-4" />
                         6. Evolução Diária
                       </span>
-                      <Button size="sm" onClick={() => { setEvolucaoForm(emptyEvolucao); setEvolucaoDialogOpen(true); }}>
+                      <Button size="sm" onClick={() => { setEditingEvolucaoId(null); setEvolucaoForm(emptyEvolucao); setEvolucaoDialogOpen(true); }}>
                         <Plus className="h-4 w-4 mr-1" /> Nova Evolução
                       </Button>
                     </CardTitle>
@@ -620,6 +672,14 @@ export default function Prontuario() {
                               <Badge variant="secondary" className="text-xs">
                                 {format(new Date(ev.data + 'T00:00:00'), "dd/MM/yyyy", { locale: ptBR })}
                               </Badge>
+                              <div className="flex items-center gap-2">
+                                <Button type="button" size="sm" variant="outline" onClick={() => handleEditEvolucao(ev)}>
+                                  <Pencil className="h-4 w-4 mr-1" /> Editar
+                                </Button>
+                                <Button type="button" size="sm" variant="outline" onClick={() => setEvolucaoToDelete(ev)}>
+                                  <Trash2 className="h-4 w-4 mr-1" /> Excluir
+                                </Button>
+                              </div>
                             </div>
                             {ev.procedimentos_realizados && (
                               <div className="text-sm">
@@ -655,7 +715,7 @@ export default function Prontuario() {
       <Dialog open={evolucaoDialogOpen} onOpenChange={setEvolucaoDialogOpen}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>Nova Evolução Diária</DialogTitle>
+            <DialogTitle>{editingEvolucaoId ? 'Editar Evolução Diária' : 'Nova Evolução Diária'}</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleEvolucaoSubmit} className="space-y-4">
             <div className="space-y-1">
@@ -675,12 +735,29 @@ export default function Prontuario() {
               <Textarea value={evolucaoForm.observacoes} onChange={e => setEvolucaoForm({ ...evolucaoForm, observacoes: e.target.value })} />
             </div>
             <div className="flex justify-end gap-2">
-              <Button type="button" variant="outline" onClick={() => setEvolucaoDialogOpen(false)}>Cancelar</Button>
-              <Button type="submit" disabled={loading}>{loading ? 'Salvando...' : 'Registrar'}</Button>
+              <Button type="button" variant="outline" onClick={() => { setEvolucaoDialogOpen(false); setEditingEvolucaoId(null); setEvolucaoForm(emptyEvolucao); }}>Cancelar</Button>
+              <Button type="submit" disabled={loading}>{loading ? 'Salvando...' : editingEvolucaoId ? 'Atualizar' : 'Registrar'}</Button>
             </div>
           </form>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={!!evolucaoToDelete} onOpenChange={(open) => !open && setEvolucaoToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir evolução?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Essa ação não pode ser desfeita. Confirme para remover este registro do diário de evolução.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={loading}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteEvolucao} disabled={loading}>
+              {loading ? 'Excluindo...' : 'Excluir'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
