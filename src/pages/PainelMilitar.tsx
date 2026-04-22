@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { CalendarDays, ClipboardList, History, User as UserIcon, MessageCircle } from 'lucide-react';
+import { CalendarDays, ClipboardList, History, User as UserIcon, MessageCircle, CheckCircle2 } from 'lucide-react';
 import { ChangePasswordCard } from '@/components/ChangePasswordCard';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -21,6 +21,7 @@ export default function PainelMilitar() {
   const [pastSessions, setPastSessions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [respostasNaoLidas, setRespostasNaoLidas] = useState(0);
+  const [confirmingSessionId, setConfirmingSessionId] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -149,8 +150,34 @@ export default function PainelMilitar() {
                     {format(new Date(session.data_hora), isHistory ? 'dd/MM/yyyy HH:mm' : "EEEE, dd/MM 'às' HH:mm", { locale: ptBR })}
                   </p>
                   <p className="text-xs text-muted-foreground">{session.duracao}min · {session.tipo}</p>
+                  {!isHistory && session.status === 'agendado' && (
+                    <p className="mt-1 text-xs text-muted-foreground">Confirme sua presença para esta sessão.</p>
+                  )}
                 </div>
-                <Badge variant={session.status === 'agendado' ? 'secondary' : 'outline'}>{session.status}</Badge>
+                <div className="flex flex-col items-end gap-2">
+                  <Badge variant={session.status === 'agendado' ? 'secondary' : 'outline'}>{session.status}</Badge>
+                  {!isHistory && session.status === 'agendado' && (
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        setConfirmingSessionId(session.id);
+                        const { error } = await supabase.from('sessions').update({ status: 'confirmado' }).eq('id', session.id);
+                        if (error) {
+                          toast.error(error.message);
+                        } else {
+                          setNextSessions((prev) => prev.map((item) => item.id === session.id ? { ...item, status: 'confirmado' } : item));
+                          toast.success('Presença confirmada com sucesso!');
+                        }
+                        setConfirmingSessionId(null);
+                      }}
+                      disabled={confirmingSessionId === session.id}
+                      className="inline-flex items-center gap-1 text-xs font-medium text-primary disabled:opacity-50"
+                    >
+                      <CheckCircle2 className="h-4 w-4" />
+                      {confirmingSessionId === session.id ? 'Confirmando...' : 'Confirmar presença'}
+                    </button>
+                  )}
+                </div>
               </div>
             ))}
           </div>

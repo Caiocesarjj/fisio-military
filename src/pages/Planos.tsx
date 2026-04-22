@@ -268,19 +268,51 @@ export default function Planos() {
           <form onSubmit={handleCreatePlan} className="space-y-4">
             <div className="space-y-2">
               <Label>Militar *</Label>
-              <select
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                value={form.militar_id}
-                onChange={(e) => setForm({ ...form, militar_id: e.target.value })}
-                required
-              >
-                <option value="">Selecione...</option>
-                {militares.map((m) => (
-                  <option key={m.id} value={m.id}>
-                    {m.posto_graduacao} {m.nome_guerra}
-                  </option>
-                ))}
-              </select>
+              <Popover open={militarSearchOpen} onOpenChange={setMilitarSearchOpen}>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" role="combobox" aria-expanded={militarSearchOpen} className="w-full justify-between text-sm font-normal">
+                    {form.militar_id
+                      ? (() => {
+                          const m = militares.find((militar) => militar.id === form.militar_id);
+                          return m ? `${m.posto_graduacao} ${m.nome_guerra}` : 'Selecione...';
+                        })()
+                      : 'Selecione por nome ou NIP...'}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                  <Command filter={(value, search) => {
+                    const m = militares.find((militar) => militar.id === value);
+                    if (!m) return 0;
+                    const text = `${m.posto_graduacao} ${m.nome_guerra} ${m.nip}`.toLowerCase();
+                    return text.includes(search.toLowerCase()) ? 1 : 0;
+                  }}>
+                    <CommandInput placeholder="Buscar por nome ou NIP..." />
+                    <CommandList>
+                      <CommandEmpty>Nenhum militar encontrado.</CommandEmpty>
+                      <CommandGroup>
+                        {militares.map((m) => (
+                          <CommandItem
+                            key={m.id}
+                            value={m.id}
+                            onSelect={(value) => {
+                              setForm({ ...form, militar_id: value });
+                              setMilitarSearchOpen(false);
+                            }}
+                          >
+                            <Check className={cn('mr-2 h-4 w-4', form.militar_id === m.id ? 'opacity-100' : 'opacity-0')} />
+                            <div className="flex flex-col">
+                              <span className="text-sm">{m.posto_graduacao} {m.nome_guerra}</span>
+                              <span className="text-xs text-muted-foreground">NIP: {m.nip}</span>
+                            </div>
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+              <input type="hidden" value={form.militar_id} required readOnly />
             </div>
 
             <div className="space-y-2">
