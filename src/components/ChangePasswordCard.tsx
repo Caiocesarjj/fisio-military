@@ -7,6 +7,14 @@ import { Label } from '@/components/ui/label';
 import { KeyRound, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
 
+function getPasswordErrorMessage(message: string) {
+  if (message.includes('Password is known to be weak and easy to guess')) {
+    return 'Esta senha é muito fraca e fácil de adivinhar. Escolha uma senha mais forte.';
+  }
+
+  return `Erro ao alterar senha: ${message}`;
+}
+
 export function ChangePasswordCard() {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -26,7 +34,7 @@ export function ChangePasswordCard() {
     setLoading(true);
     const { error } = await supabase.auth.updateUser({ password: newPassword });
     if (error) {
-      toast.error('Erro ao alterar senha: ' + error.message);
+      toast.error(getPasswordErrorMessage(error.message));
     } else {
       toast.success('Senha alterada com sucesso!');
       setNewPassword('');
