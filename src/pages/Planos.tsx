@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { format } from 'date-fns';
 import { ExercisePreview } from '@/components/military/ExercisePreview';
-import { Plus, ChevronDown, ChevronUp, Trash2 } from 'lucide-react';
+import { Plus, ChevronDown, ChevronUp, Trash2, ChevronsUpDown, Check } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { supabase } from '@/integrations/supabase/client';
@@ -14,7 +14,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import ExerciseSelectionList from '@/components/planos/ExerciseSelectionList';
+import { cn } from '@/lib/utils';
 
 export default function Planos() {
   const { user } = useAuth();
@@ -29,6 +32,7 @@ export default function Planos() {
   const [sharedConfig, setSharedConfig] = useState({ series: 3, repeticoes: 10, descanso: '60s', frequencia_semanal: 3, observacoes: '' });
   const [loading, setLoading] = useState(false);
   const [pageLoading, setPageLoading] = useState(true);
+  const [militarSearchOpen, setMilitarSearchOpen] = useState(false);
 
   const [exDialogOpen, setExDialogOpen] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<any>(null);
@@ -38,7 +42,7 @@ export default function Planos() {
   const fetchAll = async () => {
     const [plansRes, milRes, exRes] = await Promise.all([
       supabase.from('treatment_plans').select('*, militares(nome_guerra, posto_graduacao)').order('created_at', { ascending: false }),
-      supabase.from('militares').select('id, nome_guerra, posto_graduacao').eq('ativo', true),
+      supabase.from('militares').select('id, nome_guerra, posto_graduacao, nip').eq('ativo', true),
       supabase.from('exercises').select('id, nome, categoria, dificuldade, fase, imagem_url, video_url').order('categoria').order('nome'),
     ]);
 
@@ -264,19 +268,51 @@ export default function Planos() {
           <form onSubmit={handleCreatePlan} className="space-y-4">
             <div className="space-y-2">
               <Label>Militar *</Label>
-              <select
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                value={form.militar_id}
-                onChange={(e) => setForm({ ...form, militar_id: e.target.value })}
-                required
-              >
-                <option value="">Selecione...</option>
-                {militares.map((m) => (
-                  <option key={m.id} value={m.id}>
-                    {m.posto_graduacao} {m.nome_guerra}
-                  </option>
-                ))}
-              </select>
+              <Popover open={militarSearchOpen} onOpenChange={setMilitarSearchOpen}>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" role="combobox" aria-expanded={militarSearchOpen} className="w-full justify-between text-sm font-normal">
+                    {form.militar_id
+                      ? (() => {
+                          const m = militares.find((militar) => militar.id === form.militar_id);
+                          return m ? `${m.posto_graduacao} ${m.nome_guerra}` : 'Selecione...';
+                        })()
+                      : 'Selecione por nome ou NIP...'}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                  <Command filter={(value, search) => {
+                    const m = militares.find((militar) => militar.id === value);
+                    if (!m) return 0;
+                    const text = `${m.posto_graduacao} ${m.nome_guerra} ${m.nip}`.toLowerCase();
+                    return text.includes(search.toLowerCase()) ? 1 : 0;
+                  }}>
+                    <CommandInput placeholder="Buscar por nome ou NIP..." />
+                    <CommandList>
+                      <CommandEmpty>Nenhum militar encontrado.</CommandEmpty>
+                      <CommandGroup>
+                        {militares.map((m) => (
+                          <CommandItem
+                            key={m.id}
+                            value={m.id}
+                            onSelect={(value) => {
+                              setForm({ ...form, militar_id: value });
+                              setMilitarSearchOpen(false);
+                            }}
+                          >
+                            <Check className={cn('mr-2 h-4 w-4', form.militar_id === m.id ? 'opacity-100' : 'opacity-0')} />
+                            <div className="flex flex-col">
+                              <span className="text-sm">{m.posto_graduacao} {m.nome_guerra}</span>
+                              <span className="text-xs text-muted-foreground">NIP: {m.nip}</span>
+                            </div>
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+              <input type="hidden" value={form.militar_id} required readOnly />
             </div>
 
             <div className="space-y-2">
