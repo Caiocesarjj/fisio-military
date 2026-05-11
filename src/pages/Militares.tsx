@@ -65,6 +65,18 @@ export default function Militares() {
   const [anexosMilitar, setAnexosMilitar] = useState<Militar | null>(null);
   const [anexosList, setAnexosList] = useState<any[]>([]);
   const [loadingAnexos, setLoadingAnexos] = useState(false);
+  const [previewAnexo, setPreviewAnexo] = useState<{ url: string; nome: string; mime: string } | null>(null);
+
+  const openPreview = async (anexo: any) => {
+    const { data, error } = await supabase.storage
+      .from('prontuario-anexos')
+      .createSignedUrl(anexo.file_path, 300);
+    if (error || !data) {
+      toast.error('Erro ao gerar visualização.');
+      return;
+    }
+    setPreviewAnexo({ url: data.signedUrl, nome: anexo.nome_arquivo, mime: anexo.mime_type || '' });
+  };
 
   const openAnexos = async (m: Militar) => {
     setAnexosMilitar(m);
