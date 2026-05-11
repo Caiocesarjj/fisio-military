@@ -959,6 +959,26 @@ export default function Prontuario() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <Dialog open={!!previewAnexo} onOpenChange={(o) => { if (!o) setPreviewAnexo(null); }}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto">
+          <DialogHeader>
+            <DialogTitle className="truncate pr-8">{previewAnexo?.nome}</DialogTitle>
+          </DialogHeader>
+          {previewAnexo && (
+            previewAnexo.mime.startsWith('image/') ? (
+              <img src={previewAnexo.url} alt={previewAnexo.nome} className="w-full h-auto rounded-md" />
+            ) : previewAnexo.mime === 'application/pdf' ? (
+              <iframe src={previewAnexo.url} title={previewAnexo.nome} className="w-full h-[75vh] rounded-md border" />
+            ) : (
+              <div className="text-center py-8 space-y-3">
+                <p className="text-sm text-muted-foreground">Pré-visualização indisponível para este tipo de arquivo.</p>
+                <Button onClick={() => window.open(previewAnexo.url, '_blank')}>Abrir em nova aba</Button>
+              </div>
+            )
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
