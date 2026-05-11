@@ -118,6 +118,12 @@ export default function Prontuario() {
   const [editing, setEditing] = useState(false);
   const [editingEvolucaoId, setEditingEvolucaoId] = useState<string | null>(null);
   const [evolucaoToDelete, setEvolucaoToDelete] = useState<Evolucao | null>(null);
+  const [anexos, setAnexos] = useState<any[]>([]);
+  const [anexoFile, setAnexoFile] = useState<File | null>(null);
+  const [anexoTipo, setAnexoTipo] = useState<string>('laudo');
+  const [anexoDescricao, setAnexoDescricao] = useState<string>('');
+  const [uploadingAnexo, setUploadingAnexo] = useState(false);
+  const [anexoToDelete, setAnexoToDelete] = useState<any | null>(null);
 
   useEffect(() => {
     fetchMilitares();
