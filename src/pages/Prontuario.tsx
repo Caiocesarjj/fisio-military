@@ -262,6 +262,7 @@ export default function Prontuario() {
       const input = document.getElementById('anexo-file-input') as HTMLInputElement | null;
       if (input) input.value = '';
       fetchAnexos(selectedProntuario.id);
+      fetchAllAnexos();
     } catch (err: any) {
       toast.error(err.message || 'Erro ao enviar arquivo.');
     }
