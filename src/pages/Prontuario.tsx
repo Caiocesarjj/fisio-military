@@ -1040,6 +1040,52 @@ export default function Prontuario() {
         </AlertDialogContent>
       </AlertDialog>
 
+      <Dialog open={!!anexoToEdit} onOpenChange={(o) => { if (!o) setAnexoToEdit(null); }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Editar anexo</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-1">
+              <Label>Nome do arquivo</Label>
+              <Input
+                value={editAnexoForm.nome_arquivo}
+                onChange={(e) => setEditAnexoForm({ ...editAnexoForm, nome_arquivo: e.target.value })}
+              />
+            </div>
+            <div className="space-y-1">
+              <Label>Tipo</Label>
+              <select
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                value={editAnexoForm.tipo}
+                onChange={(e) => setEditAnexoForm({ ...editAnexoForm, tipo: e.target.value })}
+              >
+                <option value="laudo">Laudo</option>
+                <option value="raio-x">Raio-X</option>
+                <option value="ressonancia">Ressonância</option>
+                <option value="tomografia">Tomografia</option>
+                <option value="ultrassom">Ultrassom</option>
+                <option value="outro">Outro</option>
+              </select>
+            </div>
+            <div className="space-y-1">
+              <Label>Descrição</Label>
+              <Textarea
+                value={editAnexoForm.descricao}
+                onChange={(e) => setEditAnexoForm({ ...editAnexoForm, descricao: e.target.value })}
+                placeholder="Ex: Raio-X joelho direito - 10/05/2026"
+              />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button type="button" variant="outline" onClick={() => setAnexoToEdit(null)}>Cancelar</Button>
+              <Button type="button" onClick={handleSaveEditAnexo} disabled={savingEditAnexo}>
+                {savingEditAnexo ? 'Salvando...' : 'Salvar'}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <Dialog open={!!exameMilitar} onOpenChange={(o) => { if (!o) setExameMilitar(null); }}>
         <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
