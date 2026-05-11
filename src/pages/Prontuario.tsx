@@ -189,6 +189,81 @@ export default function Prontuario() {
     setEditing(true);
     setDialogOpen(true);
     await fetchEvolucoes(prontuario.id);
+    await fetchAnexos(prontuario.id);
+  };
+
+  const fetchAnexos = async (prontuarioId: string) => {
+    const { data } = await supabase
+      .from('prontuario_anexos' as any)
+      .select('*')
+      .eq('prontuario_id', prontuarioId)
+      .order('created_at', { ascending: false });
+    setAnexos((data as any[]) || []);
+  };
+
+  const handleUploadAnexo = async () => {
+    if (!anexoFile || !selectedProntuario || !selectedMilitar || !user) {
+      toast.error('Selecione um arquivo.');
+      return;
+    }
+    setUploadingAnexo(true);
+    try {
+      const ext = anexoFile.name.split('.').pop();
+      const path = `${selectedProntuario.id}/${Date.now()}_${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from('prontuario-anexos')
+        .upload(path, anexoFile, { upsert: false, contentType: anexoFile.type });
+      if (upErr) throw upErr;
+
+      const { error: insErr } = await supabase.from('prontuario_anexos' as any).insert({
+        prontuario_id: selectedProntuario.id,
+        militar_id: selectedMilitar.id,
+        nome_arquivo: anexoFile.name,
+        tipo: anexoTipo,
+        descricao: anexoDescricao || null,
+        file_path: path,
+        mime_type: anexoFile.type,
+        uploaded_by: user.id,
+      } as any);
+      if (insErr) throw insErr;
+
+      toast.success('Arquivo enviado!');
+      setAnexoFile(null);
+      setAnexoDescricao('');
+      setAnexoTipo('laudo');
+      const input = document.getElementById('anexo-file-input') as HTMLInputElement | null;
+      if (input) input.value = '';
+      fetchAnexos(selectedProntuario.id);
+    } catch (err: any) {
+      toast.error(err.message || 'Erro ao enviar arquivo.');
+    }
+    setUploadingAnexo(false);
+  };
+
+  const handleDownloadAnexo = async (anexo: any) => {
+    try {
+      const { data, error } = await supabase.storage
+        .from('prontuario-anexos')
+        .createSignedUrl(anexo.file_path, 60);
+      if (error) throw error;
+      window.open(data.signedUrl, '_blank');
+    } catch (err: any) {
+      toast.error(err.message || 'Erro ao abrir arquivo.');
+    }
+  };
+
+  const handleDeleteAnexo = async () => {
+    if (!anexoToDelete || !selectedProntuario) return;
+    try {
+      await supabase.storage.from('prontuario-anexos').remove([anexoToDelete.file_path]);
+      const { error } = await supabase.from('prontuario_anexos' as any).delete().eq('id', anexoToDelete.id);
+      if (error) throw error;
+      toast.success('Anexo excluído.');
+      setAnexoToDelete(null);
+      fetchAnexos(selectedProntuario.id);
+    } catch (err: any) {
+      toast.error(err.message || 'Erro ao excluir.');
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
