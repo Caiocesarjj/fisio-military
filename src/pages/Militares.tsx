@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Plus, Search, Edit, UserX, X, Eye, FileText } from 'lucide-react';
+import { Plus, Search, Edit, UserX, X, Eye, FileText, ImageIcon, Download, Trash2 } from 'lucide-react';
 import TCLEModal from '@/components/TCLEModal';
 import { toast } from 'sonner';
 import { IMaskInput } from 'react-imask';
@@ -62,6 +62,45 @@ export default function Militares() {
   const [lesoes, setLesoes] = useState<Lesao[]>([]);
   const [fraturas, setFraturas] = useState<string[]>([]);
   const [tcleMilitar, setTcleMilitar] = useState<Militar | null>(null);
+  const [anexosMilitar, setAnexosMilitar] = useState<Militar | null>(null);
+  const [anexosList, setAnexosList] = useState<any[]>([]);
+  const [loadingAnexos, setLoadingAnexos] = useState(false);
+
+  const openAnexos = async (m: Militar) => {
+    setAnexosMilitar(m);
+    setLoadingAnexos(true);
+    setAnexosList([]);
+    const { data } = await supabase
+      .from('prontuario_anexos')
+      .select('*')
+      .eq('militar_id', m.id)
+      .order('created_at', { ascending: false });
+    setAnexosList(data || []);
+    setLoadingAnexos(false);
+  };
+
+  const downloadAnexo = async (anexo: any) => {
+    const { data, error } = await supabase.storage
+      .from('prontuario-anexos')
+      .createSignedUrl(anexo.file_path, 60);
+    if (error || !data) {
+      toast.error('Erro ao gerar link do arquivo.');
+      return;
+    }
+    window.open(data.signedUrl, '_blank');
+  };
+
+  const deleteAnexo = async (anexo: any) => {
+    if (!confirm('Excluir este anexo?')) return;
+    await supabase.storage.from('prontuario-anexos').remove([anexo.file_path]);
+    const { error } = await supabase.from('prontuario_anexos').delete().eq('id', anexo.id);
+    if (error) {
+      toast.error('Erro ao excluir.');
+      return;
+    }
+    toast.success('Anexo excluído.');
+    setAnexosList((prev) => prev.filter((a) => a.id !== anexo.id));
+  };
 
   const fetchMilitares = async () => {
     setFetching(true);
@@ -263,6 +302,9 @@ export default function Militares() {
                     <Button variant="ghost" size="icon" onClick={() => setTcleMilitar(m)} title="Gerar TCLE">
                       <FileText className="h-4 w-4" />
                     </Button>
+                    <Button variant="ghost" size="icon" onClick={() => openAnexos(m)} title="Ver laudos e imagens">
+                      <ImageIcon className="h-4 w-4" />
+                    </Button>
                     <Button variant="ghost" size="icon" onClick={() => toggleAtivo(m)}>
                       <UserX className="h-4 w-4" />
                     </Button>
@@ -371,6 +413,40 @@ export default function Militares() {
       {tcleMilitar && (
         <TCLEModal open={!!tcleMilitar} onOpenChange={(o) => !o && setTcleMilitar(null)} militar={tcleMilitar} />
       )}
+
+      <Dialog open={!!anexosMilitar} onOpenChange={(o) => { if (!o) { setAnexosMilitar(null); setAnexosList([]); } }}>
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Laudos e Imagens — {anexosMilitar?.nome_guerra}</DialogTitle>
+          </DialogHeader>
+          {loadingAnexos ? (
+            <p className="text-sm text-muted-foreground py-4">Carregando...</p>
+          ) : anexosList.length === 0 ? (
+            <p className="text-sm text-muted-foreground py-4">Nenhum anexo cadastrado para este militar.</p>
+          ) : (
+            <div className="space-y-2">
+              {anexosList.map((a) => (
+                <div key={a.id} className="flex items-center gap-3 p-3 rounded-md border bg-card">
+                  <FileText className="h-5 w-5 text-muted-foreground shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">{a.nome_arquivo}</p>
+                    <div className="flex gap-2 items-center mt-1">
+                      <Badge variant="secondary" className="text-xs uppercase">{a.tipo}</Badge>
+                      {a.descricao && <span className="text-xs text-muted-foreground truncate">{a.descricao}</span>}
+                    </div>
+                  </div>
+                  <Button variant="ghost" size="icon" onClick={() => downloadAnexo(a)} title="Visualizar/Baixar">
+                    <Download className="h-4 w-4" />
+                  </Button>
+                  <Button variant="ghost" size="icon" onClick={() => deleteAnexo(a)} title="Excluir">
+                    <Trash2 className="h-4 w-4 text-destructive" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
