@@ -582,6 +582,19 @@ export default function Prontuario() {
                         Novo
                       </Badge>
                     )}
+                    {anexosByMilitar[mil.id]?.length > 0 && (
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        className="h-7 px-2 text-xs"
+                        onClick={(e) => { e.stopPropagation(); setExameMilitar(mil); }}
+                        title="Ver exames"
+                      >
+                        <ImageIcon className="h-3 w-3 mr-1" />
+                        Exame ({anexosByMilitar[mil.id].length})
+                      </Button>
+                    )}
                   </div>
                 </div>
               </CardContent>
