@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Plus, Search, Edit, UserX, X, Eye, FileText } from 'lucide-react';
+import { Plus, Search, Edit, UserX, X, Eye, FileText, ImageIcon, Download, Trash2 } from 'lucide-react';
 import TCLEModal from '@/components/TCLEModal';
 import { toast } from 'sonner';
 import { IMaskInput } from 'react-imask';
