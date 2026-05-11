@@ -119,7 +119,7 @@ export default function Prontuario() {
   const [editingEvolucaoId, setEditingEvolucaoId] = useState<string | null>(null);
   const [evolucaoToDelete, setEvolucaoToDelete] = useState<Evolucao | null>(null);
   const [anexos, setAnexos] = useState<any[]>([]);
-  const [anexoFile, setAnexoFile] = useState<File | null>(null);
+  const [anexoFiles, setAnexoFiles] = useState<File[]>([]);
   const [anexoTipo, setAnexoTipo] = useState<string>('laudo');
   const [anexoDescricao, setAnexoDescricao] = useState<string>('');
   const [uploadingAnexo, setUploadingAnexo] = useState(false);
@@ -230,33 +230,45 @@ export default function Prontuario() {
   };
 
   const handleUploadAnexo = async () => {
-    if (!anexoFile || !selectedProntuario || !selectedMilitar || !user) {
-      toast.error('Selecione um arquivo.');
+    if (!anexoFiles.length || !selectedProntuario || !selectedMilitar || !user) {
+      toast.error('Selecione ao menos um arquivo.');
       return;
     }
     setUploadingAnexo(true);
+    let okCount = 0;
+    let failCount = 0;
     try {
-      const ext = anexoFile.name.split('.').pop();
-      const path = `${selectedProntuario.id}/${Date.now()}_${Math.random().toString(36).slice(2, 8)}.${ext}`;
-      const { error: upErr } = await supabase.storage
-        .from('prontuario-anexos')
-        .upload(path, anexoFile, { upsert: false, contentType: anexoFile.type });
-      if (upErr) throw upErr;
+      for (const file of anexoFiles) {
+        try {
+          const ext = file.name.split('.').pop();
+          const path = `${selectedProntuario.id}/${Date.now()}_${Math.random().toString(36).slice(2, 8)}.${ext}`;
+          const { error: upErr } = await supabase.storage
+            .from('prontuario-anexos')
+            .upload(path, file, { upsert: false, contentType: file.type });
+          if (upErr) throw upErr;
 
-      const { error: insErr } = await supabase.from('prontuario_anexos' as any).insert({
-        prontuario_id: selectedProntuario.id,
-        militar_id: selectedMilitar.id,
-        nome_arquivo: anexoFile.name,
-        tipo: anexoTipo,
-        descricao: anexoDescricao || null,
-        file_path: path,
-        mime_type: anexoFile.type,
-        uploaded_by: user.id,
-      } as any);
-      if (insErr) throw insErr;
+          const { error: insErr } = await supabase.from('prontuario_anexos' as any).insert({
+            prontuario_id: selectedProntuario.id,
+            militar_id: selectedMilitar.id,
+            nome_arquivo: file.name,
+            tipo: anexoTipo,
+            descricao: anexoDescricao || null,
+            file_path: path,
+            mime_type: file.type,
+            uploaded_by: user.id,
+          } as any);
+          if (insErr) throw insErr;
+          okCount++;
+        } catch (err) {
+          failCount++;
+          console.error('Falha no upload:', file.name, err);
+        }
+      }
 
-      toast.success('Arquivo enviado!');
-      setAnexoFile(null);
+      if (okCount > 0) toast.success(`${okCount} arquivo(s) enviado(s)!`);
+      if (failCount > 0) toast.error(`${failCount} arquivo(s) falharam.`);
+
+      setAnexoFiles([]);
       setAnexoDescricao('');
       setAnexoTipo('laudo');
       const input = document.getElementById('anexo-file-input') as HTMLInputElement | null;
@@ -264,7 +276,7 @@ export default function Prontuario() {
       fetchAnexos(selectedProntuario.id);
       fetchAllAnexos();
     } catch (err: any) {
-      toast.error(err.message || 'Erro ao enviar arquivo.');
+      toast.error(err.message || 'Erro ao enviar arquivos.');
     }
     setUploadingAnexo(false);
   };
@@ -868,15 +880,19 @@ export default function Prontuario() {
                     </div>
                     <div className="flex flex-col sm:flex-row gap-2 sm:items-end">
                       <div className="flex-1 space-y-1">
-                        <Label>Arquivo (PDF ou imagem)</Label>
+                        <Label>Arquivos (PDF ou imagens) — múltiplos</Label>
                         <Input
                           id="anexo-file-input"
                           type="file"
+                          multiple
                           accept="image/*,application/pdf"
-                          onChange={(e) => setAnexoFile(e.target.files?.[0] || null)}
+                          onChange={(e) => setAnexoFiles(Array.from(e.target.files || []))}
                         />
+                        {anexoFiles.length > 0 && (
+                          <p className="text-xs text-muted-foreground">{anexoFiles.length} arquivo(s) selecionado(s)</p>
+                        )}
                       </div>
-                      <Button type="button" onClick={handleUploadAnexo} disabled={uploadingAnexo || !anexoFile}>
+                      <Button type="button" onClick={handleUploadAnexo} disabled={uploadingAnexo || !anexoFiles.length}>
                         <Upload className="h-4 w-4 mr-1" />
                         {uploadingAnexo ? 'Enviando...' : 'Enviar'}
                       </Button>
