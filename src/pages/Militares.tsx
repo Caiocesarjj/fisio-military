@@ -62,6 +62,45 @@ export default function Militares() {
   const [lesoes, setLesoes] = useState<Lesao[]>([]);
   const [fraturas, setFraturas] = useState<string[]>([]);
   const [tcleMilitar, setTcleMilitar] = useState<Militar | null>(null);
+  const [anexosMilitar, setAnexosMilitar] = useState<Militar | null>(null);
+  const [anexosList, setAnexosList] = useState<any[]>([]);
+  const [loadingAnexos, setLoadingAnexos] = useState(false);
+
+  const openAnexos = async (m: Militar) => {
+    setAnexosMilitar(m);
+    setLoadingAnexos(true);
+    setAnexosList([]);
+    const { data } = await supabase
+      .from('prontuario_anexos')
+      .select('*')
+      .eq('militar_id', m.id)
+      .order('created_at', { ascending: false });
+    setAnexosList(data || []);
+    setLoadingAnexos(false);
+  };
+
+  const downloadAnexo = async (anexo: any) => {
+    const { data, error } = await supabase.storage
+      .from('prontuario-anexos')
+      .createSignedUrl(anexo.file_path, 60);
+    if (error || !data) {
+      toast.error('Erro ao gerar link do arquivo.');
+      return;
+    }
+    window.open(data.signedUrl, '_blank');
+  };
+
+  const deleteAnexo = async (anexo: any) => {
+    if (!confirm('Excluir este anexo?')) return;
+    await supabase.storage.from('prontuario-anexos').remove([anexo.file_path]);
+    const { error } = await supabase.from('prontuario_anexos').delete().eq('id', anexo.id);
+    if (error) {
+      toast.error('Erro ao excluir.');
+      return;
+    }
+    toast.success('Anexo excluído.');
+    setAnexosList((prev) => prev.filter((a) => a.id !== anexo.id));
+  };
 
   const fetchMilitares = async () => {
     setFetching(true);
