@@ -991,6 +991,50 @@ export default function Prontuario() {
         </AlertDialogContent>
       </AlertDialog>
 
+      <Dialog open={!!exameMilitar} onOpenChange={(o) => { if (!o) setExameMilitar(null); }}>
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <ImageIcon className="h-5 w-5" />
+              Exames de {exameMilitar?.nome_guerra}
+            </DialogTitle>
+          </DialogHeader>
+          {exameMilitar && (
+            <div className="space-y-2">
+              {(anexosByMilitar[exameMilitar.id] || []).map((a) => (
+                <div key={a.id} className="flex items-center justify-between border rounded-lg p-3 gap-2">
+                  <div className="flex items-center gap-3 min-w-0">
+                    {a.mime_type?.startsWith('image/') ? (
+                      <ImageIcon className="h-5 w-5 text-muted-foreground shrink-0" />
+                    ) : (
+                      <FileText className="h-5 w-5 text-muted-foreground shrink-0" />
+                    )}
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-foreground truncate">{a.nome_arquivo}</p>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <Badge variant="secondary" className="text-xs">{a.tipo}</Badge>
+                        {a.descricao && <span className="text-xs text-muted-foreground truncate">{a.descricao}</span>}
+                        <span className="text-xs text-muted-foreground">
+                          {format(new Date(a.created_at), 'dd/MM/yyyy', { locale: ptBR })}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex gap-1 shrink-0">
+                    <Button type="button" size="sm" variant="outline" onClick={() => handlePreviewAnexo(a)} title="Visualizar">
+                      <Maximize2 className="h-4 w-4" />
+                    </Button>
+                    <Button type="button" size="sm" variant="outline" onClick={() => handleDownloadAnexo(a)} title="Abrir">
+                      <Download className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
       <Dialog open={!!previewAnexo} onOpenChange={(o) => { if (!o) setPreviewAnexo(null); }}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto">
           <DialogHeader>
