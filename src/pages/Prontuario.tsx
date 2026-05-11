@@ -787,6 +787,96 @@ export default function Prontuario() {
                   </CardContent>
                 </Card>
               )}
+
+              {/* 7. Anexos: laudos e raio-x */}
+              {editing && selectedProntuario && (
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <Paperclip className="h-4 w-4" />
+                      7. Laudos e Imagens (Raio-X)
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                      <div className="space-y-1">
+                        <Label>Tipo</Label>
+                        <select
+                          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                          value={anexoTipo}
+                          onChange={(e) => setAnexoTipo(e.target.value)}
+                        >
+                          <option value="laudo">Laudo</option>
+                          <option value="raio-x">Raio-X</option>
+                          <option value="ressonancia">Ressonância</option>
+                          <option value="tomografia">Tomografia</option>
+                          <option value="ultrassom">Ultrassom</option>
+                          <option value="outro">Outro</option>
+                        </select>
+                      </div>
+                      <div className="space-y-1 md:col-span-2">
+                        <Label>Descrição (opcional)</Label>
+                        <Input
+                          value={anexoDescricao}
+                          onChange={(e) => setAnexoDescricao(e.target.value)}
+                          placeholder="Ex: Raio-X joelho direito - 10/05/2026"
+                        />
+                      </div>
+                    </div>
+                    <div className="flex flex-col sm:flex-row gap-2 sm:items-end">
+                      <div className="flex-1 space-y-1">
+                        <Label>Arquivo (PDF ou imagem)</Label>
+                        <Input
+                          id="anexo-file-input"
+                          type="file"
+                          accept="image/*,application/pdf"
+                          onChange={(e) => setAnexoFile(e.target.files?.[0] || null)}
+                        />
+                      </div>
+                      <Button type="button" onClick={handleUploadAnexo} disabled={uploadingAnexo || !anexoFile}>
+                        <Upload className="h-4 w-4 mr-1" />
+                        {uploadingAnexo ? 'Enviando...' : 'Enviar'}
+                      </Button>
+                    </div>
+
+                    {anexos.length === 0 ? (
+                      <p className="text-sm text-muted-foreground text-center py-4">Nenhum anexo enviado.</p>
+                    ) : (
+                      <div className="space-y-2">
+                        {anexos.map((a) => (
+                          <div key={a.id} className="flex items-center justify-between border rounded-lg p-3 gap-2">
+                            <div className="flex items-center gap-3 min-w-0">
+                              {a.mime_type?.startsWith('image/') ? (
+                                <ImageIcon className="h-5 w-5 text-muted-foreground shrink-0" />
+                              ) : (
+                                <FileText className="h-5 w-5 text-muted-foreground shrink-0" />
+                              )}
+                              <div className="min-w-0">
+                                <p className="text-sm font-medium text-foreground truncate">{a.nome_arquivo}</p>
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <Badge variant="secondary" className="text-xs">{a.tipo}</Badge>
+                                  {a.descricao && <span className="text-xs text-muted-foreground truncate">{a.descricao}</span>}
+                                  <span className="text-xs text-muted-foreground">
+                                    {format(new Date(a.created_at), 'dd/MM/yyyy', { locale: ptBR })}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                            <div className="flex gap-1 shrink-0">
+                              <Button type="button" size="sm" variant="outline" onClick={() => handleDownloadAnexo(a)}>
+                                <Download className="h-4 w-4" />
+                              </Button>
+                              <Button type="button" size="sm" variant="outline" onClick={() => setAnexoToDelete(a)}>
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
             </div>
           )}
         </DialogContent>
