@@ -124,6 +124,36 @@ export default function Prontuario() {
   const [anexoDescricao, setAnexoDescricao] = useState<string>('');
   const [uploadingAnexo, setUploadingAnexo] = useState(false);
   const [anexoToDelete, setAnexoToDelete] = useState<any | null>(null);
+  const [anexoToEdit, setAnexoToEdit] = useState<any | null>(null);
+  const [editAnexoForm, setEditAnexoForm] = useState({ tipo: 'laudo', descricao: '', nome_arquivo: '' });
+  const [savingEditAnexo, setSavingEditAnexo] = useState(false);
+
+  const openEditAnexo = (a: any) => {
+    setAnexoToEdit(a);
+    setEditAnexoForm({ tipo: a.tipo || 'laudo', descricao: a.descricao || '', nome_arquivo: a.nome_arquivo || '' });
+  };
+
+  const handleSaveEditAnexo = async () => {
+    if (!anexoToEdit) return;
+    setSavingEditAnexo(true);
+    const { error } = await supabase
+      .from('prontuario_anexos' as any)
+      .update({
+        tipo: editAnexoForm.tipo,
+        descricao: editAnexoForm.descricao || null,
+        nome_arquivo: editAnexoForm.nome_arquivo,
+      } as any)
+      .eq('id', anexoToEdit.id);
+    setSavingEditAnexo(false);
+    if (error) {
+      toast.error('Erro ao salvar.');
+      return;
+    }
+    toast.success('Anexo atualizado!');
+    setAnexoToEdit(null);
+    if (selectedProntuario) fetchAnexos(selectedProntuario.id);
+    fetchAllAnexos();
+  };
   const [previewAnexo, setPreviewAnexo] = useState<{ url: string; nome: string; mime: string } | null>(null);
   const [anexosByMilitar, setAnexosByMilitar] = useState<Record<string, any[]>>({});
   const [exameMilitar, setExameMilitar] = useState<Militar | null>(null);
