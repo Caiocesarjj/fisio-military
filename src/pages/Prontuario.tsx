@@ -119,7 +119,7 @@ export default function Prontuario() {
   const [editingEvolucaoId, setEditingEvolucaoId] = useState<string | null>(null);
   const [evolucaoToDelete, setEvolucaoToDelete] = useState<Evolucao | null>(null);
   const [anexos, setAnexos] = useState<any[]>([]);
-  const [anexoFile, setAnexoFile] = useState<File | null>(null);
+  const [anexoFiles, setAnexoFiles] = useState<File[]>([]);
   const [anexoTipo, setAnexoTipo] = useState<string>('laudo');
   const [anexoDescricao, setAnexoDescricao] = useState<string>('');
   const [uploadingAnexo, setUploadingAnexo] = useState(false);
