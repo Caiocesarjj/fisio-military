@@ -155,6 +155,7 @@ export default function Prontuario() {
   useEffect(() => {
     fetchMilitares();
     fetchProntuarios();
+    fetchAllAnexos();
   }, []);
 
   const fetchMilitares = async () => {
