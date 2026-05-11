@@ -124,6 +124,36 @@ export default function Prontuario() {
   const [anexoDescricao, setAnexoDescricao] = useState<string>('');
   const [uploadingAnexo, setUploadingAnexo] = useState(false);
   const [anexoToDelete, setAnexoToDelete] = useState<any | null>(null);
+  const [anexoToEdit, setAnexoToEdit] = useState<any | null>(null);
+  const [editAnexoForm, setEditAnexoForm] = useState({ tipo: 'laudo', descricao: '', nome_arquivo: '' });
+  const [savingEditAnexo, setSavingEditAnexo] = useState(false);
+
+  const openEditAnexo = (a: any) => {
+    setAnexoToEdit(a);
+    setEditAnexoForm({ tipo: a.tipo || 'laudo', descricao: a.descricao || '', nome_arquivo: a.nome_arquivo || '' });
+  };
+
+  const handleSaveEditAnexo = async () => {
+    if (!anexoToEdit) return;
+    setSavingEditAnexo(true);
+    const { error } = await supabase
+      .from('prontuario_anexos' as any)
+      .update({
+        tipo: editAnexoForm.tipo,
+        descricao: editAnexoForm.descricao || null,
+        nome_arquivo: editAnexoForm.nome_arquivo,
+      } as any)
+      .eq('id', anexoToEdit.id);
+    setSavingEditAnexo(false);
+    if (error) {
+      toast.error('Erro ao salvar.');
+      return;
+    }
+    toast.success('Anexo atualizado!');
+    setAnexoToEdit(null);
+    if (selectedProntuario) fetchAnexos(selectedProntuario.id);
+    fetchAllAnexos();
+  };
   const [previewAnexo, setPreviewAnexo] = useState<{ url: string; nome: string; mime: string } | null>(null);
   const [anexosByMilitar, setAnexosByMilitar] = useState<Record<string, any[]>>({});
   const [exameMilitar, setExameMilitar] = useState<Militar | null>(null);
@@ -928,6 +958,9 @@ export default function Prontuario() {
                               <Button type="button" size="sm" variant="outline" onClick={() => handleDownloadAnexo(a)} title="Baixar">
                                 <Download className="h-4 w-4" />
                               </Button>
+                              <Button type="button" size="sm" variant="outline" onClick={() => openEditAnexo(a)} title="Editar">
+                                <Pencil className="h-4 w-4" />
+                              </Button>
                               <Button type="button" size="sm" variant="outline" onClick={() => setAnexoToDelete(a)} title="Excluir">
                                 <Trash2 className="h-4 w-4" />
                               </Button>
@@ -1006,6 +1039,52 @@ export default function Prontuario() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <Dialog open={!!anexoToEdit} onOpenChange={(o) => { if (!o) setAnexoToEdit(null); }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Editar anexo</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-1">
+              <Label>Nome do arquivo</Label>
+              <Input
+                value={editAnexoForm.nome_arquivo}
+                onChange={(e) => setEditAnexoForm({ ...editAnexoForm, nome_arquivo: e.target.value })}
+              />
+            </div>
+            <div className="space-y-1">
+              <Label>Tipo</Label>
+              <select
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                value={editAnexoForm.tipo}
+                onChange={(e) => setEditAnexoForm({ ...editAnexoForm, tipo: e.target.value })}
+              >
+                <option value="laudo">Laudo</option>
+                <option value="raio-x">Raio-X</option>
+                <option value="ressonancia">Ressonância</option>
+                <option value="tomografia">Tomografia</option>
+                <option value="ultrassom">Ultrassom</option>
+                <option value="outro">Outro</option>
+              </select>
+            </div>
+            <div className="space-y-1">
+              <Label>Descrição</Label>
+              <Textarea
+                value={editAnexoForm.descricao}
+                onChange={(e) => setEditAnexoForm({ ...editAnexoForm, descricao: e.target.value })}
+                placeholder="Ex: Raio-X joelho direito - 10/05/2026"
+              />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button type="button" variant="outline" onClick={() => setAnexoToEdit(null)}>Cancelar</Button>
+              <Button type="button" onClick={handleSaveEditAnexo} disabled={savingEditAnexo}>
+                {savingEditAnexo ? 'Salvando...' : 'Salvar'}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={!!exameMilitar} onOpenChange={(o) => { if (!o) setExameMilitar(null); }}>
         <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
