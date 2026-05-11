@@ -21,7 +21,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { EvaScale } from '@/components/EvaScale';
-import { Plus, Search, FileText, CalendarDays, User, Download, Pencil, Trash2, Upload, Image as ImageIcon, Paperclip } from 'lucide-react';
+import { Plus, Search, FileText, CalendarDays, User, Download, Pencil, Trash2, Upload, Image as ImageIcon, Paperclip, Maximize2 } from 'lucide-react';
 import jsPDF from 'jspdf';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
@@ -124,6 +124,18 @@ export default function Prontuario() {
   const [anexoDescricao, setAnexoDescricao] = useState<string>('');
   const [uploadingAnexo, setUploadingAnexo] = useState(false);
   const [anexoToDelete, setAnexoToDelete] = useState<any | null>(null);
+  const [previewAnexo, setPreviewAnexo] = useState<{ url: string; nome: string; mime: string } | null>(null);
+
+  const handlePreviewAnexo = async (anexo: any) => {
+    const { data, error } = await supabase.storage
+      .from('prontuario-anexos')
+      .createSignedUrl(anexo.file_path, 300);
+    if (error || !data) {
+      toast.error('Erro ao gerar visualização.');
+      return;
+    }
+    setPreviewAnexo({ url: data.signedUrl, nome: anexo.nome_arquivo, mime: anexo.mime_type || '' });
+  };
 
   useEffect(() => {
     fetchMilitares();
@@ -863,10 +875,13 @@ export default function Prontuario() {
                               </div>
                             </div>
                             <div className="flex gap-1 shrink-0">
-                              <Button type="button" size="sm" variant="outline" onClick={() => handleDownloadAnexo(a)}>
+                              <Button type="button" size="sm" variant="outline" onClick={() => handlePreviewAnexo(a)} title="Visualizar">
+                                <Maximize2 className="h-4 w-4" />
+                              </Button>
+                              <Button type="button" size="sm" variant="outline" onClick={() => handleDownloadAnexo(a)} title="Baixar">
                                 <Download className="h-4 w-4" />
                               </Button>
-                              <Button type="button" size="sm" variant="outline" onClick={() => setAnexoToDelete(a)}>
+                              <Button type="button" size="sm" variant="outline" onClick={() => setAnexoToDelete(a)} title="Excluir">
                                 <Trash2 className="h-4 w-4" />
                               </Button>
                             </div>
@@ -944,6 +959,26 @@ export default function Prontuario() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <Dialog open={!!previewAnexo} onOpenChange={(o) => { if (!o) setPreviewAnexo(null); }}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto">
+          <DialogHeader>
+            <DialogTitle className="truncate pr-8">{previewAnexo?.nome}</DialogTitle>
+          </DialogHeader>
+          {previewAnexo && (
+            previewAnexo.mime.startsWith('image/') ? (
+              <img src={previewAnexo.url} alt={previewAnexo.nome} className="w-full h-auto rounded-md" />
+            ) : previewAnexo.mime === 'application/pdf' ? (
+              <iframe src={previewAnexo.url} title={previewAnexo.nome} className="w-full h-[75vh] rounded-md border" />
+            ) : (
+              <div className="text-center py-8 space-y-3">
+                <p className="text-sm text-muted-foreground">Pré-visualização indisponível para este tipo de arquivo.</p>
+                <Button onClick={() => window.open(previewAnexo.url, '_blank')}>Abrir em nova aba</Button>
+              </div>
+            )
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
