@@ -958,6 +958,9 @@ export default function Prontuario() {
                               <Button type="button" size="sm" variant="outline" onClick={() => handleDownloadAnexo(a)} title="Baixar">
                                 <Download className="h-4 w-4" />
                               </Button>
+                              <Button type="button" size="sm" variant="outline" onClick={() => openEditAnexo(a)} title="Editar">
+                                <Pencil className="h-4 w-4" />
+                              </Button>
                               <Button type="button" size="sm" variant="outline" onClick={() => setAnexoToDelete(a)} title="Excluir">
                                 <Trash2 className="h-4 w-4" />
                               </Button>
