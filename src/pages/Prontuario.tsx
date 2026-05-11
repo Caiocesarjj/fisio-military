@@ -125,6 +125,21 @@ export default function Prontuario() {
   const [uploadingAnexo, setUploadingAnexo] = useState(false);
   const [anexoToDelete, setAnexoToDelete] = useState<any | null>(null);
   const [previewAnexo, setPreviewAnexo] = useState<{ url: string; nome: string; mime: string } | null>(null);
+  const [anexosByMilitar, setAnexosByMilitar] = useState<Record<string, any[]>>({});
+  const [exameMilitar, setExameMilitar] = useState<Militar | null>(null);
+
+  const fetchAllAnexos = async () => {
+    const { data } = await supabase
+      .from('prontuario_anexos' as any)
+      .select('*')
+      .order('created_at', { ascending: false });
+    const grouped: Record<string, any[]> = {};
+    ((data as any[]) || []).forEach((a) => {
+      if (!grouped[a.militar_id]) grouped[a.militar_id] = [];
+      grouped[a.militar_id].push(a);
+    });
+    setAnexosByMilitar(grouped);
+  };
 
   const handlePreviewAnexo = async (anexo: any) => {
     const { data, error } = await supabase.storage
@@ -140,6 +155,7 @@ export default function Prontuario() {
   useEffect(() => {
     fetchMilitares();
     fetchProntuarios();
+    fetchAllAnexos();
   }, []);
 
   const fetchMilitares = async () => {
@@ -246,6 +262,7 @@ export default function Prontuario() {
       const input = document.getElementById('anexo-file-input') as HTMLInputElement | null;
       if (input) input.value = '';
       fetchAnexos(selectedProntuario.id);
+      fetchAllAnexos();
     } catch (err: any) {
       toast.error(err.message || 'Erro ao enviar arquivo.');
     }
@@ -273,6 +290,7 @@ export default function Prontuario() {
       toast.success('Anexo excluído.');
       setAnexoToDelete(null);
       fetchAnexos(selectedProntuario.id);
+      fetchAllAnexos();
     } catch (err: any) {
       toast.error(err.message || 'Erro ao excluir.');
     }
@@ -563,6 +581,19 @@ export default function Prontuario() {
                         <Plus className="h-3 w-3 mr-1" />
                         Novo
                       </Badge>
+                    )}
+                    {anexosByMilitar[mil.id]?.length > 0 && (
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        className="h-7 px-2 text-xs"
+                        onClick={(e) => { e.stopPropagation(); setExameMilitar(mil); }}
+                        title="Ver exames"
+                      >
+                        <ImageIcon className="h-3 w-3 mr-1" />
+                        Exame ({anexosByMilitar[mil.id].length})
+                      </Button>
                     )}
                   </div>
                 </div>
@@ -959,6 +990,50 @@ export default function Prontuario() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <Dialog open={!!exameMilitar} onOpenChange={(o) => { if (!o) setExameMilitar(null); }}>
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <ImageIcon className="h-5 w-5" />
+              Exames de {exameMilitar?.nome_guerra}
+            </DialogTitle>
+          </DialogHeader>
+          {exameMilitar && (
+            <div className="space-y-2">
+              {(anexosByMilitar[exameMilitar.id] || []).map((a) => (
+                <div key={a.id} className="flex items-center justify-between border rounded-lg p-3 gap-2">
+                  <div className="flex items-center gap-3 min-w-0">
+                    {a.mime_type?.startsWith('image/') ? (
+                      <ImageIcon className="h-5 w-5 text-muted-foreground shrink-0" />
+                    ) : (
+                      <FileText className="h-5 w-5 text-muted-foreground shrink-0" />
+                    )}
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-foreground truncate">{a.nome_arquivo}</p>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <Badge variant="secondary" className="text-xs">{a.tipo}</Badge>
+                        {a.descricao && <span className="text-xs text-muted-foreground truncate">{a.descricao}</span>}
+                        <span className="text-xs text-muted-foreground">
+                          {format(new Date(a.created_at), 'dd/MM/yyyy', { locale: ptBR })}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex gap-1 shrink-0">
+                    <Button type="button" size="sm" variant="outline" onClick={() => handlePreviewAnexo(a)} title="Visualizar">
+                      <Maximize2 className="h-4 w-4" />
+                    </Button>
+                    <Button type="button" size="sm" variant="outline" onClick={() => handleDownloadAnexo(a)} title="Abrir">
+                      <Download className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={!!previewAnexo} onOpenChange={(o) => { if (!o) setPreviewAnexo(null); }}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto">
