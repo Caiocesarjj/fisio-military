@@ -124,6 +124,18 @@ export default function Prontuario() {
   const [anexoDescricao, setAnexoDescricao] = useState<string>('');
   const [uploadingAnexo, setUploadingAnexo] = useState(false);
   const [anexoToDelete, setAnexoToDelete] = useState<any | null>(null);
+  const [previewAnexo, setPreviewAnexo] = useState<{ url: string; nome: string; mime: string } | null>(null);
+
+  const handlePreviewAnexo = async (anexo: any) => {
+    const { data, error } = await supabase.storage
+      .from('prontuario-anexos')
+      .createSignedUrl(anexo.file_path, 300);
+    if (error || !data) {
+      toast.error('Erro ao gerar visualização.');
+      return;
+    }
+    setPreviewAnexo({ url: data.signedUrl, nome: anexo.nome_arquivo, mime: anexo.mime_type || '' });
+  };
 
   useEffect(() => {
     fetchMilitares();
