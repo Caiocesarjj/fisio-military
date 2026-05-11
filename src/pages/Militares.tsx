@@ -447,7 +447,10 @@ export default function Militares() {
                       {a.descricao && <span className="text-xs text-muted-foreground truncate">{a.descricao}</span>}
                     </div>
                   </div>
-                  <Button variant="ghost" size="icon" onClick={() => downloadAnexo(a)} title="Visualizar/Baixar">
+                  <Button variant="ghost" size="icon" onClick={() => openPreview(a)} title="Visualizar">
+                    <Maximize2 className="h-4 w-4" />
+                  </Button>
+                  <Button variant="ghost" size="icon" onClick={() => downloadAnexo(a)} title="Baixar">
                     <Download className="h-4 w-4" />
                   </Button>
                   <Button variant="ghost" size="icon" onClick={() => deleteAnexo(a)} title="Excluir">
