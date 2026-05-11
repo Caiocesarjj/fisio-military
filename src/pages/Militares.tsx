@@ -413,6 +413,40 @@ export default function Militares() {
       {tcleMilitar && (
         <TCLEModal open={!!tcleMilitar} onOpenChange={(o) => !o && setTcleMilitar(null)} militar={tcleMilitar} />
       )}
+
+      <Dialog open={!!anexosMilitar} onOpenChange={(o) => { if (!o) { setAnexosMilitar(null); setAnexosList([]); } }}>
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Laudos e Imagens — {anexosMilitar?.nome_guerra}</DialogTitle>
+          </DialogHeader>
+          {loadingAnexos ? (
+            <p className="text-sm text-muted-foreground py-4">Carregando...</p>
+          ) : anexosList.length === 0 ? (
+            <p className="text-sm text-muted-foreground py-4">Nenhum anexo cadastrado para este militar.</p>
+          ) : (
+            <div className="space-y-2">
+              {anexosList.map((a) => (
+                <div key={a.id} className="flex items-center gap-3 p-3 rounded-md border bg-card">
+                  <FileText className="h-5 w-5 text-muted-foreground shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">{a.nome_arquivo}</p>
+                    <div className="flex gap-2 items-center mt-1">
+                      <Badge variant="secondary" className="text-xs uppercase">{a.tipo}</Badge>
+                      {a.descricao && <span className="text-xs text-muted-foreground truncate">{a.descricao}</span>}
+                    </div>
+                  </div>
+                  <Button variant="ghost" size="icon" onClick={() => downloadAnexo(a)} title="Visualizar/Baixar">
+                    <Download className="h-4 w-4" />
+                  </Button>
+                  <Button variant="ghost" size="icon" onClick={() => deleteAnexo(a)} title="Excluir">
+                    <Trash2 className="h-4 w-4 text-destructive" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
