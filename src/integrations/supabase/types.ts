@@ -300,6 +300,45 @@ export type Database = {
         }
         Relationships: []
       }
+      prontuario_anexos: {
+        Row: {
+          created_at: string
+          descricao: string | null
+          file_path: string
+          id: string
+          militar_id: string
+          mime_type: string | null
+          nome_arquivo: string
+          prontuario_id: string
+          tipo: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          descricao?: string | null
+          file_path: string
+          id?: string
+          militar_id: string
+          mime_type?: string | null
+          nome_arquivo: string
+          prontuario_id: string
+          tipo?: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          descricao?: string | null
+          file_path?: string
+          id?: string
+          militar_id?: string
+          mime_type?: string | null
+          nome_arquivo?: string
+          prontuario_id?: string
+          tipo?: string
+          uploaded_by?: string | null
+        }
+        Relationships: []
+      }
       prontuario_evolucoes: {
         Row: {
           created_at: string

@@ -21,7 +21,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { EvaScale } from '@/components/EvaScale';
-import { Plus, Search, FileText, CalendarDays, User, Download, Pencil, Trash2 } from 'lucide-react';
+import { Plus, Search, FileText, CalendarDays, User, Download, Pencil, Trash2, Upload, Image as ImageIcon, Paperclip } from 'lucide-react';
 import jsPDF from 'jspdf';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
@@ -118,6 +118,12 @@ export default function Prontuario() {
   const [editing, setEditing] = useState(false);
   const [editingEvolucaoId, setEditingEvolucaoId] = useState<string | null>(null);
   const [evolucaoToDelete, setEvolucaoToDelete] = useState<Evolucao | null>(null);
+  const [anexos, setAnexos] = useState<any[]>([]);
+  const [anexoFile, setAnexoFile] = useState<File | null>(null);
+  const [anexoTipo, setAnexoTipo] = useState<string>('laudo');
+  const [anexoDescricao, setAnexoDescricao] = useState<string>('');
+  const [uploadingAnexo, setUploadingAnexo] = useState(false);
+  const [anexoToDelete, setAnexoToDelete] = useState<any | null>(null);
 
   useEffect(() => {
     fetchMilitares();
@@ -183,6 +189,81 @@ export default function Prontuario() {
     setEditing(true);
     setDialogOpen(true);
     await fetchEvolucoes(prontuario.id);
+    await fetchAnexos(prontuario.id);
+  };
+
+  const fetchAnexos = async (prontuarioId: string) => {
+    const { data } = await supabase
+      .from('prontuario_anexos' as any)
+      .select('*')
+      .eq('prontuario_id', prontuarioId)
+      .order('created_at', { ascending: false });
+    setAnexos((data as any[]) || []);
+  };
+
+  const handleUploadAnexo = async () => {
+    if (!anexoFile || !selectedProntuario || !selectedMilitar || !user) {
+      toast.error('Selecione um arquivo.');
+      return;
+    }
+    setUploadingAnexo(true);
+    try {
+      const ext = anexoFile.name.split('.').pop();
+      const path = `${selectedProntuario.id}/${Date.now()}_${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from('prontuario-anexos')
+        .upload(path, anexoFile, { upsert: false, contentType: anexoFile.type });
+      if (upErr) throw upErr;
+
+      const { error: insErr } = await supabase.from('prontuario_anexos' as any).insert({
+        prontuario_id: selectedProntuario.id,
+        militar_id: selectedMilitar.id,
+        nome_arquivo: anexoFile.name,
+        tipo: anexoTipo,
+        descricao: anexoDescricao || null,
+        file_path: path,
+        mime_type: anexoFile.type,
+        uploaded_by: user.id,
+      } as any);
+      if (insErr) throw insErr;
+
+      toast.success('Arquivo enviado!');
+      setAnexoFile(null);
+      setAnexoDescricao('');
+      setAnexoTipo('laudo');
+      const input = document.getElementById('anexo-file-input') as HTMLInputElement | null;
+      if (input) input.value = '';
+      fetchAnexos(selectedProntuario.id);
+    } catch (err: any) {
+      toast.error(err.message || 'Erro ao enviar arquivo.');
+    }
+    setUploadingAnexo(false);
+  };
+
+  const handleDownloadAnexo = async (anexo: any) => {
+    try {
+      const { data, error } = await supabase.storage
+        .from('prontuario-anexos')
+        .createSignedUrl(anexo.file_path, 60);
+      if (error) throw error;
+      window.open(data.signedUrl, '_blank');
+    } catch (err: any) {
+      toast.error(err.message || 'Erro ao abrir arquivo.');
+    }
+  };
+
+  const handleDeleteAnexo = async () => {
+    if (!anexoToDelete || !selectedProntuario) return;
+    try {
+      await supabase.storage.from('prontuario-anexos').remove([anexoToDelete.file_path]);
+      const { error } = await supabase.from('prontuario_anexos' as any).delete().eq('id', anexoToDelete.id);
+      if (error) throw error;
+      toast.success('Anexo excluído.');
+      setAnexoToDelete(null);
+      fetchAnexos(selectedProntuario.id);
+    } catch (err: any) {
+      toast.error(err.message || 'Erro ao excluir.');
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -706,6 +787,96 @@ export default function Prontuario() {
                   </CardContent>
                 </Card>
               )}
+
+              {/* 7. Anexos: laudos e raio-x */}
+              {editing && selectedProntuario && (
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <Paperclip className="h-4 w-4" />
+                      7. Laudos e Imagens (Raio-X)
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                      <div className="space-y-1">
+                        <Label>Tipo</Label>
+                        <select
+                          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                          value={anexoTipo}
+                          onChange={(e) => setAnexoTipo(e.target.value)}
+                        >
+                          <option value="laudo">Laudo</option>
+                          <option value="raio-x">Raio-X</option>
+                          <option value="ressonancia">Ressonância</option>
+                          <option value="tomografia">Tomografia</option>
+                          <option value="ultrassom">Ultrassom</option>
+                          <option value="outro">Outro</option>
+                        </select>
+                      </div>
+                      <div className="space-y-1 md:col-span-2">
+                        <Label>Descrição (opcional)</Label>
+                        <Input
+                          value={anexoDescricao}
+                          onChange={(e) => setAnexoDescricao(e.target.value)}
+                          placeholder="Ex: Raio-X joelho direito - 10/05/2026"
+                        />
+                      </div>
+                    </div>
+                    <div className="flex flex-col sm:flex-row gap-2 sm:items-end">
+                      <div className="flex-1 space-y-1">
+                        <Label>Arquivo (PDF ou imagem)</Label>
+                        <Input
+                          id="anexo-file-input"
+                          type="file"
+                          accept="image/*,application/pdf"
+                          onChange={(e) => setAnexoFile(e.target.files?.[0] || null)}
+                        />
+                      </div>
+                      <Button type="button" onClick={handleUploadAnexo} disabled={uploadingAnexo || !anexoFile}>
+                        <Upload className="h-4 w-4 mr-1" />
+                        {uploadingAnexo ? 'Enviando...' : 'Enviar'}
+                      </Button>
+                    </div>
+
+                    {anexos.length === 0 ? (
+                      <p className="text-sm text-muted-foreground text-center py-4">Nenhum anexo enviado.</p>
+                    ) : (
+                      <div className="space-y-2">
+                        {anexos.map((a) => (
+                          <div key={a.id} className="flex items-center justify-between border rounded-lg p-3 gap-2">
+                            <div className="flex items-center gap-3 min-w-0">
+                              {a.mime_type?.startsWith('image/') ? (
+                                <ImageIcon className="h-5 w-5 text-muted-foreground shrink-0" />
+                              ) : (
+                                <FileText className="h-5 w-5 text-muted-foreground shrink-0" />
+                              )}
+                              <div className="min-w-0">
+                                <p className="text-sm font-medium text-foreground truncate">{a.nome_arquivo}</p>
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <Badge variant="secondary" className="text-xs">{a.tipo}</Badge>
+                                  {a.descricao && <span className="text-xs text-muted-foreground truncate">{a.descricao}</span>}
+                                  <span className="text-xs text-muted-foreground">
+                                    {format(new Date(a.created_at), 'dd/MM/yyyy', { locale: ptBR })}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                            <div className="flex gap-1 shrink-0">
+                              <Button type="button" size="sm" variant="outline" onClick={() => handleDownloadAnexo(a)}>
+                                <Download className="h-4 w-4" />
+                              </Button>
+                              <Button type="button" size="sm" variant="outline" onClick={() => setAnexoToDelete(a)}>
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
             </div>
           )}
         </DialogContent>
@@ -755,6 +926,21 @@ export default function Prontuario() {
             <AlertDialogAction onClick={handleDeleteEvolucao} disabled={loading}>
               {loading ? 'Excluindo...' : 'Excluir'}
             </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={!!anexoToDelete} onOpenChange={(open) => !open && setAnexoToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir anexo?</AlertDialogTitle>
+            <AlertDialogDescription>
+              O arquivo será removido permanentemente do prontuário.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteAnexo}>Excluir</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
