@@ -880,15 +880,19 @@ export default function Prontuario() {
                     </div>
                     <div className="flex flex-col sm:flex-row gap-2 sm:items-end">
                       <div className="flex-1 space-y-1">
-                        <Label>Arquivo (PDF ou imagem)</Label>
+                        <Label>Arquivos (PDF ou imagens) — múltiplos</Label>
                         <Input
                           id="anexo-file-input"
                           type="file"
+                          multiple
                           accept="image/*,application/pdf"
-                          onChange={(e) => setAnexoFile(e.target.files?.[0] || null)}
+                          onChange={(e) => setAnexoFiles(Array.from(e.target.files || []))}
                         />
+                        {anexoFiles.length > 0 && (
+                          <p className="text-xs text-muted-foreground">{anexoFiles.length} arquivo(s) selecionado(s)</p>
+                        )}
                       </div>
-                      <Button type="button" onClick={handleUploadAnexo} disabled={uploadingAnexo || !anexoFile}>
+                      <Button type="button" onClick={handleUploadAnexo} disabled={uploadingAnexo || !anexoFiles.length}>
                         <Upload className="h-4 w-4 mr-1" />
                         {uploadingAnexo ? 'Enviando...' : 'Enviar'}
                       </Button>
