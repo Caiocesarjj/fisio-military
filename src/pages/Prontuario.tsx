@@ -125,6 +125,21 @@ export default function Prontuario() {
   const [uploadingAnexo, setUploadingAnexo] = useState(false);
   const [anexoToDelete, setAnexoToDelete] = useState<any | null>(null);
   const [previewAnexo, setPreviewAnexo] = useState<{ url: string; nome: string; mime: string } | null>(null);
+  const [anexosByMilitar, setAnexosByMilitar] = useState<Record<string, any[]>>({});
+  const [exameMilitar, setExameMilitar] = useState<Militar | null>(null);
+
+  const fetchAllAnexos = async () => {
+    const { data } = await supabase
+      .from('prontuario_anexos' as any)
+      .select('*')
+      .order('created_at', { ascending: false });
+    const grouped: Record<string, any[]> = {};
+    ((data as any[]) || []).forEach((a) => {
+      if (!grouped[a.militar_id]) grouped[a.militar_id] = [];
+      grouped[a.militar_id].push(a);
+    });
+    setAnexosByMilitar(grouped);
+  };
 
   const handlePreviewAnexo = async (anexo: any) => {
     const { data, error } = await supabase.storage
