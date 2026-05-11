@@ -230,33 +230,45 @@ export default function Prontuario() {
   };
 
   const handleUploadAnexo = async () => {
-    if (!anexoFile || !selectedProntuario || !selectedMilitar || !user) {
-      toast.error('Selecione um arquivo.');
+    if (!anexoFiles.length || !selectedProntuario || !selectedMilitar || !user) {
+      toast.error('Selecione ao menos um arquivo.');
       return;
     }
     setUploadingAnexo(true);
+    let okCount = 0;
+    let failCount = 0;
     try {
-      const ext = anexoFile.name.split('.').pop();
-      const path = `${selectedProntuario.id}/${Date.now()}_${Math.random().toString(36).slice(2, 8)}.${ext}`;
-      const { error: upErr } = await supabase.storage
-        .from('prontuario-anexos')
-        .upload(path, anexoFile, { upsert: false, contentType: anexoFile.type });
-      if (upErr) throw upErr;
+      for (const file of anexoFiles) {
+        try {
+          const ext = file.name.split('.').pop();
+          const path = `${selectedProntuario.id}/${Date.now()}_${Math.random().toString(36).slice(2, 8)}.${ext}`;
+          const { error: upErr } = await supabase.storage
+            .from('prontuario-anexos')
+            .upload(path, file, { upsert: false, contentType: file.type });
+          if (upErr) throw upErr;
 
-      const { error: insErr } = await supabase.from('prontuario_anexos' as any).insert({
-        prontuario_id: selectedProntuario.id,
-        militar_id: selectedMilitar.id,
-        nome_arquivo: anexoFile.name,
-        tipo: anexoTipo,
-        descricao: anexoDescricao || null,
-        file_path: path,
-        mime_type: anexoFile.type,
-        uploaded_by: user.id,
-      } as any);
-      if (insErr) throw insErr;
+          const { error: insErr } = await supabase.from('prontuario_anexos' as any).insert({
+            prontuario_id: selectedProntuario.id,
+            militar_id: selectedMilitar.id,
+            nome_arquivo: file.name,
+            tipo: anexoTipo,
+            descricao: anexoDescricao || null,
+            file_path: path,
+            mime_type: file.type,
+            uploaded_by: user.id,
+          } as any);
+          if (insErr) throw insErr;
+          okCount++;
+        } catch (err) {
+          failCount++;
+          console.error('Falha no upload:', file.name, err);
+        }
+      }
 
-      toast.success('Arquivo enviado!');
-      setAnexoFile(null);
+      if (okCount > 0) toast.success(`${okCount} arquivo(s) enviado(s)!`);
+      if (failCount > 0) toast.error(`${failCount} arquivo(s) falharam.`);
+
+      setAnexoFiles([]);
       setAnexoDescricao('');
       setAnexoTipo('laudo');
       const input = document.getElementById('anexo-file-input') as HTMLInputElement | null;
@@ -264,7 +276,7 @@ export default function Prontuario() {
       fetchAnexos(selectedProntuario.id);
       fetchAllAnexos();
     } catch (err: any) {
-      toast.error(err.message || 'Erro ao enviar arquivo.');
+      toast.error(err.message || 'Erro ao enviar arquivos.');
     }
     setUploadingAnexo(false);
   };
