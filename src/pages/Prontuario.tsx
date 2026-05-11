@@ -290,6 +290,7 @@ export default function Prontuario() {
       toast.success('Anexo excluído.');
       setAnexoToDelete(null);
       fetchAnexos(selectedProntuario.id);
+      fetchAllAnexos();
     } catch (err: any) {
       toast.error(err.message || 'Erro ao excluir.');
     }
