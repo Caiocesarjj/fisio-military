@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Plus, Search, Edit, UserX, X, Eye, FileText, ImageIcon, Download, Trash2 } from 'lucide-react';
+import { Plus, Search, Edit, UserX, X, Eye, FileText, ImageIcon, Download, Trash2, Maximize2 } from 'lucide-react';
 import TCLEModal from '@/components/TCLEModal';
 import { toast } from 'sonner';
 import { IMaskInput } from 'react-imask';
@@ -65,6 +65,18 @@ export default function Militares() {
   const [anexosMilitar, setAnexosMilitar] = useState<Militar | null>(null);
   const [anexosList, setAnexosList] = useState<any[]>([]);
   const [loadingAnexos, setLoadingAnexos] = useState(false);
+  const [previewAnexo, setPreviewAnexo] = useState<{ url: string; nome: string; mime: string } | null>(null);
+
+  const openPreview = async (anexo: any) => {
+    const { data, error } = await supabase.storage
+      .from('prontuario-anexos')
+      .createSignedUrl(anexo.file_path, 300);
+    if (error || !data) {
+      toast.error('Erro ao gerar visualização.');
+      return;
+    }
+    setPreviewAnexo({ url: data.signedUrl, nome: anexo.nome_arquivo, mime: anexo.mime_type || '' });
+  };
 
   const openAnexos = async (m: Militar) => {
     setAnexosMilitar(m);
@@ -435,7 +447,10 @@ export default function Militares() {
                       {a.descricao && <span className="text-xs text-muted-foreground truncate">{a.descricao}</span>}
                     </div>
                   </div>
-                  <Button variant="ghost" size="icon" onClick={() => downloadAnexo(a)} title="Visualizar/Baixar">
+                  <Button variant="ghost" size="icon" onClick={() => openPreview(a)} title="Visualizar">
+                    <Maximize2 className="h-4 w-4" />
+                  </Button>
+                  <Button variant="ghost" size="icon" onClick={() => downloadAnexo(a)} title="Baixar">
                     <Download className="h-4 w-4" />
                   </Button>
                   <Button variant="ghost" size="icon" onClick={() => deleteAnexo(a)} title="Excluir">
@@ -444,6 +459,26 @@ export default function Militares() {
                 </div>
               ))}
             </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!previewAnexo} onOpenChange={(o) => { if (!o) setPreviewAnexo(null); }}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto">
+          <DialogHeader>
+            <DialogTitle className="truncate pr-8">{previewAnexo?.nome}</DialogTitle>
+          </DialogHeader>
+          {previewAnexo && (
+            previewAnexo.mime.startsWith('image/') ? (
+              <img src={previewAnexo.url} alt={previewAnexo.nome} className="w-full h-auto rounded-md" />
+            ) : previewAnexo.mime === 'application/pdf' ? (
+              <iframe src={previewAnexo.url} title={previewAnexo.nome} className="w-full h-[75vh] rounded-md border" />
+            ) : (
+              <div className="text-center py-8 space-y-3">
+                <p className="text-sm text-muted-foreground">Pré-visualização indisponível para este tipo de arquivo.</p>
+                <Button onClick={() => window.open(previewAnexo.url, '_blank')}>Abrir em nova aba</Button>
+              </div>
+            )
           )}
         </DialogContent>
       </Dialog>
