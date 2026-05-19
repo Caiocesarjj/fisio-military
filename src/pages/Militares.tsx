@@ -16,6 +16,7 @@ import { toast } from 'sonner';
 import { IMaskInput } from 'react-imask';
 import { POSTOS_GRADUACOES, COMPANHIAS } from '@/lib/constants';
 import { LesaoSelector, LesaoBadges, type Lesao } from '@/components/LesaoSelector';
+import { LesoesHistorico } from '@/components/LesoesHistorico';
 import { FraturaSelector, FraturaBadges } from '@/components/FraturaSelector';
 import { MilitarListSkeleton } from '@/components/Skeletons';
 
@@ -402,10 +403,15 @@ export default function Militares() {
               </div>
             </div>
             <div className="space-y-2">
-              <Label>Lesões</Label>
+              <Label>Lesões (atuais)</Label>
               <LesaoSelector lesoes={lesoes} onChange={setLesoes} />
             </div>
             <FraturaSelector selected={fraturas} onChange={setFraturas} />
+            {editing && (
+              <div className="border-t pt-4">
+                <LesoesHistorico militarId={editing.id} />
+              </div>
+            )}
             <div className="space-y-2">
               <Label>Diagnóstico Principal</Label>
               <Textarea value={form.diagnostico} onChange={(e) => setForm({ ...form, diagnostico: e.target.value })} />

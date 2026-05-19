@@ -26,6 +26,7 @@ import jsPDF from 'jspdf';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { LesoesHistorico } from '@/components/LesoesHistorico';
 
 interface Militar {
   id: string;
@@ -812,6 +813,18 @@ export default function Prontuario() {
                   <Button type="submit" disabled={loading}>{loading ? 'Salvando...' : editing ? 'Atualizar' : 'Salvar'}</Button>
                 </div>
               </form>
+
+              {/* Histórico de Lesões */}
+              {selectedMilitar && (
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base">Histórico de Lesões</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <LesoesHistorico militarId={selectedMilitar.id} />
+                  </CardContent>
+                </Card>
+              )}
 
               {/* 6. Evoluções - only when editing */}
               {editing && selectedProntuario && (

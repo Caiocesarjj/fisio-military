@@ -136,6 +136,48 @@ export type Database = {
         }
         Relationships: []
       }
+      lesoes_historico: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          data_fim: string | null
+          data_inicio: string
+          id: string
+          militar_id: string
+          observacoes: string | null
+          regiao: string
+          segmento: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          data_fim?: string | null
+          data_inicio?: string
+          id?: string
+          militar_id: string
+          observacoes?: string | null
+          regiao: string
+          segmento: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          data_fim?: string | null
+          data_inicio?: string
+          id?: string
+          militar_id?: string
+          observacoes?: string | null
+          regiao?: string
+          segmento?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       militares: {
         Row: {
           ativo: boolean
