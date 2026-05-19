@@ -158,6 +158,7 @@ export default function Prontuario() {
   const [previewAnexo, setPreviewAnexo] = useState<{ url: string; nome: string; mime: string } | null>(null);
   const [anexosByMilitar, setAnexosByMilitar] = useState<Record<string, any[]>>({});
   const [exameMilitar, setExameMilitar] = useState<Militar | null>(null);
+  const [historicoMilitar, setHistoricoMilitar] = useState<Militar | null>(null);
 
   const fetchAllAnexos = async () => {
     const { data } = await supabase
