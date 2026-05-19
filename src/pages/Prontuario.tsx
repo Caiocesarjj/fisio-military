@@ -813,6 +813,18 @@ export default function Prontuario() {
                 </div>
               </form>
 
+              {/* Histórico de Lesões */}
+              {selectedMilitar && (
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base">Histórico de Lesões</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <LesoesHistorico militarId={selectedMilitar.id} />
+                  </CardContent>
+                </Card>
+              )}
+
               {/* 6. Evoluções - only when editing */}
               {editing && selectedProntuario && (
                 <Card>
