@@ -15,6 +15,7 @@ import { toast } from 'sonner';
 import { STATUS_SESSAO, TIPOS_ATENDIMENTO } from '@/lib/constants';
 import { EvaScale } from '@/components/EvaScale';
 import { LesaoSelector, type Lesao } from '@/components/LesaoSelector';
+import { FraturaSelector } from '@/components/FraturaSelector';
 import { WhatsAppReminderButton } from '@/components/WhatsAppReminderButton';
 import { toDateTimeLocalFromStoredSession, toStoredSessionDateTime } from '@/lib/sessionDateTime';
 
