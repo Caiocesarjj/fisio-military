@@ -21,7 +21,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { EvaScale } from '@/components/EvaScale';
-import { Plus, Search, FileText, CalendarDays, User, Download, Pencil, Trash2, Upload, Image as ImageIcon, Paperclip, Maximize2 } from 'lucide-react';
+import { Plus, Search, FileText, CalendarDays, User, Download, Pencil, Trash2, Upload, Image as ImageIcon, Paperclip, Maximize2, Activity } from 'lucide-react';
 import jsPDF from 'jspdf';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
@@ -158,6 +158,7 @@ export default function Prontuario() {
   const [previewAnexo, setPreviewAnexo] = useState<{ url: string; nome: string; mime: string } | null>(null);
   const [anexosByMilitar, setAnexosByMilitar] = useState<Record<string, any[]>>({});
   const [exameMilitar, setExameMilitar] = useState<Militar | null>(null);
+  const [historicoMilitar, setHistoricoMilitar] = useState<Militar | null>(null);
 
   const fetchAllAnexos = async () => {
     const { data } = await supabase
@@ -638,6 +639,17 @@ export default function Prontuario() {
                         Exame ({anexosByMilitar[mil.id].length})
                       </Button>
                     )}
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      className="h-7 px-2 text-xs"
+                      onClick={(e) => { e.stopPropagation(); setHistoricoMilitar(mil); }}
+                      title="Histórico de Lesões"
+                    >
+                      <Activity className="h-3 w-3 mr-1" />
+                      Histórico
+                    </Button>
                   </div>
                 </div>
               </CardContent>
@@ -814,17 +826,8 @@ export default function Prontuario() {
                 </div>
               </form>
 
-              {/* Histórico de Lesões */}
-              {selectedMilitar && (
-                <Card>
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-base">Histórico de Lesões</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <LesoesHistorico militarId={selectedMilitar.id} />
-                  </CardContent>
-                </Card>
-              )}
+
+
 
               {/* 6. Evoluções - only when editing */}
               {editing && selectedProntuario && (
@@ -1140,6 +1143,18 @@ export default function Prontuario() {
               ))}
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!historicoMilitar} onOpenChange={(o) => { if (!o) setHistoricoMilitar(null); }}>
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Activity className="h-5 w-5" />
+              Histórico de Lesões — {historicoMilitar?.nome_guerra}
+            </DialogTitle>
+          </DialogHeader>
+          {historicoMilitar && <LesoesHistorico militarId={historicoMilitar.id} />}
         </DialogContent>
       </Dialog>
 
