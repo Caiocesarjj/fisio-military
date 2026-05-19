@@ -21,7 +21,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { EvaScale } from '@/components/EvaScale';
-import { Plus, Search, FileText, CalendarDays, User, Download, Pencil, Trash2, Upload, Image as ImageIcon, Paperclip, Maximize2 } from 'lucide-react';
+import { Plus, Search, FileText, CalendarDays, User, Download, Pencil, Trash2, Upload, Image as ImageIcon, Paperclip, Maximize2, Activity } from 'lucide-react';
 import jsPDF from 'jspdf';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
