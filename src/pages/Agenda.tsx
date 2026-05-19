@@ -15,6 +15,7 @@ import { toast } from 'sonner';
 import { STATUS_SESSAO, TIPOS_ATENDIMENTO } from '@/lib/constants';
 import { EvaScale } from '@/components/EvaScale';
 import { LesaoSelector, type Lesao } from '@/components/LesaoSelector';
+import { FraturaSelector } from '@/components/FraturaSelector';
 import { WhatsAppReminderButton } from '@/components/WhatsAppReminderButton';
 import { toDateTimeLocalFromStoredSession, toStoredSessionDateTime } from '@/lib/sessionDateTime';
 
@@ -33,9 +34,11 @@ export default function Agenda() {
   const [detailDialog, setDetailDialog] = useState<any>(null);
   const [editForm, setEditForm] = useState({ data_hora: '', duracao: 60, tipo: 'presencial', anotacao_clinica: '', queixa: '' });
   const [editLesoes, setEditLesoes] = useState<Lesao[]>([]);
+  const [editFraturas, setEditFraturas] = useState<string[]>([]);
   const [dateRange, setDateRange] = useState<{ start: Date; end: Date } | null>(null);
   const [form, setForm] = useState({ militar_id: '', data_hora: '', duracao: 60, tipo: 'presencial', status: 'agendado', anotacao_clinica: '', queixa: '' });
   const [formLesoes, setFormLesoes] = useState<Lesao[]>([]);
+  const [formFraturas, setFormFraturas] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [painLevel, setPainLevel] = useState(0);
   const [calLoading, setCalLoading] = useState(false);
@@ -71,12 +74,14 @@ export default function Agenda() {
         fisio_id: user?.id,
         duracao: Number(form.duracao),
         lesoes: formLesoes as any,
+        fraturas: formFraturas as any,
       });
       if (error) throw error;
       toast.success('Sessão agendada!');
       setDialogOpen(false);
       setForm({ militar_id: '', data_hora: '', duracao: 60, tipo: 'presencial', status: 'agendado', anotacao_clinica: '', queixa: '' });
       setFormLesoes([]);
+      setFormFraturas([]);
       fetchSessions();
     } catch (err: any) {
       toast.error(err.message);
@@ -115,6 +120,7 @@ export default function Agenda() {
         anotacao_clinica: editForm.anotacao_clinica,
         queixa: editForm.queixa,
         lesoes: editLesoes as any,
+        fraturas: editFraturas as any,
       }).eq('id', detailDialog.id);
       if (error) throw error;
       toast.success('Sessão atualizada!');
@@ -171,6 +177,7 @@ export default function Agenda() {
       queixa: session.queixa || '',
     });
     setEditLesoes(Array.isArray(session.lesoes) ? session.lesoes : []);
+    setEditFraturas(Array.isArray(session.fraturas) ? session.fraturas : []);
     setDetailDialog(session);
   };
 
@@ -267,6 +274,7 @@ export default function Agenda() {
                   <Label className="text-xs">Lesões / Regiões Tratadas</Label>
                   <LesaoSelector lesoes={editLesoes} onChange={setEditLesoes} />
                 </div>
+                <FraturaSelector selected={editFraturas} onChange={setEditFraturas} />
                 <div className="space-y-1">
                   <Label className="text-xs">Anotação Clínica</Label>
                   <Textarea className="text-sm min-h-[60px]" value={editForm.anotacao_clinica} onChange={(e) => setEditForm({ ...editForm, anotacao_clinica: e.target.value })} />
@@ -355,6 +363,7 @@ export default function Agenda() {
                 <Label className="text-xs">Lesões / Regiões Tratadas</Label>
                 <LesaoSelector lesoes={formLesoes} onChange={setFormLesoes} />
               </div>
+              <FraturaSelector selected={formFraturas} onChange={setFormFraturas} />
               <div className="space-y-1"><Label className="text-xs">Anotação Clínica</Label><Textarea className="text-sm min-h-[60px]" value={form.anotacao_clinica} onChange={(e) => setForm({ ...form, anotacao_clinica: e.target.value })} /></div>
             </div>
             <div className="flex justify-end gap-2 px-4 py-3 border-t bg-background sticky bottom-0">

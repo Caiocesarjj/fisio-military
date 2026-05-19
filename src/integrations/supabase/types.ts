@@ -534,6 +534,7 @@ export type Database = {
           data_hora: string
           duracao: number
           fisio_id: string
+          fraturas: Json | null
           id: string
           lesoes: Json | null
           militar_id: string
@@ -548,6 +549,7 @@ export type Database = {
           data_hora: string
           duracao?: number
           fisio_id: string
+          fraturas?: Json | null
           id?: string
           lesoes?: Json | null
           militar_id: string
@@ -562,6 +564,7 @@ export type Database = {
           data_hora?: string
           duracao?: number
           fisio_id?: string
+          fraturas?: Json | null
           id?: string
           lesoes?: Json | null
           militar_id?: string
