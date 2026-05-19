@@ -16,6 +16,7 @@ import { toast } from 'sonner';
 import { IMaskInput } from 'react-imask';
 import { POSTOS_GRADUACOES, COMPANHIAS } from '@/lib/constants';
 import { LesaoSelector, LesaoBadges, type Lesao } from '@/components/LesaoSelector';
+import { LesoesHistorico } from '@/components/LesoesHistorico';
 import { FraturaSelector, FraturaBadges } from '@/components/FraturaSelector';
 import { MilitarListSkeleton } from '@/components/Skeletons';
 
