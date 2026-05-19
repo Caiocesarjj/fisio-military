@@ -1146,6 +1146,18 @@ export default function Prontuario() {
         </DialogContent>
       </Dialog>
 
+      <Dialog open={!!historicoMilitar} onOpenChange={(o) => { if (!o) setHistoricoMilitar(null); }}>
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Activity className="h-5 w-5" />
+              Histórico de Lesões — {historicoMilitar?.nome_guerra}
+            </DialogTitle>
+          </DialogHeader>
+          {historicoMilitar && <LesoesHistorico militarId={historicoMilitar.id} />}
+        </DialogContent>
+      </Dialog>
+
       <Dialog open={!!previewAnexo} onOpenChange={(o) => { if (!o) setPreviewAnexo(null); }}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto">
           <DialogHeader>
