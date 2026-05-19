@@ -177,6 +177,7 @@ export default function Agenda() {
       queixa: session.queixa || '',
     });
     setEditLesoes(Array.isArray(session.lesoes) ? session.lesoes : []);
+    setEditFraturas(Array.isArray(session.fraturas) ? session.fraturas : []);
     setDetailDialog(session);
   };
 
