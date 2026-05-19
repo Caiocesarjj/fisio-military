@@ -639,6 +639,17 @@ export default function Prontuario() {
                         Exame ({anexosByMilitar[mil.id].length})
                       </Button>
                     )}
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      className="h-7 px-2 text-xs"
+                      onClick={(e) => { e.stopPropagation(); setHistoricoMilitar(mil); }}
+                      title="Histórico de Lesões"
+                    >
+                      <Activity className="h-3 w-3 mr-1" />
+                      Histórico
+                    </Button>
                   </div>
                 </div>
               </CardContent>
