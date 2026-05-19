@@ -34,9 +34,11 @@ export default function Agenda() {
   const [detailDialog, setDetailDialog] = useState<any>(null);
   const [editForm, setEditForm] = useState({ data_hora: '', duracao: 60, tipo: 'presencial', anotacao_clinica: '', queixa: '' });
   const [editLesoes, setEditLesoes] = useState<Lesao[]>([]);
+  const [editFraturas, setEditFraturas] = useState<string[]>([]);
   const [dateRange, setDateRange] = useState<{ start: Date; end: Date } | null>(null);
   const [form, setForm] = useState({ militar_id: '', data_hora: '', duracao: 60, tipo: 'presencial', status: 'agendado', anotacao_clinica: '', queixa: '' });
   const [formLesoes, setFormLesoes] = useState<Lesao[]>([]);
+  const [formFraturas, setFormFraturas] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [painLevel, setPainLevel] = useState(0);
   const [calLoading, setCalLoading] = useState(false);
