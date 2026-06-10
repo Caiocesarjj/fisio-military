@@ -303,7 +303,6 @@ export default function RelatorioDetalhado() {
                                   </TableCell>
                                   <TableCell className="text-sm max-w-[200px] truncate">{s.queixa || '—'}</TableCell>
                                   <TableCell className="text-sm max-w-[200px] truncate">{formatLesoes(s.lesoes)}</TableCell>
-                                  <TableCell className="text-sm max-w-[200px] truncate">{s.evolucao || '—'}</TableCell>
                                   <TableCell className="text-sm max-w-[200px] truncate">{s.conduta || '—'}</TableCell>
                                 </TableRow>
                               ))}
