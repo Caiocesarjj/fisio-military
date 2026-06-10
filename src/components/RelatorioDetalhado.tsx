@@ -102,7 +102,7 @@ export default function RelatorioDetalhado() {
         .order('data_hora', { ascending: false }),
       supabase
         .from('session_notes')
-        .select('session_id, evolucao_geral, nivel_dor, conduta')
+        .select('session_id, nivel_dor, conduta')
         .gte('created_at', start.toISOString())
         .lte('created_at', end.toISOString()),
     ]);
