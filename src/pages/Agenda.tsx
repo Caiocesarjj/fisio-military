@@ -226,10 +226,10 @@ export default function Agenda() {
       )}
 
       <Dialog open={!!detailDialog} onOpenChange={() => setDetailDialog(null)}>
-        <DialogContent className="max-w-md max-h-[90vh] flex flex-col p-0">
-          <DialogHeader className="px-4 pt-4 pb-2"><DialogTitle>Editar Sessão</DialogTitle></DialogHeader>
+        <DialogContent className="max-w-md max-h-[90dvh] flex flex-col overflow-hidden p-0">
+          <DialogHeader className="px-4 pt-4 pb-2 shrink-0"><DialogTitle>Editar Sessão</DialogTitle></DialogHeader>
           {detailDialog && (
-            <>
+            <div className="flex flex-col flex-1 overflow-hidden">
               <div className="flex-1 overflow-y-auto px-4 space-y-3">
                 <div className="flex items-center justify-between gap-2">
                   <p className="font-medium text-foreground text-sm">{detailDialog.militares?.posto_graduacao} {detailDialog.militares?.nome_guerra}</p>
@@ -299,14 +299,14 @@ export default function Agenda() {
                   <Button size="sm" onClick={handleSaveEdit} disabled={loading}>{loading ? 'Salvando...' : 'Salvar'}</Button>
                 </div>
               </div>
-            </>
+            </div>
           )}
         </DialogContent>
       </Dialog>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-lg max-h-[90vh] flex flex-col p-0">
-          <DialogHeader className="px-4 pt-4 pb-2"><DialogTitle>Agendar Sessão</DialogTitle></DialogHeader>
+        <DialogContent className="max-w-lg max-h-[90dvh] flex flex-col overflow-hidden p-0">
+          <DialogHeader className="px-4 pt-4 pb-2 shrink-0"><DialogTitle>Agendar Sessão</DialogTitle></DialogHeader>
           <form onSubmit={handleCreate} className="flex flex-col flex-1 overflow-hidden">
             <div className="flex-1 overflow-y-auto px-4 space-y-3">
               <div className="space-y-1">
