@@ -124,7 +124,6 @@ export default function RelatorioDetalhado() {
         militar_nome: s.militares?.nome_guerra || '—',
         militar_posto: s.militares?.posto_graduacao || '',
         militar_companhia: s.militares?.companhia || '',
-        evolucao: note?.evolucao_geral || null,
         nivel_dor: note?.nivel_dor ?? null,
         conduta: s.conduta || note?.conduta || null,
       };
@@ -166,13 +165,12 @@ export default function RelatorioDetalhado() {
 
       autoTable(doc, {
         startY,
-        head: [['Data', 'Status', 'Queixa', 'Lesões', 'Evolução', 'Conduta']],
+        head: [['Data', 'Status', 'Queixa', 'Lesões', 'Conduta']],
         body: g.sessions.map((s) => [
           format(new Date(s.data_hora), "dd/MM/yyyy HH:mm", { locale: ptBR }),
           statusLabel[s.status] || s.status,
           s.queixa || '—',
           formatLesoes(s.lesoes),
-          s.evolucao || '—',
           s.conduta || '—',
         ]),
         theme: 'striped',
