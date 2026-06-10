@@ -79,7 +79,7 @@ export default function Agenda() {
       if (error) throw error;
       toast.success('Sessão agendada!');
       setDialogOpen(false);
-      setForm({ militar_id: '', data_hora: '', duracao: 60, tipo: 'presencial', status: 'agendado', anotacao_clinica: '', queixa: '' });
+      setForm({ militar_id: '', data_hora: '', duracao: 60, tipo: 'presencial', status: 'agendado', anotacao_clinica: '', queixa: '', conduta: '' });
       setFormLesoes([]);
       setFormFraturas([]);
       fetchSessions();
