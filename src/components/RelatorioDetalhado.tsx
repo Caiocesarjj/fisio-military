@@ -24,7 +24,6 @@ interface SessionDetail {
   militar_nome: string;
   militar_posto: string;
   militar_companhia: string;
-  evolucao: string | null;
   nivel_dor: number | null;
   conduta: string | null;
 }
