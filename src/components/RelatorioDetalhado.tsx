@@ -199,7 +199,6 @@ export default function RelatorioDetalhado() {
         text += `   📅 ${format(new Date(s.data_hora), "dd/MM HH:mm")} — ${statusLabel[s.status] || s.status}`;
         const les = formatLesoes(s.lesoes);
         if (les !== '—') text += ` | Lesões: ${les}`;
-        if (s.evolucao) text += `\n   Evolução: ${s.evolucao}`;
         text += `\n`;
       });
       if (g.sessions.length > 5) text += `   ... +${g.sessions.length - 5} sessões\n`;
