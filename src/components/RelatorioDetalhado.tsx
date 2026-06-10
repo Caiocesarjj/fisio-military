@@ -1,11 +1,11 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { FileDown, MessageCircle, Loader2 } from 'lucide-react';
+import { FileDown, MessageCircle, Loader2, X, Search } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { startOfWeek, endOfWeek, startOfMonth, endOfMonth, subMonths, format } from 'date-fns';
@@ -21,11 +21,20 @@ interface SessionDetail {
   queixa: string | null;
   lesoes: any;
   anotacao_clinica: string | null;
+  militar_id: string;
   militar_nome: string;
   militar_posto: string;
   militar_companhia: string;
   nivel_dor: number | null;
   conduta: string | null;
+}
+
+interface MilitarOption {
+  id: string;
+  nome_guerra: string;
+  nip: string | null;
+  posto_graduacao: string | null;
+  companhia: string | null;
 }
 
 interface MilitarGroup {
@@ -58,6 +67,41 @@ export default function RelatorioDetalhado() {
   const [sessions, setSessions] = useState<SessionDetail[]>([]);
   const [loading, setLoading] = useState(false);
   const [fetched, setFetched] = useState(false);
+
+  // Militar filter
+  const [search, setSearch] = useState('');
+  const [suggestions, setSuggestions] = useState<MilitarOption[]>([]);
+  const [selectedMilitares, setSelectedMilitares] = useState<MilitarOption[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+
+  useEffect(() => {
+    const q = search.trim();
+    if (q.length < 2) { setSuggestions([]); return; }
+    const t = setTimeout(async () => {
+      const { data } = await supabase
+        .from('militares')
+        .select('id, nome_guerra, nip, posto_graduacao, companhia')
+        .or(`nome_guerra.ilike.%${q}%,nip.ilike.%${q}%,nome_completo.ilike.%${q}%`)
+        .limit(10);
+      setSuggestions((data || []) as MilitarOption[]);
+    }, 250);
+    return () => clearTimeout(t);
+  }, [search]);
+
+  const addMilitar = (m: MilitarOption) => {
+    if (!selectedMilitares.find((x) => x.id === m.id)) {
+      setSelectedMilitares([...selectedMilitares, m]);
+      setFetched(false);
+    }
+    setSearch('');
+    setSuggestions([]);
+    setShowSuggestions(false);
+  };
+
+  const removeMilitar = (id: string) => {
+    setSelectedMilitares(selectedMilitares.filter((m) => m.id !== id));
+    setFetched(false);
+  };
 
   const getDateRange = (): { start: Date; end: Date } => {
     const now = new Date();
@@ -93,13 +137,19 @@ export default function RelatorioDetalhado() {
     setLoading(true);
     const { start, end } = getDateRange();
 
+    let sessQuery = supabase
+      .from('sessions')
+      .select('id, militar_id, data_hora, status, tipo, queixa, lesoes, anotacao_clinica, conduta, militares(nome_guerra, posto_graduacao, companhia)')
+      .gte('data_hora', start.toISOString())
+      .lte('data_hora', end.toISOString())
+      .order('data_hora', { ascending: false });
+
+    if (selectedMilitares.length > 0) {
+      sessQuery = sessQuery.in('militar_id', selectedMilitares.map((m) => m.id));
+    }
+
     const [sessRes, notesRes] = await Promise.all([
-      supabase
-        .from('sessions')
-        .select('id, data_hora, status, tipo, queixa, lesoes, anotacao_clinica, conduta, militares(nome_guerra, posto_graduacao, companhia)')
-        .gte('data_hora', start.toISOString())
-        .lte('data_hora', end.toISOString())
-        .order('data_hora', { ascending: false }),
+      sessQuery,
       supabase
         .from('session_notes')
         .select('session_id, nivel_dor, conduta')
@@ -121,6 +171,7 @@ export default function RelatorioDetalhado() {
         queixa: s.queixa,
         lesoes: s.lesoes,
         anotacao_clinica: s.anotacao_clinica,
+        militar_id: s.militar_id,
         militar_nome: s.militares?.nome_guerra || '—',
         militar_posto: s.militares?.posto_graduacao || '',
         militar_companhia: s.militares?.companhia || '',
@@ -149,11 +200,13 @@ export default function RelatorioDetalhado() {
       w / 2, 22, { align: 'center' }
     );
     doc.text(`Total: ${sessions.length} atendimento(s) — ${grouped.length} militar(es)`, w / 2, 27, { align: 'center' });
+    if (selectedMilitares.length > 0) {
+      doc.text(`Filtrado: ${selectedMilitares.map((m) => m.nome_guerra).join(', ')}`, w / 2, 32, { align: 'center' });
+    }
 
-    let startY = 34;
+    let startY = selectedMilitares.length > 0 ? 39 : 34;
 
     grouped.forEach((g) => {
-      // Military header
       if (startY > doc.internal.pageSize.getHeight() - 30) {
         doc.addPage();
         startY = 15;
@@ -246,6 +299,62 @@ export default function RelatorioDetalhado() {
               {loading ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : null}
               Gerar Relatório
             </Button>
+          </div>
+
+          {/* Militar filter */}
+          <div className="space-y-2">
+            <label className="text-xs font-medium text-muted-foreground">
+              Filtrar por militar(es) — opcional (nome ou NIP)
+            </label>
+            <div className="relative">
+              <div className="relative">
+                <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  className="h-9 pl-8"
+                  placeholder="Buscar nome de guerra ou NIP..."
+                  value={search}
+                  onChange={(e) => { setSearch(e.target.value); setShowSuggestions(true); }}
+                  onFocus={() => setShowSuggestions(true)}
+                  onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
+                />
+              </div>
+              {showSuggestions && suggestions.length > 0 && (
+                <div className="absolute z-10 mt-1 w-full max-h-60 overflow-y-auto rounded-md border bg-popover shadow-md">
+                  {suggestions.map((m) => (
+                    <button
+                      key={m.id}
+                      type="button"
+                      onMouseDown={(e) => { e.preventDefault(); addMilitar(m); }}
+                      className="block w-full text-left px-3 py-2 text-sm hover:bg-accent"
+                    >
+                      <span className="font-medium">{m.nome_guerra}</span>
+                      {m.nip && <span className="text-muted-foreground ml-2">NIP {m.nip}</span>}
+                      {m.posto_graduacao && <span className="text-xs text-muted-foreground ml-2">— {m.posto_graduacao}</span>}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+            {selectedMilitares.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {selectedMilitares.map((m) => (
+                  <Badge key={m.id} variant="secondary" className="gap-1 pr-1">
+                    {m.nome_guerra}
+                    <button
+                      type="button"
+                      onClick={() => removeMilitar(m.id)}
+                      className="ml-1 rounded-sm hover:bg-muted-foreground/20 p-0.5"
+                      aria-label="Remover"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </Badge>
+                ))}
+                <Button variant="ghost" size="sm" className="h-6 px-2 text-xs" onClick={() => { setSelectedMilitares([]); setFetched(false); }}>
+                  Limpar
+                </Button>
+              </div>
+            )}
           </div>
 
           {fetched && (
