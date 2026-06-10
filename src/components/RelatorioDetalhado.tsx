@@ -97,7 +97,7 @@ export default function RelatorioDetalhado() {
     const [sessRes, notesRes] = await Promise.all([
       supabase
         .from('sessions')
-        .select('id, data_hora, status, tipo, queixa, lesoes, anotacao_clinica, militares(nome_guerra, posto_graduacao, companhia)')
+        .select('id, data_hora, status, tipo, queixa, lesoes, anotacao_clinica, conduta, militares(nome_guerra, posto_graduacao, companhia)')
         .gte('data_hora', start.toISOString())
         .lte('data_hora', end.toISOString())
         .order('data_hora', { ascending: false }),
@@ -127,7 +127,7 @@ export default function RelatorioDetalhado() {
         militar_companhia: s.militares?.companhia || '',
         evolucao: note?.evolucao_geral || null,
         nivel_dor: note?.nivel_dor ?? null,
-        conduta: note?.conduta || null,
+        conduta: s.conduta || note?.conduta || null,
       };
     });
 
