@@ -30,7 +30,8 @@ export function LesaoSelector({ lesoes, onChange }: LesaoSelectorProps) {
   const [customSegmento, setCustomSegmento] = useState('');
 
   const isOutras = regiao === 'Outras';
-  const currentSegmento = isOutras ? customSegmento.trim() : segmento;
+  const isOutrosSeg = !isOutras && segmento === 'Outros';
+  const currentSegmento = isOutras || isOutrosSeg ? customSegmento.trim() : segmento;
 
   const addLesao = () => {
     if (regiao && currentSegmento) {
@@ -70,18 +71,19 @@ export function LesaoSelector({ lesoes, onChange }: LesaoSelectorProps) {
 
         {regiao && !isOutras && (
           <div className="flex-1 space-y-1">
-            <select className={selectClass} value={segmento} onChange={(e) => setSegmento(e.target.value)}>
+            <select className={selectClass} value={segmento} onChange={(e) => { setSegmento(e.target.value); setCustomSegmento(''); }}>
               <option value="">Segmento...</option>
               {SEGMENTOS[regiao].map((s) => <option key={s} value={s}>{s}</option>)}
+              <option value="Outros">Outros</option>
             </select>
           </div>
         )}
 
-        {isOutras && (
+        {(isOutras || isOutrosSeg) && (
           <div className="flex-1 space-y-1">
             <Input
               className="h-10 text-sm"
-              placeholder="Digite a lesão..."
+              placeholder={isOutras ? 'Digite a lesão...' : 'Descreva o segmento...'}
               value={customSegmento}
               onChange={(e) => setCustomSegmento(e.target.value)}
             />

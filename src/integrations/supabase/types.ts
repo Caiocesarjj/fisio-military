@@ -572,6 +572,7 @@ export type Database = {
       sessions: {
         Row: {
           anotacao_clinica: string | null
+          conduta: string | null
           created_at: string
           data_hora: string
           duracao: number
@@ -587,6 +588,7 @@ export type Database = {
         }
         Insert: {
           anotacao_clinica?: string | null
+          conduta?: string | null
           created_at?: string
           data_hora: string
           duracao?: number
@@ -602,6 +604,7 @@ export type Database = {
         }
         Update: {
           anotacao_clinica?: string | null
+          conduta?: string | null
           created_at?: string
           data_hora?: string
           duracao?: number

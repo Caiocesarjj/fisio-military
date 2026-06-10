@@ -32,11 +32,11 @@ export default function Agenda() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [militarSearchOpen, setMilitarSearchOpen] = useState(false);
   const [detailDialog, setDetailDialog] = useState<any>(null);
-  const [editForm, setEditForm] = useState({ data_hora: '', duracao: 60, tipo: 'presencial', anotacao_clinica: '', queixa: '' });
+  const [editForm, setEditForm] = useState({ data_hora: '', duracao: 60, tipo: 'presencial', anotacao_clinica: '', queixa: '', conduta: '' });
   const [editLesoes, setEditLesoes] = useState<Lesao[]>([]);
   const [editFraturas, setEditFraturas] = useState<string[]>([]);
   const [dateRange, setDateRange] = useState<{ start: Date; end: Date } | null>(null);
-  const [form, setForm] = useState({ militar_id: '', data_hora: '', duracao: 60, tipo: 'presencial', status: 'agendado', anotacao_clinica: '', queixa: '' });
+  const [form, setForm] = useState({ militar_id: '', data_hora: '', duracao: 60, tipo: 'presencial', status: 'agendado', anotacao_clinica: '', queixa: '', conduta: '' });
   const [formLesoes, setFormLesoes] = useState<Lesao[]>([]);
   const [formFraturas, setFormFraturas] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
@@ -79,7 +79,7 @@ export default function Agenda() {
       if (error) throw error;
       toast.success('Sessão agendada!');
       setDialogOpen(false);
-      setForm({ militar_id: '', data_hora: '', duracao: 60, tipo: 'presencial', status: 'agendado', anotacao_clinica: '', queixa: '' });
+      setForm({ militar_id: '', data_hora: '', duracao: 60, tipo: 'presencial', status: 'agendado', anotacao_clinica: '', queixa: '', conduta: '' });
       setFormLesoes([]);
       setFormFraturas([]);
       fetchSessions();
@@ -119,6 +119,7 @@ export default function Agenda() {
         tipo: editForm.tipo,
         anotacao_clinica: editForm.anotacao_clinica,
         queixa: editForm.queixa,
+        conduta: editForm.conduta,
         lesoes: editLesoes as any,
         fraturas: editFraturas as any,
       }).eq('id', detailDialog.id);
@@ -175,6 +176,7 @@ export default function Agenda() {
       tipo: session.tipo || 'presencial',
       anotacao_clinica: session.anotacao_clinica || '',
       queixa: session.queixa || '',
+      conduta: session.conduta || '',
     });
     setEditLesoes(Array.isArray(session.lesoes) ? session.lesoes : []);
     setEditFraturas(Array.isArray(session.fraturas) ? session.fraturas : []);
@@ -276,6 +278,10 @@ export default function Agenda() {
                 </div>
                 <FraturaSelector selected={editFraturas} onChange={setEditFraturas} />
                 <div className="space-y-1">
+                  <Label className="text-xs">Conduta</Label>
+                  <Textarea className="text-sm min-h-[60px]" value={editForm.conduta} onChange={(e) => setEditForm({ ...editForm, conduta: e.target.value })} placeholder="Conduta adotada no atendimento" />
+                </div>
+                <div className="space-y-1">
                   <Label className="text-xs">Anotação Clínica</Label>
                   <Textarea className="text-sm min-h-[60px]" value={editForm.anotacao_clinica} onChange={(e) => setEditForm({ ...editForm, anotacao_clinica: e.target.value })} />
                 </div>
@@ -364,6 +370,7 @@ export default function Agenda() {
                 <LesaoSelector lesoes={formLesoes} onChange={setFormLesoes} />
               </div>
               <FraturaSelector selected={formFraturas} onChange={setFormFraturas} />
+              <div className="space-y-1"><Label className="text-xs">Conduta</Label><Textarea className="text-sm min-h-[60px]" value={form.conduta} onChange={(e) => setForm({ ...form, conduta: e.target.value })} placeholder="Conduta adotada no atendimento" /></div>
               <div className="space-y-1"><Label className="text-xs">Anotação Clínica</Label><Textarea className="text-sm min-h-[60px]" value={form.anotacao_clinica} onChange={(e) => setForm({ ...form, anotacao_clinica: e.target.value })} /></div>
             </div>
             <div className="flex justify-end gap-2 px-4 py-3 border-t bg-background sticky bottom-0">
