@@ -119,6 +119,7 @@ export default function Agenda() {
         tipo: editForm.tipo,
         anotacao_clinica: editForm.anotacao_clinica,
         queixa: editForm.queixa,
+        conduta: editForm.conduta,
         lesoes: editLesoes as any,
         fraturas: editFraturas as any,
       }).eq('id', detailDialog.id);
