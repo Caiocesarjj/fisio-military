@@ -282,7 +282,6 @@ export default function RelatorioDetalhado() {
                                 <TableHead>Status</TableHead>
                                 <TableHead>Queixa</TableHead>
                                 <TableHead>Lesões</TableHead>
-                                <TableHead>Evolução</TableHead>
                                 <TableHead>Conduta</TableHead>
                               </TableRow>
                             </TableHeader>
