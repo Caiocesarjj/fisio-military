@@ -366,6 +366,7 @@ export default function Agenda() {
                 <LesaoSelector lesoes={formLesoes} onChange={setFormLesoes} />
               </div>
               <FraturaSelector selected={formFraturas} onChange={setFormFraturas} />
+              <div className="space-y-1"><Label className="text-xs">Conduta</Label><Textarea className="text-sm min-h-[60px]" value={form.conduta} onChange={(e) => setForm({ ...form, conduta: e.target.value })} placeholder="Conduta adotada no atendimento" /></div>
               <div className="space-y-1"><Label className="text-xs">Anotação Clínica</Label><Textarea className="text-sm min-h-[60px]" value={form.anotacao_clinica} onChange={(e) => setForm({ ...form, anotacao_clinica: e.target.value })} /></div>
             </div>
             <div className="flex justify-end gap-2 px-4 py-3 border-t bg-background sticky bottom-0">
