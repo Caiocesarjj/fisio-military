@@ -175,6 +175,7 @@ export default function Agenda() {
       tipo: session.tipo || 'presencial',
       anotacao_clinica: session.anotacao_clinica || '',
       queixa: session.queixa || '',
+      conduta: session.conduta || '',
     });
     setEditLesoes(Array.isArray(session.lesoes) ? session.lesoes : []);
     setEditFraturas(Array.isArray(session.fraturas) ? session.fraturas : []);
