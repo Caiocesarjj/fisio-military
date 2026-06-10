@@ -30,7 +30,8 @@ export function LesaoSelector({ lesoes, onChange }: LesaoSelectorProps) {
   const [customSegmento, setCustomSegmento] = useState('');
 
   const isOutras = regiao === 'Outras';
-  const currentSegmento = isOutras ? customSegmento.trim() : segmento;
+  const isOutrosSeg = !isOutras && segmento === 'Outros';
+  const currentSegmento = isOutras || isOutrosSeg ? customSegmento.trim() : segmento;
 
   const addLesao = () => {
     if (regiao && currentSegmento) {
