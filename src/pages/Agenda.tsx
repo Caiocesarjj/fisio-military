@@ -278,6 +278,10 @@ export default function Agenda() {
                 </div>
                 <FraturaSelector selected={editFraturas} onChange={setEditFraturas} />
                 <div className="space-y-1">
+                  <Label className="text-xs">Conduta</Label>
+                  <Textarea className="text-sm min-h-[60px]" value={editForm.conduta} onChange={(e) => setEditForm({ ...editForm, conduta: e.target.value })} placeholder="Conduta adotada no atendimento" />
+                </div>
+                <div className="space-y-1">
                   <Label className="text-xs">Anotação Clínica</Label>
                   <Textarea className="text-sm min-h-[60px]" value={editForm.anotacao_clinica} onChange={(e) => setEditForm({ ...editForm, anotacao_clinica: e.target.value })} />
                 </div>
