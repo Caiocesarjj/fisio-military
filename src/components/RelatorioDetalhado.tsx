@@ -24,7 +24,6 @@ interface SessionDetail {
   militar_nome: string;
   militar_posto: string;
   militar_companhia: string;
-  evolucao: string | null;
   nivel_dor: number | null;
   conduta: string | null;
 }
@@ -103,7 +102,7 @@ export default function RelatorioDetalhado() {
         .order('data_hora', { ascending: false }),
       supabase
         .from('session_notes')
-        .select('session_id, evolucao_geral, nivel_dor, conduta')
+        .select('session_id, nivel_dor, conduta')
         .gte('created_at', start.toISOString())
         .lte('created_at', end.toISOString()),
     ]);
@@ -125,7 +124,6 @@ export default function RelatorioDetalhado() {
         militar_nome: s.militares?.nome_guerra || '—',
         militar_posto: s.militares?.posto_graduacao || '',
         militar_companhia: s.militares?.companhia || '',
-        evolucao: note?.evolucao_geral || null,
         nivel_dor: note?.nivel_dor ?? null,
         conduta: s.conduta || note?.conduta || null,
       };
@@ -167,13 +165,12 @@ export default function RelatorioDetalhado() {
 
       autoTable(doc, {
         startY,
-        head: [['Data', 'Status', 'Queixa', 'Lesões', 'Evolução', 'Conduta']],
+        head: [['Data', 'Status', 'Queixa', 'Lesões', 'Conduta']],
         body: g.sessions.map((s) => [
           format(new Date(s.data_hora), "dd/MM/yyyy HH:mm", { locale: ptBR }),
           statusLabel[s.status] || s.status,
           s.queixa || '—',
           formatLesoes(s.lesoes),
-          s.evolucao || '—',
           s.conduta || '—',
         ]),
         theme: 'striped',
@@ -202,7 +199,6 @@ export default function RelatorioDetalhado() {
         text += `   📅 ${format(new Date(s.data_hora), "dd/MM HH:mm")} — ${statusLabel[s.status] || s.status}`;
         const les = formatLesoes(s.lesoes);
         if (les !== '—') text += ` | Lesões: ${les}`;
-        if (s.evolucao) text += `\n   Evolução: ${s.evolucao}`;
         text += `\n`;
       });
       if (g.sessions.length > 5) text += `   ... +${g.sessions.length - 5} sessões\n`;
@@ -286,7 +282,6 @@ export default function RelatorioDetalhado() {
                                 <TableHead>Status</TableHead>
                                 <TableHead>Queixa</TableHead>
                                 <TableHead>Lesões</TableHead>
-                                <TableHead>Evolução</TableHead>
                                 <TableHead>Conduta</TableHead>
                               </TableRow>
                             </TableHeader>
@@ -308,7 +303,6 @@ export default function RelatorioDetalhado() {
                                   </TableCell>
                                   <TableCell className="text-sm max-w-[200px] truncate">{s.queixa || '—'}</TableCell>
                                   <TableCell className="text-sm max-w-[200px] truncate">{formatLesoes(s.lesoes)}</TableCell>
-                                  <TableCell className="text-sm max-w-[200px] truncate">{s.evolucao || '—'}</TableCell>
                                   <TableCell className="text-sm max-w-[200px] truncate">{s.conduta || '—'}</TableCell>
                                 </TableRow>
                               ))}
