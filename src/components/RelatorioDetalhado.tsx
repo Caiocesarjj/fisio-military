@@ -410,9 +410,9 @@ export default function RelatorioDetalhado() {
                                       {statusLabel[s.status] || s.status}
                                     </Badge>
                                   </TableCell>
-                                  <TableCell className="text-sm max-w-[200px] truncate">{s.queixa || '—'}</TableCell>
-                                  <TableCell className="text-sm max-w-[200px] truncate">{formatLesoes(s.lesoes)}</TableCell>
-                                  <TableCell className="text-sm max-w-[200px] truncate">{s.conduta || '—'}</TableCell>
+                                  <TableCell className="text-sm align-top whitespace-pre-wrap break-words min-w-[160px]">{s.queixa || '—'}</TableCell>
+                                  <TableCell className="text-sm align-top whitespace-pre-wrap break-words min-w-[160px]">{formatLesoes(s.lesoes)}</TableCell>
+                                  <TableCell className="text-sm align-top whitespace-pre-wrap break-words min-w-[160px]">{s.conduta || '—'}</TableCell>
                                 </TableRow>
                               ))}
                             </TableBody>
