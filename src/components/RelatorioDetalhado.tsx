@@ -411,7 +411,7 @@ export default function RelatorioDetalhado() {
                               {g.sessions.map((s) => (
                                 <TableRow key={s.id}>
                                   <TableCell className="whitespace-nowrap text-sm">
-                                    {format(new Date(s.data_hora), "dd/MM/yyyy HH:mm", { locale: ptBR })}
+                                    {formatSessionDateTime(s.data_hora)}
                                   </TableCell>
                                   <TableCell>
                                     <Badge variant="secondary" className={`text-xs ${
