@@ -233,7 +233,7 @@ export default function RelatorioDetalhado() {
         startY,
         head: [['Data', 'Status', 'Queixa', 'Lesões', 'Conduta']],
         body: g.sessions.map((s) => [
-          format(new Date(s.data_hora), "dd/MM/yyyy HH:mm", { locale: ptBR }),
+          formatSessionDateTime(s.data_hora),
           statusLabel[s.status] || s.status,
           s.queixa || '—',
           formatLesoes(s.lesoes),
