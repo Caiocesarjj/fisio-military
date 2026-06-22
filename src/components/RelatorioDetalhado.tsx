@@ -11,6 +11,19 @@ import autoTable from 'jspdf-autotable';
 import { startOfWeek, endOfWeek, startOfMonth, endOfMonth, subMonths, format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
+// Sessions are stored as UTC strings but represent Brasília local time,
+// so we format using UTC to avoid timezone shifts.
+const formatSessionDateTime = (value: string, pattern: 'full' | 'short' = 'full') => {
+  const d = new Date(value);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  const dd = pad(d.getUTCDate());
+  const mm = pad(d.getUTCMonth() + 1);
+  const yyyy = d.getUTCFullYear();
+  const hh = pad(d.getUTCHours());
+  const mi = pad(d.getUTCMinutes());
+  return pattern === 'full' ? `${dd}/${mm}/${yyyy} ${hh}:${mi}` : `${dd}/${mm} ${hh}:${mi}`;
+};
+
 type Period = 'week' | 'month' | '3months' | 'custom';
 
 interface SessionDetail {
