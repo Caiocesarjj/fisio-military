@@ -262,7 +262,7 @@ export default function RelatorioDetalhado() {
     grouped.forEach((g) => {
       text += `👤 *${g.nome}* (${g.posto} — ${g.companhia}) — ${g.sessions.length} atend.\n`;
       g.sessions.slice(0, 5).forEach((s) => {
-        text += `   📅 ${format(new Date(s.data_hora), "dd/MM HH:mm")} — ${statusLabel[s.status] || s.status}`;
+        text += `   📅 ${formatSessionDateTime(s.data_hora, 'short')} — ${statusLabel[s.status] || s.status}`;
         const les = formatLesoes(s.lesoes);
         if (les !== '—') text += ` | Lesões: ${les}`;
         text += `\n`;
