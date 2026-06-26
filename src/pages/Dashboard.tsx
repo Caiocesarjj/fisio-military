@@ -190,7 +190,38 @@ export default function Dashboard() {
     fetchData();
   };
 
-  if (loading) return <DashboardSkeleton />;
+  const exportLesoesChartPDF = async () => {
+    if (!lesoesChartRef.current) return;
+    const toastId = toast.loading('Gerando PDF do gráfico...');
+    try {
+      const canvas = await html2canvas(lesoesChartRef.current, {
+        scale: 2,
+        backgroundColor: '#ffffff',
+        useCORS: true,
+      });
+      const imgData = canvas.toDataURL('image/png');
+      const doc = new jsPDF({ orientation: 'landscape', unit: 'mm' });
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const margin = 10;
+      const imgWidth = pageWidth - margin * 2;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      const availableHeight = pageHeight - margin * 2;
+      const finalHeight = Math.min(imgHeight, availableHeight);
+      const finalWidth = imgHeight > availableHeight ? (canvas.width * availableHeight) / canvas.height : imgWidth;
+      const x = (pageWidth - finalWidth) / 2;
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Atendimentos por Lesão', pageWidth / 2, margin, { align: 'center' });
+      doc.addImage(imgData, 'PNG', x, margin + 5, finalWidth, finalHeight);
+      doc.save('atendimentos_por_lesao.pdf');
+      toast.success('PDF gerado com sucesso!', { id: toastId });
+    } catch (err) {
+      console.error(err);
+      toast.error('Erro ao gerar PDF.', { id: toastId });
+    }
+  };
+
 
   const metricCards = [
     { title: 'Militares Ativos', value: stats.militares, icon: Users, color: 'text-primary' },
