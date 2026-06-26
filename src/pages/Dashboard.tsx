@@ -108,6 +108,48 @@ export default function Dashboard() {
     });
     setMonthlyLine(months.map((m) => ({ name: m, sessoes: monthMap[m] })));
 
+    // Atendimentos por lesão (mensal do ano atual / anual de todos os anos)
+    const allSessLesoes = sessionsLesoesRes.data || [];
+    const segCount: Record<string, number> = {};
+    allSessLesoes.forEach((s: any) => {
+      if (Array.isArray(s.lesoes)) {
+        s.lesoes.forEach((l: any) => {
+          const seg = l?.segmento || l?.outro;
+          if (seg) segCount[seg] = (segCount[seg] || 0) + 1;
+        });
+      }
+    });
+    const topSegs = Object.entries(segCount).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([n]) => n);
+    setLesoesAtendSegmentos(topSegs);
+
+    const currentYear = Number(getBrasiliaYear());
+    const mensal = months.map((m) => {
+      const row: any = { name: m };
+      topSegs.forEach((seg) => { row[seg] = 0; });
+      return row;
+    });
+    const anualMap: Record<number, any> = {};
+    allSessLesoes.forEach((s: any) => {
+      if (!Array.isArray(s.lesoes) || s.lesoes.length === 0) return;
+      const d = new Date(s.data_hora);
+      const y = d.getUTCFullYear();
+      const monthIdx = d.getUTCMonth();
+      s.lesoes.forEach((l: any) => {
+        const seg = l?.segmento || l?.outro;
+        if (!seg || !topSegs.includes(seg)) return;
+        if (y === currentYear) {
+          mensal[monthIdx][seg] = (mensal[monthIdx][seg] || 0) + 1;
+        }
+        if (!anualMap[y]) {
+          anualMap[y] = { name: String(y) };
+          topSegs.forEach((s2) => { anualMap[y][s2] = 0; });
+        }
+        anualMap[y][seg] = (anualMap[y][seg] || 0) + 1;
+      });
+    });
+    setLesoesAtendMensal(mensal);
+    setLesoesAtendAnual(Object.keys(anualMap).sort().map((y) => anualMap[Number(y)]));
+
     setLoading(false);
   };
 
