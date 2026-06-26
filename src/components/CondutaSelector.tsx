@@ -24,7 +24,7 @@ export function CondutaSelector({ value, onChange }: CondutaSelectorProps) {
       } else if (CONDUTAS_PADRAO.includes(part)) {
         selected.push(part);
       } else {
-        outros = outros ? `${outros}, ${part}` : part;
+        outros = outros ? `${outros}; ${part}` : part;
         if (!selected.includes('Outros')) selected.push('Outros');
       }
     });
@@ -35,13 +35,11 @@ export function CondutaSelector({ value, onChange }: CondutaSelectorProps) {
   const [outrosText, setOutrosText] = useState(outros);
 
   const buildValue = (nextSelected: string[], nextOutros: string): string => {
-    const parts = [...nextSelected];
-    if (nextSelected.includes('Outros') && nextOutros.trim()) {
-      parts[parts.indexOf('Outros')] = `Outros: ${nextOutros.trim()}`;
+    const parts = nextSelected.filter((s) => s !== 'Outros');
+    if (nextSelected.includes('Outros')) {
+      parts.push(nextOutros.trim() ? `Outros: ${nextOutros.trim()}` : 'Outros');
     }
-    return parts
-      .filter((p) => p !== 'Outros')
-      .join('; ');
+    return parts.join('; ');
   };
 
   const toggle = (option: string) => {
@@ -64,6 +62,7 @@ export function CondutaSelector({ value, onChange }: CondutaSelectorProps) {
 
   return (
     <div className="space-y-3">
+      <div className="text-xs text-red-500">DEBUG selected: {selected.join(',')}</div>
       <div className="flex flex-wrap gap-2">
         {selected.filter((s) => s !== 'Outros').map((s) => (
           <Badge key={s} variant="secondary" className="gap-1 py-1 px-2">
@@ -73,9 +72,9 @@ export function CondutaSelector({ value, onChange }: CondutaSelectorProps) {
             </button>
           </Badge>
         ))}
-        {selected.includes('Outros') && outrosText && (
+        {selected.includes('Outros') && (
           <Badge variant="secondary" className="gap-1 py-1 px-2">
-            Outros: {outrosText}
+            Outros{outrosText ? `: ${outrosText}` : ''}
             <button type="button" onClick={() => { setOutrosText(''); toggle('Outros'); }} className="ml-1 hover:text-destructive">
               <X className="h-3 w-3" />
             </button>
