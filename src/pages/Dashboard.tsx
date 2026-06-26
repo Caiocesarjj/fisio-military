@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Users, CalendarDays, ClipboardList, TrendingUp, Check, X } from 'lucide-react';
+import { Users, CalendarDays, ClipboardList, TrendingUp, Check, X, Printer } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { format, startOfWeek, endOfWeek, subWeeks } from 'date-fns';
 import { WhatsAppReminderButton } from '@/components/WhatsAppReminderButton';
@@ -43,6 +43,7 @@ export default function Dashboard() {
   const [lesoesAtendSegmentos, setLesoesAtendSegmentos] = useState<string[]>([]);
   const [lesoesAtendSegCount, setLesoesAtendSegCount] = useState<Record<string, number>>({});
   const [lesoesAtendView, setLesoesAtendView] = useState<'mensal' | 'anual'>('anual');
+  const lesoesChartRef = useRef<HTMLDivElement>(null);
 
   const [loading, setLoading] = useState(true);
 
