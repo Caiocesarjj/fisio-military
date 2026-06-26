@@ -157,6 +157,26 @@ export default function Dashboard() {
     setLesoesAtendMensal(mensal);
     setLesoesAtendAnual(Object.keys(anualMap).sort().map((y) => anualMap[Number(y)]));
 
+    // Atendimentos por lesão no mês atual (barras horizontais)
+    const currentMonth = new Date(`${getBrasiliaCalendarDate()}T12:00:00Z`).getUTCMonth();
+    const mesAtualMap: Record<string, number> = {};
+    allSessLesoes.forEach((s: any) => {
+      if (!Array.isArray(s.lesoes) || s.lesoes.length === 0) return;
+      const d = new Date(s.data_hora);
+      if (d.getUTCFullYear() !== currentYear || d.getUTCMonth() !== currentMonth) return;
+      s.lesoes.forEach((l: any) => {
+        const seg = l?.segmento || l?.outro || l?.regiao;
+        if (!seg) return;
+        mesAtualMap[seg] = (mesAtualMap[seg] || 0) + 1;
+      });
+    });
+    setLesoesAtendMesAtual(
+      Object.entries(mesAtualMap)
+        .map(([name, total]) => ({ name, total }))
+        .sort((a, b) => b.total - a.total)
+    );
+
+
     setLoading(false);
   };
 
