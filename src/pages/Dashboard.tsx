@@ -264,6 +264,50 @@ export default function Dashboard() {
       </div>
 
       <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between gap-2 flex-wrap">
+            <CardTitle className="text-lg">
+              Atendimentos por Lesão ({lesoesAtendView === 'mensal' ? `Mensal ${getBrasiliaYear()}` : 'Anual'})
+            </CardTitle>
+            <div className="flex gap-1">
+              <Button
+                size="sm"
+                variant={lesoesAtendView === 'mensal' ? 'default' : 'outline'}
+                onClick={() => setLesoesAtendView('mensal')}
+              >
+                Mensal
+              </Button>
+              <Button
+                size="sm"
+                variant={lesoesAtendView === 'anual' ? 'default' : 'outline'}
+                onClick={() => setLesoesAtendView('anual')}
+              >
+                Anual
+              </Button>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {lesoesAtendSegmentos.length === 0 ? (
+            <p className="text-muted-foreground text-sm text-center py-8">Sem dados de atendimento por lesão.</p>
+          ) : (
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={lesoesAtendView === 'mensal' ? lesoesAtendMensal : lesoesAtendAnual}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" tick={{ fontSize: 11 }} />
+                <YAxis allowDecimals={false} />
+                <Tooltip />
+                <Legend wrapperStyle={{ fontSize: 11 }} />
+                {lesoesAtendSegmentos.map((seg, i) => (
+                  <Bar key={seg} dataKey={seg} stackId="a" fill={PIE_COLORS[i % PIE_COLORS.length]} />
+                ))}
+              </BarChart>
+            </ResponsiveContainer>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
         <CardHeader><CardTitle className="text-lg">Sessões de Hoje</CardTitle></CardHeader>
         <CardContent>
           {todaySessions.length === 0 ? (
