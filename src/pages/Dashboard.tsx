@@ -123,8 +123,9 @@ export default function Dashboard() {
         });
       }
     });
-    const topSegs = Object.entries(segCount).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([n]) => n);
+    const topSegs = Object.entries(segCount).sort((a, b) => b[1] - a[1]).map(([n]) => n);
     setLesoesAtendSegmentos(topSegs);
+    setLesoesAtendSegCount(segCount);
 
     const currentYear = Number(getBrasiliaYear());
     const mensal = months.map((m) => {
