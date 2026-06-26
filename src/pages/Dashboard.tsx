@@ -24,7 +24,10 @@ import {
 
 const PIE_COLORS = [
   'hsl(220, 70%, 25%)', 'hsl(45, 93%, 47%)', 'hsl(142, 71%, 45%)',
-  'hsl(199, 89%, 48%)', 'hsl(0, 84%, 60%)',
+  'hsl(199, 89%, 48%)', 'hsl(0, 84%, 60%)', 'hsl(280, 65%, 45%)',
+  'hsl(30, 95%, 45%)', 'hsl(160, 80%, 35%)', 'hsl(340, 75%, 55%)',
+  'hsl(190, 80%, 45%)', 'hsl(70, 75%, 45%)', 'hsl(250, 70%, 55%)',
+  'hsl(10, 85%, 55%)', 'hsl(120, 60%, 40%)', 'hsl(300, 70%, 50%)',
 ];
 
 export default function Dashboard() {
@@ -37,6 +40,7 @@ export default function Dashboard() {
   const [lesoesAtendMensal, setLesoesAtendMensal] = useState<any[]>([]);
   const [lesoesAtendAnual, setLesoesAtendAnual] = useState<any[]>([]);
   const [lesoesAtendSegmentos, setLesoesAtendSegmentos] = useState<string[]>([]);
+  const [lesoesAtendSegCount, setLesoesAtendSegCount] = useState<Record<string, number>>({});
   const [lesoesAtendView, setLesoesAtendView] = useState<'mensal' | 'anual'>('mensal');
   const [loading, setLoading] = useState(true);
 
@@ -119,8 +123,9 @@ export default function Dashboard() {
         });
       }
     });
-    const topSegs = Object.entries(segCount).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([n]) => n);
+    const topSegs = Object.entries(segCount).sort((a, b) => b[1] - a[1]).map(([n]) => n);
     setLesoesAtendSegmentos(topSegs);
+    setLesoesAtendSegCount(segCount);
 
     const currentYear = Number(getBrasiliaYear());
     const mensal = months.map((m) => {
@@ -298,7 +303,10 @@ export default function Dashboard() {
                   <XAxis dataKey="name" tick={{ fontSize: 11 }} />
                   <YAxis allowDecimals={false} />
                   <Tooltip />
-                  <Legend wrapperStyle={{ fontSize: 11 }} />
+                  <Legend 
+                    wrapperStyle={{ fontSize: 11 }} 
+                    formatter={(value: string) => `${value} (${lesoesAtendSegCount[value] || 0})`}
+                  />
                   {lesoesAtendSegmentos.map((seg, i) => (
                     <Bar key={seg} dataKey={seg} stackId="a" fill={PIE_COLORS[i % PIE_COLORS.length]} />
                   ))}
