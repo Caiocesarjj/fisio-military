@@ -39,9 +39,11 @@ export default function Dashboard() {
   const [monthlyLine, setMonthlyLine] = useState<any[]>([]);
   const [lesoesAtendMensal, setLesoesAtendMensal] = useState<any[]>([]);
   const [lesoesAtendAnual, setLesoesAtendAnual] = useState<any[]>([]);
+  const [lesoesAtendMesAtual, setLesoesAtendMesAtual] = useState<{ name: string; total: number }[]>([]);
   const [lesoesAtendSegmentos, setLesoesAtendSegmentos] = useState<string[]>([]);
   const [lesoesAtendSegCount, setLesoesAtendSegCount] = useState<Record<string, number>>({});
-  const [lesoesAtendView, setLesoesAtendView] = useState<'mensal' | 'anual'>('mensal');
+  const [lesoesAtendView, setLesoesAtendView] = useState<'mensal' | 'anual'>('anual');
+
   const [loading, setLoading] = useState(true);
 
   const fetchData = async () => {
