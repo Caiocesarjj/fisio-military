@@ -248,7 +248,7 @@ export default function RelatorioDetalhado() {
     }
 
 
-    let startY = selectedMilitares.length > 0 ? 39 : 34;
+    let startY = 34 + (selectedMilitares.length > 0 ? 5 : 0) + (lesaoFilter ? 5 : 0);
 
     grouped.forEach((g) => {
       if (startY > doc.internal.pageSize.getHeight() - 30) {
