@@ -324,14 +324,19 @@ export default function Dashboard() {
         </Card>
       </div>
 
-      <Card>
+      <Card ref={lesoesChartRef}>
         <CardHeader>
           <div className="flex items-center justify-between gap-2 flex-wrap">
-            <CardTitle className="text-lg">
-              Atendimentos por Lesão ({lesoesAtendView === 'mensal'
-                ? `Mês — ${format(new Date(`${getBrasiliaCalendarDate()}T12:00:00Z`), "MMMM 'de' yyyy", { locale: ptBR })}`
-                : `Anual ${getBrasiliaYear()}`})
-            </CardTitle>
+            <div className="flex items-center gap-2 flex-wrap">
+              <CardTitle className="text-lg">
+                Atendimentos por Lesão ({lesoesAtendView === 'mensal'
+                  ? `Mês — ${format(new Date(`${getBrasiliaCalendarDate()}T12:00:00Z`), "MMMM 'de' yyyy", { locale: ptBR })}`
+                  : `Anual ${getBrasiliaYear()}`})
+              </CardTitle>
+              <Button size="sm" variant="outline" onClick={exportLesoesChartPDF}>
+                <Printer className="h-4 w-4 mr-1" /> PDF
+              </Button>
+            </div>
             <div className="flex gap-1">
               <Button
                 size="sm"
