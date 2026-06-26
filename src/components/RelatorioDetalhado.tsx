@@ -405,15 +405,64 @@ export default function RelatorioDetalhado() {
 
           {fetched && (
             <>
+              {/* Lesão filter */}
+              {allSegmentos.length > 0 && (
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-muted-foreground">
+                    Filtrar por lesão — opcional
+                  </label>
+                  <div className="flex flex-wrap gap-2 items-center">
+                    <select
+                      className="flex h-9 rounded-md border border-input bg-background px-3 py-1 text-sm min-w-[200px]"
+                      value={lesaoFilter}
+                      onChange={(e) => setLesaoFilter(e.target.value)}
+                    >
+                      <option value="">Todas as lesões</option>
+                      {allSegmentos.map((seg) => (
+                        <option key={seg} value={seg}>{seg}</option>
+                      ))}
+                    </select>
+                    {lesaoFilter && (
+                      <Button variant="ghost" size="sm" className="h-8 px-2 text-xs" onClick={() => setLesaoFilter('')}>
+                        Limpar lesão
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {lesaoFilter && (
+                <Card className="border-primary/30 bg-primary/5">
+                  <CardContent className="py-3 px-4 text-sm">
+                    <div className="font-semibold text-foreground">
+                      Lesão: {lesaoFilter}
+                    </div>
+                    <div className="text-muted-foreground mt-1">
+                      {filteredSessions.length} atendimento(s) — {grouped.length} militar(es)
+                    </div>
+                    {grouped.length > 0 && (
+                      <ul className="mt-2 space-y-0.5 text-xs text-foreground">
+                        {grouped.map((g) => (
+                          <li key={g.nome}>
+                            • <span className="font-medium">{g.nome}</span> ({g.posto}) — {g.sessions.length} atend.
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
+
               <div className="flex flex-wrap gap-2">
-                <Button onClick={exportDetailedPDF} disabled={sessions.length === 0}>
+                <Button onClick={exportDetailedPDF} disabled={filteredSessions.length === 0}>
                   <FileDown className="h-4 w-4 mr-1" /> Exportar PDF
                 </Button>
-                <Button variant="outline" onClick={shareWhatsApp} disabled={sessions.length === 0} className="border-emerald-300 hover:bg-emerald-50 text-emerald-600">
+                <Button variant="outline" onClick={shareWhatsApp} disabled={filteredSessions.length === 0} className="border-emerald-300 hover:bg-emerald-50 text-emerald-600">
                   <MessageCircle className="h-4 w-4 mr-1" /> Enviar WhatsApp
                 </Button>
-                <Badge variant="secondary" className="self-center">{sessions.length} atendimento(s) — {grouped.length} militar(es)</Badge>
+                <Badge variant="secondary" className="self-center">{filteredSessions.length} atendimento(s) — {grouped.length} militar(es)</Badge>
               </div>
+
 
               {grouped.length > 0 ? (
                 <div className="space-y-4">
