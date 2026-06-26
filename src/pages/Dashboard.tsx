@@ -293,18 +293,18 @@ export default function Dashboard() {
           ) : (
             <div className="min-h-[300px]">
               <ResponsiveContainer width="100%" height={300}>
-
-              <BarChart data={lesoesAtendView === 'mensal' ? lesoesAtendMensal : lesoesAtendAnual}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" tick={{ fontSize: 11 }} />
-                <YAxis allowDecimals={false} />
-                <Tooltip />
-                <Legend wrapperStyle={{ fontSize: 11 }} />
-                {lesoesAtendSegmentos.map((seg, i) => (
-                  <Bar key={seg} dataKey={seg} stackId="a" fill={PIE_COLORS[i % PIE_COLORS.length]} />
-                ))}
-              </BarChart>
-            </ResponsiveContainer>
+                <BarChart data={lesoesAtendView === 'mensal' ? lesoesAtendMensal : lesoesAtendAnual}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" tick={{ fontSize: 11 }} />
+                  <YAxis allowDecimals={false} />
+                  <Tooltip />
+                  <Legend wrapperStyle={{ fontSize: 11 }} />
+                  {lesoesAtendSegmentos.map((seg, i) => (
+                    <Bar key={seg} dataKey={seg} stackId="a" fill={PIE_COLORS[i % PIE_COLORS.length]} />
+                  ))}
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
           )}
         </CardContent>
       </Card>
