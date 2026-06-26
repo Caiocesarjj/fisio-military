@@ -291,7 +291,9 @@ export default function Dashboard() {
           {lesoesAtendSegmentos.length === 0 ? (
             <p className="text-muted-foreground text-sm text-center py-8">Sem dados de atendimento por lesão.</p>
           ) : (
-            <ResponsiveContainer width="100%" height={300}>
+            <div className="min-h-[300px]">
+              <ResponsiveContainer width="100%" height={300}>
+
               <BarChart data={lesoesAtendView === 'mensal' ? lesoesAtendMensal : lesoesAtendAnual}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="name" tick={{ fontSize: 11 }} />
