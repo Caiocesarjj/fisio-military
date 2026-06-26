@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -24,7 +24,7 @@ export function CondutaSelector({ value, onChange }: CondutaSelectorProps) {
       } else if (CONDUTAS_PADRAO.includes(part)) {
         selected.push(part);
       } else {
-        outros = outros ? `${outros}, ${part}` : part;
+        outros = outros ? `${outros}; ${part}` : part;
         if (!selected.includes('Outros')) selected.push('Outros');
       }
     });
@@ -33,15 +33,14 @@ export function CondutaSelector({ value, onChange }: CondutaSelectorProps) {
 
   const { selected, outros } = parseValue(value);
   const [outrosText, setOutrosText] = useState(outros);
+  const outrosInputRef = useRef<HTMLInputElement>(null);
 
   const buildValue = (nextSelected: string[], nextOutros: string): string => {
-    const parts = [...nextSelected];
-    if (nextSelected.includes('Outros') && nextOutros.trim()) {
-      parts[parts.indexOf('Outros')] = `Outros: ${nextOutros.trim()}`;
+    const parts = nextSelected.filter((s) => s !== 'Outros');
+    if (nextSelected.includes('Outros')) {
+      parts.push(nextOutros.trim() ? `Outros: ${nextOutros.trim()}` : 'Outros');
     }
-    return parts
-      .filter((p) => p !== 'Outros')
-      .join('; ');
+    return parts.join('; ');
   };
 
   const toggle = (option: string) => {
@@ -62,6 +61,15 @@ export function CondutaSelector({ value, onChange }: CondutaSelectorProps) {
     setOutrosText('');
   };
 
+  useEffect(() => {
+    if (selected.includes('Outros')) {
+      setTimeout(() => {
+        outrosInputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        outrosInputRef.current?.focus();
+      }, 50);
+    }
+  }, [selected.includes('Outros')]);
+
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap gap-2">
@@ -73,9 +81,9 @@ export function CondutaSelector({ value, onChange }: CondutaSelectorProps) {
             </button>
           </Badge>
         ))}
-        {selected.includes('Outros') && outrosText && (
+        {selected.includes('Outros') && (
           <Badge variant="secondary" className="gap-1 py-1 px-2">
-            Outros: {outrosText}
+            Outros{outrosText ? `: ${outrosText}` : ''}
             <button type="button" onClick={() => { setOutrosText(''); toggle('Outros'); }} className="ml-1 hover:text-destructive">
               <X className="h-3 w-3" />
             </button>
@@ -104,6 +112,7 @@ export function CondutaSelector({ value, onChange }: CondutaSelectorProps) {
         <div className="space-y-1">
           <label className="text-xs text-muted-foreground">Descreva outros procedimentos</label>
           <Input
+            ref={outrosInputRef}
             className="h-9 text-sm"
             placeholder="Ex: mobilização articular, drenagem linfática..."
             value={outrosText}
