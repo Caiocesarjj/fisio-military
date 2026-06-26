@@ -34,6 +34,10 @@ export default function Dashboard() {
   const [companyDist, setCompanyDist] = useState<any[]>([]);
   const [topLesoes, setTopLesoes] = useState<any[]>([]);
   const [monthlyLine, setMonthlyLine] = useState<any[]>([]);
+  const [lesoesAtendMensal, setLesoesAtendMensal] = useState<any[]>([]);
+  const [lesoesAtendAnual, setLesoesAtendAnual] = useState<any[]>([]);
+  const [lesoesAtendSegmentos, setLesoesAtendSegmentos] = useState<string[]>([]);
+  const [lesoesAtendView, setLesoesAtendView] = useState<'mensal' | 'anual'>('mensal');
   const [loading, setLoading] = useState(true);
 
   const fetchData = async () => {
@@ -41,13 +45,14 @@ export default function Dashboard() {
     const { start: yearStart, end: yearEnd } = getStoredSessionYearRangeForBrasilia();
     const now = new Date(`${getBrasiliaCalendarDate()}T12:00:00Z`);
 
-    const [militaresRes, todayRes, plansRes, sessionsYearRes, allMilitaresRes] = await Promise.all([
+    const [militaresRes, todayRes, plansRes, sessionsYearRes, allMilitaresRes, sessionsLesoesRes] = await Promise.all([
       supabase.from('militares').select('id', { count: 'exact' }).eq('ativo', true),
       supabase.from('sessions').select('*, militares(nome_guerra, posto_graduacao, companhia, foto_url, telefone)')
         .gte('data_hora', todayStart).lte('data_hora', todayEnd).order('data_hora'),
       supabase.from('treatment_plans').select('id', { count: 'exact' }).eq('ativo', true),
       supabase.from('sessions').select('id, data_hora, status').gte('data_hora', yearStart).lte('data_hora', yearEnd),
       supabase.from('militares').select('companhia, lesoes').eq('ativo', true),
+      supabase.from('sessions').select('data_hora, lesoes, status'),
     ]);
 
     const todaySess = todayRes.data || [];
@@ -102,6 +107,48 @@ export default function Dashboard() {
       monthMap[months[idx]]++;
     });
     setMonthlyLine(months.map((m) => ({ name: m, sessoes: monthMap[m] })));
+
+    // Atendimentos por lesão (mensal do ano atual / anual de todos os anos)
+    const allSessLesoes = sessionsLesoesRes.data || [];
+    const segCount: Record<string, number> = {};
+    allSessLesoes.forEach((s: any) => {
+      if (Array.isArray(s.lesoes)) {
+        s.lesoes.forEach((l: any) => {
+          const seg = l?.segmento || l?.outro;
+          if (seg) segCount[seg] = (segCount[seg] || 0) + 1;
+        });
+      }
+    });
+    const topSegs = Object.entries(segCount).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([n]) => n);
+    setLesoesAtendSegmentos(topSegs);
+
+    const currentYear = Number(getBrasiliaYear());
+    const mensal = months.map((m) => {
+      const row: any = { name: m };
+      topSegs.forEach((seg) => { row[seg] = 0; });
+      return row;
+    });
+    const anualMap: Record<number, any> = {};
+    allSessLesoes.forEach((s: any) => {
+      if (!Array.isArray(s.lesoes) || s.lesoes.length === 0) return;
+      const d = new Date(s.data_hora);
+      const y = d.getUTCFullYear();
+      const monthIdx = d.getUTCMonth();
+      s.lesoes.forEach((l: any) => {
+        const seg = l?.segmento || l?.outro;
+        if (!seg || !topSegs.includes(seg)) return;
+        if (y === currentYear) {
+          mensal[monthIdx][seg] = (mensal[monthIdx][seg] || 0) + 1;
+        }
+        if (!anualMap[y]) {
+          anualMap[y] = { name: String(y) };
+          topSegs.forEach((s2) => { anualMap[y][s2] = 0; });
+        }
+        anualMap[y][seg] = (anualMap[y][seg] || 0) + 1;
+      });
+    });
+    setLesoesAtendMensal(mensal);
+    setLesoesAtendAnual(Object.keys(anualMap).sort().map((y) => anualMap[Number(y)]));
 
     setLoading(false);
   };
@@ -215,6 +262,50 @@ export default function Dashboard() {
           </CardContent>
         </Card>
       </div>
+
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between gap-2 flex-wrap">
+            <CardTitle className="text-lg">
+              Atendimentos por Lesão ({lesoesAtendView === 'mensal' ? `Mensal ${getBrasiliaYear()}` : 'Anual'})
+            </CardTitle>
+            <div className="flex gap-1">
+              <Button
+                size="sm"
+                variant={lesoesAtendView === 'mensal' ? 'default' : 'outline'}
+                onClick={() => setLesoesAtendView('mensal')}
+              >
+                Mensal
+              </Button>
+              <Button
+                size="sm"
+                variant={lesoesAtendView === 'anual' ? 'default' : 'outline'}
+                onClick={() => setLesoesAtendView('anual')}
+              >
+                Anual
+              </Button>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {lesoesAtendSegmentos.length === 0 ? (
+            <p className="text-muted-foreground text-sm text-center py-8">Sem dados de atendimento por lesão.</p>
+          ) : (
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={lesoesAtendView === 'mensal' ? lesoesAtendMensal : lesoesAtendAnual}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" tick={{ fontSize: 11 }} />
+                <YAxis allowDecimals={false} />
+                <Tooltip />
+                <Legend wrapperStyle={{ fontSize: 11 }} />
+                {lesoesAtendSegmentos.map((seg, i) => (
+                  <Bar key={seg} dataKey={seg} stackId="a" fill={PIE_COLORS[i % PIE_COLORS.length]} />
+                ))}
+              </BarChart>
+            </ResponsiveContainer>
+          )}
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader><CardTitle className="text-lg">Sessões de Hoje</CardTitle></CardHeader>
