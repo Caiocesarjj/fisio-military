@@ -46,7 +46,9 @@ export function CondutaSelector({ value, onChange }: CondutaSelectorProps) {
     const nextSelected = selected.includes(option)
       ? selected.filter((s) => s !== option)
       : [...selected, option];
-    onChange(buildValue(nextSelected, outrosText));
+    const newValue = buildValue(nextSelected, outrosText);
+    console.log('TOGGLE', option, 'selected', nextSelected, 'newValue', newValue);
+    onChange(newValue);
   };
 
   const handleOutrosChange = (text: string) => {
