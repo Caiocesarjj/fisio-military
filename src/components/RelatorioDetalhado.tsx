@@ -134,9 +134,31 @@ export default function RelatorioDetalhado() {
     }
   };
 
+  // All segments present in the fetched sessions (for dropdown)
+  const allSegmentos = useMemo<string[]>(() => {
+    const set = new Set<string>();
+    sessions.forEach((s) => {
+      if (Array.isArray(s.lesoes)) {
+        s.lesoes.forEach((l: any) => {
+          if (l?.segmento) set.add(String(l.segmento));
+        });
+      }
+    });
+    return Array.from(set).sort((a, b) => a.localeCompare(b));
+  }, [sessions]);
+
+  // Sessions after applying the lesão filter
+  const filteredSessions = useMemo<SessionDetail[]>(() => {
+    if (!lesaoFilter) return sessions;
+    return sessions.filter((s) =>
+      Array.isArray(s.lesoes) &&
+      s.lesoes.some((l: any) => l?.segmento === lesaoFilter)
+    );
+  }, [sessions, lesaoFilter]);
+
   const grouped = useMemo<MilitarGroup[]>(() => {
     const map = new Map<string, MilitarGroup>();
-    sessions.forEach((s) => {
+    filteredSessions.forEach((s) => {
       if (!map.has(s.militar_nome)) {
         map.set(s.militar_nome, {
           nome: s.militar_nome,
@@ -147,8 +169,9 @@ export default function RelatorioDetalhado() {
       }
       map.get(s.militar_nome)!.sessions.push(s);
     });
-    return Array.from(map.values()).sort((a, b) => a.nome.localeCompare(b.nome));
-  }, [sessions]);
+    return Array.from(map.values()).sort((a, b) => b.sessions.length - a.sessions.length);
+  }, [filteredSessions]);
+
 
   const fetchData = async () => {
     setLoading(true);
