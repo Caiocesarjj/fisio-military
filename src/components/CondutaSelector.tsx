@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -33,6 +33,7 @@ export function CondutaSelector({ value, onChange }: CondutaSelectorProps) {
 
   const { selected, outros } = parseValue(value);
   const [outrosText, setOutrosText] = useState(outros);
+  const outrosInputRef = useRef<HTMLInputElement>(null);
 
   const buildValue = (nextSelected: string[], nextOutros: string): string => {
     const parts = nextSelected.filter((s) => s !== 'Outros');
@@ -46,9 +47,7 @@ export function CondutaSelector({ value, onChange }: CondutaSelectorProps) {
     const nextSelected = selected.includes(option)
       ? selected.filter((s) => s !== option)
       : [...selected, option];
-    const newValue = buildValue(nextSelected, outrosText);
-    console.log('TOGGLE', option, 'selected', nextSelected, 'newValue', newValue);
-    onChange(newValue);
+    onChange(buildValue(nextSelected, outrosText));
   };
 
   const handleOutrosChange = (text: string) => {
@@ -62,9 +61,17 @@ export function CondutaSelector({ value, onChange }: CondutaSelectorProps) {
     setOutrosText('');
   };
 
+  useEffect(() => {
+    if (selected.includes('Outros')) {
+      setTimeout(() => {
+        outrosInputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        outrosInputRef.current?.focus();
+      }, 50);
+    }
+  }, [selected.includes('Outros')]);
+
   return (
     <div className="space-y-3">
-      <div className="text-xs text-red-500">DEBUG selected: {selected.join(',')}</div>
       <div className="flex flex-wrap gap-2">
         {selected.filter((s) => s !== 'Outros').map((s) => (
           <Badge key={s} variant="secondary" className="gap-1 py-1 px-2">
@@ -105,6 +112,7 @@ export function CondutaSelector({ value, onChange }: CondutaSelectorProps) {
         <div className="space-y-1">
           <label className="text-xs text-muted-foreground">Descreva outros procedimentos</label>
           <Input
+            ref={outrosInputRef}
             className="h-9 text-sm"
             placeholder="Ex: mobilização articular, drenagem linfática..."
             value={outrosText}
