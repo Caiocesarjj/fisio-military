@@ -40,6 +40,7 @@ export default function Dashboard() {
   const [lesoesAtendMensal, setLesoesAtendMensal] = useState<any[]>([]);
   const [lesoesAtendAnual, setLesoesAtendAnual] = useState<any[]>([]);
   const [lesoesAtendSegmentos, setLesoesAtendSegmentos] = useState<string[]>([]);
+  const [lesoesAtendSegCount, setLesoesAtendSegCount] = useState<Record<string, number>>({});
   const [lesoesAtendView, setLesoesAtendView] = useState<'mensal' | 'anual'>('mensal');
   const [loading, setLoading] = useState(true);
 
