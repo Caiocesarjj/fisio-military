@@ -39,9 +39,11 @@ export default function Dashboard() {
   const [monthlyLine, setMonthlyLine] = useState<any[]>([]);
   const [lesoesAtendMensal, setLesoesAtendMensal] = useState<any[]>([]);
   const [lesoesAtendAnual, setLesoesAtendAnual] = useState<any[]>([]);
+  const [lesoesAtendMesAtual, setLesoesAtendMesAtual] = useState<{ name: string; total: number }[]>([]);
   const [lesoesAtendSegmentos, setLesoesAtendSegmentos] = useState<string[]>([]);
   const [lesoesAtendSegCount, setLesoesAtendSegCount] = useState<Record<string, number>>({});
-  const [lesoesAtendView, setLesoesAtendView] = useState<'mensal' | 'anual'>('mensal');
+  const [lesoesAtendView, setLesoesAtendView] = useState<'mensal' | 'anual'>('anual');
+
   const [loading, setLoading] = useState(true);
 
   const fetchData = async () => {
@@ -154,6 +156,26 @@ export default function Dashboard() {
     });
     setLesoesAtendMensal(mensal);
     setLesoesAtendAnual(Object.keys(anualMap).sort().map((y) => anualMap[Number(y)]));
+
+    // Atendimentos por lesão no mês atual (barras horizontais)
+    const currentMonth = new Date(`${getBrasiliaCalendarDate()}T12:00:00Z`).getUTCMonth();
+    const mesAtualMap: Record<string, number> = {};
+    allSessLesoes.forEach((s: any) => {
+      if (!Array.isArray(s.lesoes) || s.lesoes.length === 0) return;
+      const d = new Date(s.data_hora);
+      if (d.getUTCFullYear() !== currentYear || d.getUTCMonth() !== currentMonth) return;
+      s.lesoes.forEach((l: any) => {
+        const seg = l?.segmento || l?.outro || l?.regiao;
+        if (!seg) return;
+        mesAtualMap[seg] = (mesAtualMap[seg] || 0) + 1;
+      });
+    });
+    setLesoesAtendMesAtual(
+      Object.entries(mesAtualMap)
+        .map(([name, total]) => ({ name, total }))
+        .sort((a, b) => b.total - a.total)
+    );
+
 
     setLoading(false);
   };
@@ -272,7 +294,9 @@ export default function Dashboard() {
         <CardHeader>
           <div className="flex items-center justify-between gap-2 flex-wrap">
             <CardTitle className="text-lg">
-              Atendimentos por Lesão ({lesoesAtendView === 'mensal' ? `Mensal ${getBrasiliaYear()}` : 'Anual'})
+              Atendimentos por Lesão ({lesoesAtendView === 'mensal'
+                ? `Mês — ${format(new Date(`${getBrasiliaCalendarDate()}T12:00:00Z`), "MMMM 'de' yyyy", { locale: ptBR })}`
+                : `Anual ${getBrasiliaYear()}`})
             </CardTitle>
             <div className="flex gap-1">
               <Button
@@ -293,18 +317,34 @@ export default function Dashboard() {
           </div>
         </CardHeader>
         <CardContent>
-          {lesoesAtendSegmentos.length === 0 ? (
+          {lesoesAtendView === 'mensal' ? (
+            lesoesAtendMesAtual.length === 0 ? (
+              <p className="text-muted-foreground text-sm text-center py-8">Sem atendimentos por lesão neste mês.</p>
+            ) : (
+              <div style={{ minHeight: 300 }}>
+                <ResponsiveContainer width="100%" height={Math.max(300, lesoesAtendMesAtual.length * 36)}>
+                  <BarChart data={lesoesAtendMesAtual} layout="vertical" margin={{ left: 20, right: 20 }}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis type="number" allowDecimals={false} tick={{ fontSize: 11 }} />
+                    <YAxis type="category" dataKey="name" tick={{ fontSize: 11 }} width={110} />
+                    <Tooltip />
+                    <Bar dataKey="total" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            )
+          ) : lesoesAtendSegmentos.length === 0 ? (
             <p className="text-muted-foreground text-sm text-center py-8">Sem dados de atendimento por lesão.</p>
           ) : (
             <div className="min-h-[300px]">
               <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={lesoesAtendView === 'mensal' ? lesoesAtendMensal : lesoesAtendAnual}>
+                <BarChart data={lesoesAtendMensal}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="name" tick={{ fontSize: 11 }} />
                   <YAxis allowDecimals={false} />
                   <Tooltip />
-                  <Legend 
-                    wrapperStyle={{ fontSize: 11 }} 
+                  <Legend
+                    wrapperStyle={{ fontSize: 11 }}
                     formatter={(value: string) => `${value} (${lesoesAtendSegCount[value] || 0})`}
                   />
                   {lesoesAtendSegmentos.map((seg, i) => (
@@ -314,6 +354,7 @@ export default function Dashboard() {
               </ResponsiveContainer>
             </div>
           )}
+
         </CardContent>
       </Card>
 
