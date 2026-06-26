@@ -22,6 +22,7 @@ import {
   getStoredSessionYearRangeForBrasilia,
 } from '@/lib/sessionDateTime';
 import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 
 const PIE_COLORS = [
   'hsl(220, 70%, 25%)', 'hsl(45, 93%, 47%)', 'hsl(142, 71%, 45%)',
