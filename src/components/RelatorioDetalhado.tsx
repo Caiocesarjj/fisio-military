@@ -239,10 +239,14 @@ export default function RelatorioDetalhado() {
       `Período: ${format(start, "dd/MM/yyyy", { locale: ptBR })} a ${format(end, "dd/MM/yyyy", { locale: ptBR })}`,
       w / 2, 22, { align: 'center' }
     );
-    doc.text(`Total: ${sessions.length} atendimento(s) — ${grouped.length} militar(es)`, w / 2, 27, { align: 'center' });
+    doc.text(`Total: ${filteredSessions.length} atendimento(s) — ${grouped.length} militar(es)`, w / 2, 27, { align: 'center' });
     if (selectedMilitares.length > 0) {
       doc.text(`Filtrado: ${selectedMilitares.map((m) => m.nome_guerra).join(', ')}`, w / 2, 32, { align: 'center' });
     }
+    if (lesaoFilter) {
+      doc.text(`Lesão: ${lesaoFilter}`, w / 2, selectedMilitares.length > 0 ? 37 : 32, { align: 'center' });
+    }
+
 
     let startY = selectedMilitares.length > 0 ? 39 : 34;
 
