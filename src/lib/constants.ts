@@ -49,6 +49,18 @@ export const CATEGORIAS_EXERCICIO = [
   'Tríceps',
 ];
 
+export const CONDUTAS_PADRAO = [
+  'Crioterapia',
+  'Termoterapia / Eletrofototerapia',
+  'Terapias Manuais/instrumental',
+  'Cinesioterapia/exercícios',
+  'RPG',
+  'Pilates',
+  'Recursos Aeróbicos',
+  'Mecanoterapia',
+  'Outros',
+];
+
 export const DIFICULDADES = ['Fácil', 'Moderado', 'Difícil', 'Avançado'];
 
 export const FASES_EXERCICIO = ['Fase 1', 'Fase 2', 'Fase 3', 'Fase 4'];

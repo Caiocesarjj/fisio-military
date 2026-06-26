@@ -109,12 +109,12 @@ export default function Dashboard() {
     setMonthlyLine(months.map((m) => ({ name: m, sessoes: monthMap[m] })));
 
     // Atendimentos por lesão (mensal do ano atual / anual de todos os anos)
-    const allSessLesoes = sessionsLesoesRes.data || [];
+    const allSessLesoes = (sessionsLesoesRes.data || []).filter((s: any) => s.status === 'realizado');
     const segCount: Record<string, number> = {};
     allSessLesoes.forEach((s: any) => {
       if (Array.isArray(s.lesoes)) {
         s.lesoes.forEach((l: any) => {
-          const seg = l?.segmento || l?.outro;
+          const seg = l?.segmento || l?.outro || l?.regiao;
           if (seg) segCount[seg] = (segCount[seg] || 0) + 1;
         });
       }
@@ -135,7 +135,7 @@ export default function Dashboard() {
       const y = d.getUTCFullYear();
       const monthIdx = d.getUTCMonth();
       s.lesoes.forEach((l: any) => {
-        const seg = l?.segmento || l?.outro;
+        const seg = l?.segmento || l?.outro || l?.regiao;
         if (!seg || !topSegs.includes(seg)) return;
         if (y === currentYear) {
           mensal[monthIdx][seg] = (mensal[monthIdx][seg] || 0) + 1;
@@ -291,18 +291,20 @@ export default function Dashboard() {
           {lesoesAtendSegmentos.length === 0 ? (
             <p className="text-muted-foreground text-sm text-center py-8">Sem dados de atendimento por lesão.</p>
           ) : (
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={lesoesAtendView === 'mensal' ? lesoesAtendMensal : lesoesAtendAnual}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" tick={{ fontSize: 11 }} />
-                <YAxis allowDecimals={false} />
-                <Tooltip />
-                <Legend wrapperStyle={{ fontSize: 11 }} />
-                {lesoesAtendSegmentos.map((seg, i) => (
-                  <Bar key={seg} dataKey={seg} stackId="a" fill={PIE_COLORS[i % PIE_COLORS.length]} />
-                ))}
-              </BarChart>
-            </ResponsiveContainer>
+            <div className="min-h-[300px]">
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={lesoesAtendView === 'mensal' ? lesoesAtendMensal : lesoesAtendAnual}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" tick={{ fontSize: 11 }} />
+                  <YAxis allowDecimals={false} />
+                  <Tooltip />
+                  <Legend wrapperStyle={{ fontSize: 11 }} />
+                  {lesoesAtendSegmentos.map((seg, i) => (
+                    <Bar key={seg} dataKey={seg} stackId="a" fill={PIE_COLORS[i % PIE_COLORS.length]} />
+                  ))}
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
           )}
         </CardContent>
       </Card>
