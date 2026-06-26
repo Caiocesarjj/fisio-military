@@ -303,7 +303,10 @@ export default function Dashboard() {
                   <XAxis dataKey="name" tick={{ fontSize: 11 }} />
                   <YAxis allowDecimals={false} />
                   <Tooltip />
-                  <Legend wrapperStyle={{ fontSize: 11 }} />
+                  <Legend 
+                    wrapperStyle={{ fontSize: 11 }} 
+                    formatter={(value: string) => `${value} (${lesoesAtendSegCount[value] || 0})`}
+                  />
                   {lesoesAtendSegmentos.map((seg, i) => (
                     <Bar key={seg} dataKey={seg} stackId="a" fill={PIE_COLORS[i % PIE_COLORS.length]} />
                   ))}
