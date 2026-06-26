@@ -109,12 +109,12 @@ export default function Dashboard() {
     setMonthlyLine(months.map((m) => ({ name: m, sessoes: monthMap[m] })));
 
     // Atendimentos por lesão (mensal do ano atual / anual de todos os anos)
-    const allSessLesoes = sessionsLesoesRes.data || [];
+    const allSessLesoes = (sessionsLesoesRes.data || []).filter((s: any) => s.status === 'realizado');
     const segCount: Record<string, number> = {};
     allSessLesoes.forEach((s: any) => {
       if (Array.isArray(s.lesoes)) {
         s.lesoes.forEach((l: any) => {
-          const seg = l?.segmento || l?.outro;
+          const seg = l?.segmento || l?.outro || l?.regiao;
           if (seg) segCount[seg] = (segCount[seg] || 0) + 1;
         });
       }
@@ -135,7 +135,7 @@ export default function Dashboard() {
       const y = d.getUTCFullYear();
       const monthIdx = d.getUTCMonth();
       s.lesoes.forEach((l: any) => {
-        const seg = l?.segmento || l?.outro;
+        const seg = l?.segmento || l?.outro || l?.regiao;
         if (!seg || !topSegs.includes(seg)) return;
         if (y === currentYear) {
           mensal[monthIdx][seg] = (mensal[monthIdx][seg] || 0) + 1;
