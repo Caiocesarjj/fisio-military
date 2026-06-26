@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Users, CalendarDays, ClipboardList, TrendingUp, Check, X } from 'lucide-react';
+import { Users, CalendarDays, ClipboardList, TrendingUp, Check, X, Printer } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { format, startOfWeek, endOfWeek, subWeeks } from 'date-fns';
 import { WhatsAppReminderButton } from '@/components/WhatsAppReminderButton';
@@ -21,6 +21,8 @@ import {
   getStoredSessionDayRangeForBrasilia,
   getStoredSessionYearRangeForBrasilia,
 } from '@/lib/sessionDateTime';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 
 const PIE_COLORS = [
   'hsl(220, 70%, 25%)', 'hsl(45, 93%, 47%)', 'hsl(142, 71%, 45%)',
@@ -43,6 +45,7 @@ export default function Dashboard() {
   const [lesoesAtendSegmentos, setLesoesAtendSegmentos] = useState<string[]>([]);
   const [lesoesAtendSegCount, setLesoesAtendSegCount] = useState<Record<string, number>>({});
   const [lesoesAtendView, setLesoesAtendView] = useState<'mensal' | 'anual'>('anual');
+  const lesoesChartRef = useRef<HTMLDivElement>(null);
 
   const [loading, setLoading] = useState(true);
 
@@ -188,7 +191,38 @@ export default function Dashboard() {
     fetchData();
   };
 
-  if (loading) return <DashboardSkeleton />;
+  const exportLesoesChartPDF = async () => {
+    if (!lesoesChartRef.current) return;
+    const toastId = toast.loading('Gerando PDF do gráfico...');
+    try {
+      const canvas = await html2canvas(lesoesChartRef.current, {
+        scale: 2,
+        backgroundColor: '#ffffff',
+        useCORS: true,
+      });
+      const imgData = canvas.toDataURL('image/png');
+      const doc = new jsPDF({ orientation: 'landscape', unit: 'mm' });
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const margin = 10;
+      const imgWidth = pageWidth - margin * 2;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      const availableHeight = pageHeight - margin * 2;
+      const finalHeight = Math.min(imgHeight, availableHeight);
+      const finalWidth = imgHeight > availableHeight ? (canvas.width * availableHeight) / canvas.height : imgWidth;
+      const x = (pageWidth - finalWidth) / 2;
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Atendimentos por Lesão', pageWidth / 2, margin, { align: 'center' });
+      doc.addImage(imgData, 'PNG', x, margin + 5, finalWidth, finalHeight);
+      doc.save('atendimentos_por_lesao.pdf');
+      toast.success('PDF gerado com sucesso!', { id: toastId });
+    } catch (err) {
+      console.error(err);
+      toast.error('Erro ao gerar PDF.', { id: toastId });
+    }
+  };
+
 
   const metricCards = [
     { title: 'Militares Ativos', value: stats.militares, icon: Users, color: 'text-primary' },
@@ -290,14 +324,19 @@ export default function Dashboard() {
         </Card>
       </div>
 
-      <Card>
+      <Card ref={lesoesChartRef}>
         <CardHeader>
           <div className="flex items-center justify-between gap-2 flex-wrap">
-            <CardTitle className="text-lg">
-              Atendimentos por Lesão ({lesoesAtendView === 'mensal'
-                ? `Mês — ${format(new Date(`${getBrasiliaCalendarDate()}T12:00:00Z`), "MMMM 'de' yyyy", { locale: ptBR })}`
-                : `Anual ${getBrasiliaYear()}`})
-            </CardTitle>
+            <div className="flex items-center gap-2 flex-wrap">
+              <CardTitle className="text-lg">
+                Atendimentos por Lesão ({lesoesAtendView === 'mensal'
+                  ? `Mês — ${format(new Date(`${getBrasiliaCalendarDate()}T12:00:00Z`), "MMMM 'de' yyyy", { locale: ptBR })}`
+                  : `Anual ${getBrasiliaYear()}`})
+              </CardTitle>
+              <Button size="sm" variant="outline" onClick={exportLesoesChartPDF}>
+                <Printer className="h-4 w-4 mr-1" /> PDF
+              </Button>
+            </div>
             <div className="flex gap-1">
               <Button
                 size="sm"
