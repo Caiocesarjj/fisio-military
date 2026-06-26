@@ -45,13 +45,14 @@ export default function Dashboard() {
     const { start: yearStart, end: yearEnd } = getStoredSessionYearRangeForBrasilia();
     const now = new Date(`${getBrasiliaCalendarDate()}T12:00:00Z`);
 
-    const [militaresRes, todayRes, plansRes, sessionsYearRes, allMilitaresRes] = await Promise.all([
+    const [militaresRes, todayRes, plansRes, sessionsYearRes, allMilitaresRes, sessionsLesoesRes] = await Promise.all([
       supabase.from('militares').select('id', { count: 'exact' }).eq('ativo', true),
       supabase.from('sessions').select('*, militares(nome_guerra, posto_graduacao, companhia, foto_url, telefone)')
         .gte('data_hora', todayStart).lte('data_hora', todayEnd).order('data_hora'),
       supabase.from('treatment_plans').select('id', { count: 'exact' }).eq('ativo', true),
       supabase.from('sessions').select('id, data_hora, status').gte('data_hora', yearStart).lte('data_hora', yearEnd),
       supabase.from('militares').select('companhia, lesoes').eq('ativo', true),
+      supabase.from('sessions').select('data_hora, lesoes, status'),
     ]);
 
     const todaySess = todayRes.data || [];
