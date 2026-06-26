@@ -87,6 +87,10 @@ export default function RelatorioDetalhado() {
   const [selectedMilitares, setSelectedMilitares] = useState<MilitarOption[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
 
+  // Lesão filter (segmento)
+  const [lesaoFilter, setLesaoFilter] = useState<string>('');
+
+
   useEffect(() => {
     const q = search.trim();
     if (q.length < 2) { setSuggestions([]); return; }
