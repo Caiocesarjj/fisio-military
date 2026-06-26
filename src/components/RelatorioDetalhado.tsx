@@ -284,11 +284,13 @@ export default function RelatorioDetalhado() {
 
   const shareWhatsApp = () => {
     const { start, end } = getDateRange();
-    const realizados = sessions.filter((s) => s.status === 'realizado').length;
+    const realizados = filteredSessions.filter((s) => s.status === 'realizado').length;
 
     let text = `📋 *Relatório de Atendimentos*\n`;
     text += `📅 Período: ${format(start, "dd/MM/yyyy")} a ${format(end, "dd/MM/yyyy")}\n`;
-    text += `📊 Total: ${sessions.length} | Realizados: ${realizados} | Militares: ${grouped.length}\n\n`;
+    if (lesaoFilter) text += `🦴 Lesão: ${lesaoFilter}\n`;
+    text += `📊 Total: ${filteredSessions.length} | Realizados: ${realizados} | Militares: ${grouped.length}\n\n`;
+
 
     grouped.forEach((g) => {
       text += `👤 *${g.nome}* (${g.posto} — ${g.companhia}) — ${g.sessions.length} atend.\n`;
