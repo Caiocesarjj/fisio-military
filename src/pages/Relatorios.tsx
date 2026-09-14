@@ -151,8 +151,46 @@ export default function Relatorios() {
     const { start, end } = getDateRange();
     doc.text(`Período: ${start.toLocaleDateString('pt-BR')} a ${end.toLocaleDateString('pt-BR')}`, w / 2, 22, { align: 'center' });
 
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Média de atendimentos por dia (dias ativos)', 15, 32);
+
     autoTable(doc, {
-      startY: 30,
+      startY: 36,
+      head: [['Total de atendimentos', 'Dias com atendimento', 'Média por dia']],
+      body: [[avgStats.total, avgStats.dias, avgStats.media.toFixed(2)]],
+      theme: 'grid',
+      headStyles: { fillColor: [30, 58, 95] },
+      margin: { left: 15, right: 15 },
+    });
+
+    let y = (doc as any).lastAutoTable.finalY + 4;
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'italic');
+    doc.text('Média considerando apenas dias com atendimento', 15, y);
+    y += 8;
+
+    if (monthlyStats.length > 1) {
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Detalhamento por mês', 15, y);
+      autoTable(doc, {
+        startY: y + 4,
+        head: [['Mês', 'Atendimentos', 'Dias com atendimento', 'Média por dia']],
+        body: monthlyStats.map((m) => [m.label, m.total, m.dias, m.media.toFixed(2)]),
+        theme: 'striped',
+        headStyles: { fillColor: [30, 58, 95] },
+        margin: { left: 15, right: 15 },
+      });
+      y = (doc as any).lastAutoTable.finalY + 8;
+    }
+
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Comparativo entre Companhias', 15, y);
+
+    autoTable(doc, {
+      startY: y + 4,
       head: [['Companhia', 'Militares', 'Realizadas', 'Taxa %', 'Lesões Comuns']],
       body: companyData.map((r) => [r.companhia, r.totalMilitares, r.realizadas, `${r.taxa}%`, r.lesoesComuns]),
       theme: 'striped',
