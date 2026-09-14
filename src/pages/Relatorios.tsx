@@ -108,6 +108,30 @@ export default function Relatorios() {
         media: diasCount > 0 ? totalReal / diasCount : 0,
       });
 
+      // Separação por mês
+      const porMes: Record<string, { total: number; dias: Set<string> }> = {};
+      realizadasSessions.forEach((s: any) => {
+        const iso = new Date(s.data_hora).toISOString();
+        const mes = iso.slice(0, 7);
+        if (!porMes[mes]) porMes[mes] = { total: 0, dias: new Set() };
+        porMes[mes].total += 1;
+        porMes[mes].dias.add(iso.slice(0, 10));
+      });
+      const meses: MonthRow[] = Object.entries(porMes)
+        .sort((a, b) => a[0].localeCompare(b[0]))
+        .map(([key, v]) => {
+          const [y, m] = key.split('-');
+          return {
+            key,
+            label: new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric', timeZone: 'UTC' })
+              .format(new Date(`${y}-${m}-01T00:00:00Z`)),
+            total: v.total,
+            dias: v.dias.size,
+            media: v.dias.size > 0 ? v.total / v.dias.size : 0,
+          };
+        });
+      setMonthlyStats(meses);
+
       setCompanyData(rows);
       setChartData(rows.map((r) => ({ name: r.companhia, Realizadas: r.realizadas })));
       setLoading(false);
