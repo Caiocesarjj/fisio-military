@@ -13,7 +13,15 @@ import autoTable from 'jspdf-autotable';
 import { startOfWeek, endOfWeek, startOfMonth, endOfMonth, subMonths } from 'date-fns';
 import RelatorioDetalhado from '@/components/RelatorioDetalhado';
 
-type Period = 'week' | 'month' | '3months' | 'custom';
+type Period = 'week' | 'month' | '3months' | '6months' | 'custom';
+
+interface MonthRow {
+  key: string;
+  label: string;
+  total: number;
+  dias: number;
+  media: number;
+}
 
 interface CompanyRow {
   companhia: string;
@@ -30,6 +38,7 @@ export default function Relatorios() {
   const [companyData, setCompanyData] = useState<CompanyRow[]>([]);
   const [chartData, setChartData] = useState<any[]>([]);
   const [avgStats, setAvgStats] = useState({ total: 0, dias: 0, media: 0 });
+  const [monthlyStats, setMonthlyStats] = useState<MonthRow[]>([]);
   const [loading, setLoading] = useState(true);
 
   const getDateRange = (): { start: Date; end: Date } => {
@@ -38,6 +47,7 @@ export default function Relatorios() {
       case 'week': return { start: startOfWeek(now), end: endOfWeek(now) };
       case 'month': return { start: startOfMonth(now), end: endOfMonth(now) };
       case '3months': return { start: startOfMonth(subMonths(now, 2)), end: endOfMonth(now) };
+      case '6months': return { start: startOfMonth(subMonths(now, 5)), end: endOfMonth(now) };
       case 'custom':
         return {
           start: customStart ? new Date(customStart) : startOfMonth(now),
@@ -98,6 +108,30 @@ export default function Relatorios() {
         media: diasCount > 0 ? totalReal / diasCount : 0,
       });
 
+      // Separação por mês
+      const porMes: Record<string, { total: number; dias: Set<string> }> = {};
+      realizadasSessions.forEach((s: any) => {
+        const iso = new Date(s.data_hora).toISOString();
+        const mes = iso.slice(0, 7);
+        if (!porMes[mes]) porMes[mes] = { total: 0, dias: new Set() };
+        porMes[mes].total += 1;
+        porMes[mes].dias.add(iso.slice(0, 10));
+      });
+      const meses: MonthRow[] = Object.entries(porMes)
+        .sort((a, b) => a[0].localeCompare(b[0]))
+        .map(([key, v]) => {
+          const [y, m] = key.split('-');
+          return {
+            key,
+            label: new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric', timeZone: 'UTC' })
+              .format(new Date(`${y}-${m}-01T00:00:00Z`)),
+            total: v.total,
+            dias: v.dias.size,
+            media: v.dias.size > 0 ? v.total / v.dias.size : 0,
+          };
+        });
+      setMonthlyStats(meses);
+
       setCompanyData(rows);
       setChartData(rows.map((r) => ({ name: r.companhia, Realizadas: r.realizadas })));
       setLoading(false);
@@ -117,8 +151,46 @@ export default function Relatorios() {
     const { start, end } = getDateRange();
     doc.text(`Período: ${start.toLocaleDateString('pt-BR')} a ${end.toLocaleDateString('pt-BR')}`, w / 2, 22, { align: 'center' });
 
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Média de atendimentos por dia (dias ativos)', 15, 32);
+
     autoTable(doc, {
-      startY: 30,
+      startY: 36,
+      head: [['Total de atendimentos', 'Dias com atendimento', 'Média por dia']],
+      body: [[avgStats.total, avgStats.dias, avgStats.media.toFixed(2)]],
+      theme: 'grid',
+      headStyles: { fillColor: [30, 58, 95] },
+      margin: { left: 15, right: 15 },
+    });
+
+    let y = (doc as any).lastAutoTable.finalY + 4;
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'italic');
+    doc.text('Média considerando apenas dias com atendimento', 15, y);
+    y += 8;
+
+    if (monthlyStats.length > 1) {
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Detalhamento por mês', 15, y);
+      autoTable(doc, {
+        startY: y + 4,
+        head: [['Mês', 'Atendimentos', 'Dias com atendimento', 'Média por dia']],
+        body: monthlyStats.map((m) => [m.label, m.total, m.dias, m.media.toFixed(2)]),
+        theme: 'striped',
+        headStyles: { fillColor: [30, 58, 95] },
+        margin: { left: 15, right: 15 },
+      });
+      y = (doc as any).lastAutoTable.finalY + 8;
+    }
+
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Comparativo entre Companhias', 15, y);
+
+    autoTable(doc, {
+      startY: y + 4,
       head: [['Companhia', 'Militares', 'Realizadas', 'Taxa %', 'Lesões Comuns']],
       body: companyData.map((r) => [r.companhia, r.totalMilitares, r.realizadas, `${r.taxa}%`, r.lesoesComuns]),
       theme: 'striped',
@@ -147,6 +219,7 @@ export default function Relatorios() {
             <option value="week">Semana atual</option>
             <option value="month">Mês atual</option>
             <option value="3months">Últimos 3 meses</option>
+            <option value="6months">Últimos 6 meses</option>
             <option value="custom">Personalizado</option>
           </select>
         </div>
@@ -189,6 +262,34 @@ export default function Relatorios() {
           <p className="text-xs text-muted-foreground mt-3 italic">
             Média considerando apenas dias com atendimento
           </p>
+
+          {monthlyStats.length > 1 && (
+            <div className="mt-4">
+              <p className="text-sm font-medium text-foreground mb-2">Detalhamento por mês</p>
+              <div className="rounded-lg border bg-card overflow-hidden">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Mês</TableHead>
+                      <TableHead className="text-center">Atendimentos</TableHead>
+                      <TableHead className="text-center">Dias</TableHead>
+                      <TableHead className="text-center">Média/dia</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {monthlyStats.map((m) => (
+                      <TableRow key={m.key}>
+                        <TableCell className="font-medium capitalize">{m.label}</TableCell>
+                        <TableCell className="text-center">{m.total}</TableCell>
+                        <TableCell className="text-center">{m.dias}</TableCell>
+                        <TableCell className="text-center font-semibold">{m.media.toFixed(2)}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 
