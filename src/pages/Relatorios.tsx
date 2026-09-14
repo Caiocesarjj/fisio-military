@@ -13,7 +13,15 @@ import autoTable from 'jspdf-autotable';
 import { startOfWeek, endOfWeek, startOfMonth, endOfMonth, subMonths } from 'date-fns';
 import RelatorioDetalhado from '@/components/RelatorioDetalhado';
 
-type Period = 'week' | 'month' | '3months' | 'custom';
+type Period = 'week' | 'month' | '3months' | '6months' | 'custom';
+
+interface MonthRow {
+  key: string;
+  label: string;
+  total: number;
+  dias: number;
+  media: number;
+}
 
 interface CompanyRow {
   companhia: string;
