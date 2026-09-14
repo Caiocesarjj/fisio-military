@@ -219,6 +219,7 @@ export default function Relatorios() {
             <option value="week">Semana atual</option>
             <option value="month">Mês atual</option>
             <option value="3months">Últimos 3 meses</option>
+            <option value="6months">Últimos 6 meses</option>
             <option value="custom">Personalizado</option>
           </select>
         </div>
