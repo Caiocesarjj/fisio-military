@@ -38,6 +38,7 @@ export default function Relatorios() {
   const [companyData, setCompanyData] = useState<CompanyRow[]>([]);
   const [chartData, setChartData] = useState<any[]>([]);
   const [avgStats, setAvgStats] = useState({ total: 0, dias: 0, media: 0 });
+  const [monthlyStats, setMonthlyStats] = useState<MonthRow[]>([]);
   const [loading, setLoading] = useState(true);
 
   const getDateRange = (): { start: Date; end: Date } => {
@@ -46,6 +47,7 @@ export default function Relatorios() {
       case 'week': return { start: startOfWeek(now), end: endOfWeek(now) };
       case 'month': return { start: startOfMonth(now), end: endOfMonth(now) };
       case '3months': return { start: startOfMonth(subMonths(now, 2)), end: endOfMonth(now) };
+      case '6months': return { start: startOfMonth(subMonths(now, 5)), end: endOfMonth(now) };
       case 'custom':
         return {
           start: customStart ? new Date(customStart) : startOfMonth(now),
