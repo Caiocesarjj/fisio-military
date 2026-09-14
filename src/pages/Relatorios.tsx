@@ -262,6 +262,34 @@ export default function Relatorios() {
           <p className="text-xs text-muted-foreground mt-3 italic">
             Média considerando apenas dias com atendimento
           </p>
+
+          {monthlyStats.length > 1 && (
+            <div className="mt-4">
+              <p className="text-sm font-medium text-foreground mb-2">Detalhamento por mês</p>
+              <div className="rounded-lg border bg-card overflow-hidden">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Mês</TableHead>
+                      <TableHead className="text-center">Atendimentos</TableHead>
+                      <TableHead className="text-center">Dias</TableHead>
+                      <TableHead className="text-center">Média/dia</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {monthlyStats.map((m) => (
+                      <TableRow key={m.key}>
+                        <TableCell className="font-medium capitalize">{m.label}</TableCell>
+                        <TableCell className="text-center">{m.total}</TableCell>
+                        <TableCell className="text-center">{m.dias}</TableCell>
+                        <TableCell className="text-center font-semibold">{m.media.toFixed(2)}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 
